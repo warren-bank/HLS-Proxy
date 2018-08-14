@@ -1,5 +1,4 @@
 const request   = require('@warren-bank/node-request').request
-const url_parse = require('url').parse
 
 // btoa
 const base64_encode = function(str) {

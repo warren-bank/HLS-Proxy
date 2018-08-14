@@ -3,8 +3,8 @@
 #### Intended Purpose:
 
 * proxy .m3u8 files, and the .ts files they internally reference
-* to all:
-  * remove CORS response headers
+* to all proxied files:
+  * add permissive CORS response headers
 * to .m3u8:
   * modify contents such that URLs to .ts files will also pass through the proxy
 
