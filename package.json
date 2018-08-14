@@ -1,0 +1,29 @@
+{
+  "name": "@warren-bank/HLS-proxy",
+  "description": "Node.js server to proxy HLS video streams and bypass restrictive CORS headers",
+  "version": "0.1.0",
+  "scripts": {
+    "start":           "node bin/start_http.js",
+    "http":            "node bin/start_http.js",
+    "https":           "node bin/start_https.js",
+    "sudo-http":  "sudo node bin/start_http.js",
+    "sudo-https": "sudo node bin/start_https.js"
+  },
+  "dependencies": {
+    "@warren-bank/node-request": "^1.0.4"
+  },
+  "license": "GPL-2.0",
+  "author": {
+    "name": "Warren R. Bank",
+    "email": "warren.r.bank@gmail.com",
+    "url": "https://github.com/warren-bank"
+  },
+  "homepage": "https://github.com/warren-bank/HLS-proxy",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/warren-bank/HLS-proxy"
+  },
+  "bugs": {
+    "url": "https://github.com/warren-bank/HLS-proxy/issues"
+  }
+}
