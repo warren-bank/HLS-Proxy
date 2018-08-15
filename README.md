@@ -21,29 +21,35 @@ npm install --global "@warren-bank/hls-proxy"
 #### How to: Run the server(s):
 
 ```bash
-hlsd help
+hlsd --help
 
-hlsd [<host=127.0.0.1> <port=80> <tls>]
+hlsd [--host "127.0.0.1"] [--port "80"] [--tls]
 ```
 
 #### Examples:
 
-1. start HTTP proxy at default host:ip<br>
+1. print help<br>
+  `hlsd --help`
+
+2. start HTTP proxy at default host:port<br>
   `hlsd`
 
-2. start HTTP proxy at specific host:ip<br>
-  `hlsd "192.168.0.100" "8080"`
+3. start HTTP proxy at default host and specific port<br>
+  `hlsd --port "8080"`
 
-3. start HTTPS proxy at default host:ip<br>
-  `hlsd "" "" tls`
+4. start HTTP proxy at specific host:port<br>
+  `hlsd --host "192.168.0.100" --port "8080"`
 
-4. start HTTPS proxy at specific host:ip<br>
-  `hlsd "192.168.0.100" "8081" tls`
+5. start HTTPS proxy at default host:port<br>
+  `hlsd --tls`
+
+6. start HTTPS proxy at specific host:port<br>
+  `hlsd --host "192.168.0.100" --port "8081" --tls`
 
 #### Options:
 
-* _host_ should be the IP address of the server on the LAN
-  * ex: `192.168.0.100` ..so Chromecast can proxy requests through it
+* _--host_ must be an IP address of the server on the LAN (so Chromecast can proxy requests through it)
+  * ex: `192.168.0.100`
   * used to modify URLs in .m3u8 files
   * when this option is not specified:
     * the list of available network addresses is determined
@@ -52,13 +58,13 @@ hlsd [<host=127.0.0.1> <port=80> <tls>]
     * if there are multiple addresses:
       * they are listed
       * a prompt asks the user to choose (the numeric index) of one
-* _port_ is the port number that the server listens on
+* _--port_ is the port number that the server listens on
   * ex: `8080`
   * used to modify URLs in .m3u8 files
   * when this option is not specified:
     * HTTP proxy binds to: `80`
     * HTTPS proxy binds to: `443`
-* _tls_ is an optional flag to start HTTP**S** proxy, rather than HTTP
+* _--tls_ is a flag to start HTTP**S** proxy, rather than HTTP
 
 - - - -
 
@@ -81,29 +87,29 @@ npm install
 # Linux considers port numbers < 1024 to be priviliged.
 # Use "sudo":
 # ----------------------------------------------------------------------
-npm run sudo-http  [-- <host=127.0.0.1> <port=80> ]
-npm run sudo-https [-- <host=127.0.0.1> <port=443>]
+npm run sudo-http  [-- [--host "127.0.0.1"] [--port  "80"] ]
+npm run sudo-https [-- [--host "127.0.0.1"] [--port "443"] ]
 
 # ----------------------------------------------------------------------
 # If using a port number >= 1024 on Linux, or
 # If using Windows:
 # ----------------------------------------------------------------------
-npm run http  [-- <host=127.0.0.1> <port=80> ]
-npm run https [-- <host=127.0.0.1> <port=443>]
+npm run http  [-- [--host "127.0.0.1"] [--port  "80"] ]
+npm run https [-- [--host "127.0.0.1"] [--port "443"] ]
 ```
 
 #### Examples:
 
 ```bash
-npm run http  -- "192.168.0.100" "8080"
+npm run http  -- --host "192.168.0.100" --port "8080"
 
-npm run https -- "192.168.0.100" "8081"
+npm run https -- --host "192.168.0.100" --port "8081"
 ```
 
 #### Options:
 
-* _host_ should be the IP address of the server on the LAN
-  * ex: `192.168.0.100` ..so Chromecast can proxy requests through it
+* _--host_ must be an IP address of the server on the LAN (so Chromecast can proxy requests through it)
+  * ex: `192.168.0.100`
   * used to modify URLs in .m3u8 files
   * when this option is not specified:
     * the list of available network addresses is determined
@@ -112,7 +118,7 @@ npm run https -- "192.168.0.100" "8081"
     * if there are multiple addresses:
       * they are listed
       * a prompt asks the user to choose (the numeric index) of one
-* _port_ is the port number that the server listens on
+* _--port_ is the port number that the server listens on
   * ex: `8080`
   * used to modify URLs in .m3u8 files
   * when this option is not specified:
