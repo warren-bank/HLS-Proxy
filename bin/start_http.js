@@ -5,8 +5,8 @@ let host = 'localhost'
 let port = 80
 if (process.argv.length > 3) {
   try {
-    host = process.argv[2]
-    port = Number(process.argv[3])
+    if (process.argv[2]) host = process.argv[2]
+    if (process.argv[3]) port = Number(process.argv[3])
   }
   catch(e){}
 }

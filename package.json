@@ -9,6 +9,9 @@
     "sudo-http":  "sudo node bin/start_http.js",
     "sudo-https": "sudo node bin/start_https.js"
   },
+  "bin": {
+    "hlsd": ".bin/hlsd.js"
+  },
   "dependencies": {
     "@warren-bank/node-request": "^1.0.4"
   },
