@@ -14,7 +14,7 @@ const proxy = function(server, host, port, is_secure) {
   const regexs = {
     wrap: new RegExp('/?([^\\.]+)\\..*$', 'i'),
     m3u8: new RegExp('\\.m3u8$', 'i'),
-    ts:   new RegExp('(https?://[^\\s]+\\.ts)(\\s|$)', 'ig')
+    urls: new RegExp('(^|[\\s\'"])(https?://(?:[^/\\s,\'"]*/)+)?([^/\\s,\'"]+)(\\.[^/\\.\\s,\'"]+)(["\'\\s]|$)', 'ig')
   }
 
   const add_CORS_headers = function(res) {
@@ -23,6 +23,14 @@ const proxy = function(server, host, port, is_secure) {
     res.setHeader('Access-Control-Allow-Headers',     '*')
     res.setHeader('Access-Control-Allow-Credentials', 'true')
     res.setHeader('Access-Control-Max-Age',           '86400')
+  }
+
+  const modify_m3u8_content = function(m3u8_content, referer) {
+    const base_url = referer.replace(/[^\/]+$/, '')
+
+    return m3u8_content.replace(regexs.urls, function(match, head, abs_path, file_name, file_ext, tail) {
+      return `${head}${ is_secure ? 'https' : 'http' }://${host}:${port}/${ base64_encode(`${abs_path || base_url}${file_name}${file_ext}`) }${file_ext}${tail}`
+    })
   }
 
   // Create an HTTP tunneling proxy
@@ -39,9 +47,8 @@ const proxy = function(server, host, port, is_secure) {
         response.pipe(res)
       }
       else {
-        response = response.replace(regexs.ts, (match, p1, p2) => `${ is_secure ? 'https' : 'http' }://${host}:${port}/${ base64_encode(p1) }.ts${p2}`)
         res.writeHead(200, { "Content-Type": "application/x-mpegURL" })
-        res.end(response)
+        res.end( modify_m3u8_content(response, url) )
       }
     })
     .catch((e) => {
