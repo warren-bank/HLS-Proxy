@@ -124,8 +124,18 @@ npm start -- --port "8080" --req-headers "$headers_file"
 
 URL='https://httpbin.org/headers'
 URL=$(echo "$URL" | base64)
-URL="http://localhost:8080/${URL}.json"
+URL="http://127.0.0.1:8080/${URL}.json"
 curl --silent "$URL"
+```
+
+7. start HTTPS proxy at specific port and send custom request headers<br>
+  ```bash
+headers_file="${TMPDIR}/headers.json"
+echo '{"Origin" : "http://XXX:80", "Referer": "http://XXX:80/page.html"}' > "$headers_file"
+npm start -- --port "8081" --req-headers "$headers_file" --tls
+
+URL='https://127.0.0.1:8081/aHR0cHM6Ly9odHRwYmluLm9yZy9oZWFkZXJzCg==.json'
+curl --silent --insecure "$URL"
 ```
 
 #### Options:
