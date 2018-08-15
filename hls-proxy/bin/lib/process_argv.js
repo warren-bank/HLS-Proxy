@@ -1,4 +1,4 @@
-const grep_argv = require('../lib/grep_argv')
+const grep_argv = require('./grep_argv')
 
 const argv_vals = grep_argv({
   "--host":        {},
@@ -24,7 +24,8 @@ usage examples:
      hlsd --tls
 6) start HTTPS proxy at specific host:port
      hlsd --host "192.168.0.100" --port "8081" --tls
-7) start HTTPS proxy at default host:port and include specific HTTP headers in every outbound request
+7) start HTTPS proxy at default host:port
+   and include specific HTTP headers in every outbound request
      hlsd --tls --req-headers "/path/to/request/headers.json"
 ` )
   process.exit(0)

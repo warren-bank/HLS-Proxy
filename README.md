@@ -21,9 +21,7 @@ npm install --global "@warren-bank/hls-proxy"
 #### How to: Run the server(s):
 
 ```bash
-hlsd --help
-
-hlsd [--tls] [--host "127.0.0.1"] [--port "80"] [--req-headers "/path/to/request/headers.json"]
+hlsd [--help] [--tls] [--host "127.0.0.1"] [--port "80"] [--req-headers "/path/to/request/headers.json"]
 ```
 
 #### Examples:
@@ -87,50 +85,52 @@ npm install
 
 ```bash
 # ----------------------------------------------------------------------
-# https://www.w3.org/Daemon/User/Installation/PrivilegedPorts.html
-#
-# Linux considers port numbers < 1024 to be priviliged.
-# Use "sudo":
-# ----------------------------------------------------------------------
-npm run sudo-http  [-- [--host "127.0.0.1"] [--port  "80"] [--req-headers "/path/to/request/headers.json"] ]
-npm run sudo-https [-- [--host "127.0.0.1"] [--port "443"] [--req-headers "/path/to/request/headers.json"] ]
-
-# ----------------------------------------------------------------------
 # If using a port number >= 1024 on Linux, or
 # If using Windows:
 # ----------------------------------------------------------------------
-npm run http  [-- [--host "127.0.0.1"] [--port  "80"] [--req-headers "/path/to/request/headers.json"] ]
-npm run https [-- [--host "127.0.0.1"] [--port "443"] [--req-headers "/path/to/request/headers.json"] ]
+npm start [-- [--help] [--tls] [--host "127.0.0.1"] [--port "80"] [--req-headers "/path/to/request/headers.json"] ]
+
+# ----------------------------------------------------------------------
+# https://www.w3.org/Daemon/User/Installation/PrivilegedPorts.html
+#
+# Linux considers port numbers < 1024 to be privileged.
+# Use "sudo":
+# ----------------------------------------------------------------------
+npm run sudo [-- [--help] [--tls] [--host "127.0.0.1"] [--port "80"] [--req-headers "/path/to/request/headers.json"] ]
 ```
 
 #### Examples:
 
-```bash
-npm run http  -- --host "192.168.0.100" --port "8080"
+1. print help<br>
+  `npm start -- --help`
 
-npm run https -- --host "192.168.0.100" --port "8081"
+2. start HTTP proxy at specific host:port<br>
+  `npm start -- --host "192.168.0.100" --port "8080"`
+
+3. start HTTPS proxy at specific host:port<br>
+  `npm start -- --host "192.168.0.100" --port "8081" --tls`
+
+4. start HTTP proxy at default host:port with escalated privilege<br>
+  `npm run sudo -- --port "80"`
+
+5. start HTTPS proxy at default host:port with escalated privilege<br>
+  `npm run sudo -- --port "443" --tls`
+
+6. start HTTP proxy at specific port and send custom request headers<br>
+  ```bash
+headers_file="${TMPDIR}/headers.json"
+echo '{"Origin" : "http://XXX:80", "Referer": "http://XXX:80/page.html"}' > "$headers_file"
+npm start -- --port "8080" --req-headers "$headers_file"
+
+URL='https://httpbin.org/headers'
+URL=$(echo "$URL" | base64)
+URL="http://localhost:8080/${URL}.json"
+curl --silent "$URL"
 ```
 
 #### Options:
 
-* _--host_ must be an IP address of the server on the LAN (so Chromecast can proxy requests through it)
-  * ex: `192.168.0.100`
-  * used to modify URLs in .m3u8 files
-  * when this option is not specified:
-    * the list of available network addresses is determined
-    * if there are none, 'localhost' is used silently
-    * if there is only a single address on the LAN, it is used silently
-    * if there are multiple addresses:
-      * they are listed
-      * a prompt asks the user to choose (the numeric index) of one
-* _--port_ is the port number that the server listens on
-  * ex: `8080`
-  * used to modify URLs in .m3u8 files
-  * when this option is not specified:
-    * HTTP proxy binds to: `80`
-    * HTTPS proxy binds to: `443`
-* _--req-headers_ is the filepath to a JSON data Object containing key:value pairs
-  * each _key_ is the name of an HTTP header to send in in every outbound request
+* identical to the [command-line binary](#installation-and-usage-globally)
 
 - - - -
 

@@ -1,7 +1,6 @@
-const prompt    = require('../lib/LAN_IPs').prompt
-const proxy     = require('../proxy')
-const bootstrap = require('./process_argv').bootstrap_server
-const http      = require('http')
+const prompt = require('./lib/LAN_IPs').prompt
+const proxy  = require('../proxy')
+const http   = require('http')
 
 const start_server = function(host, port, req_headers) {
   if (!port || isNaN(port)) port = 80
@@ -24,8 +23,4 @@ const start_server = function(host, port, req_headers) {
   })
 }
 
-if (require.main === module) {
-  bootstrap(start_server)
-} else {
-  module.exports = start_server
-}
+module.exports = start_server
