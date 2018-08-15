@@ -25,8 +25,8 @@ const proxy = function(server, host, port, is_secure) {
     res.setHeader('Access-Control-Max-Age',           '86400')
   }
 
-  const modify_m3u8_content = function(m3u8_content, referer) {
-    const base_url = referer.replace(/[^\/]+$/, '')
+  const modify_m3u8_content = function(m3u8_content, m3u8_url) {
+    const base_url = m3u8_url.replace(/[^\/]+$/, '')
 
     return m3u8_content.replace(regexs.urls, function(match, head, abs_path, file_name, file_ext, tail) {
       return `${head}${ is_secure ? 'https' : 'http' }://${host}:${port}/${ base64_encode(`${abs_path || base_url}${file_name}${file_ext}`) }${file_ext}${tail}`
