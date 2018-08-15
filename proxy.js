@@ -1,4 +1,5 @@
 const request   = require('@warren-bank/node-request').request
+const parse_url = require('url').parse
 
 // btoa
 const base64_encode = function(str) {
@@ -10,9 +11,9 @@ const base64_decode = function(str) {
   return Buffer.from(str, 'base64').toString('binary')
 }
 
-const proxy = function(server, host, port, is_secure) {
+const proxy = function(server, host, port, is_secure, req_headers) {
   const regexs = {
-    wrap: new RegExp('/?([^\\.]+)\\..*$', 'i'),
+    wrap: new RegExp('/?([^\\.]+)(?:\\..*)?$', 'i'),
     m3u8: new RegExp('\\.m3u8$', 'i'),
     urls: new RegExp('(^|[\\s\'"])(https?://(?:[^/\\s,\'"]*/)+)?([^/\\s,\'"]+)(\\.[^/\\.\\s,\'"]+)(["\'\\s]|$)', 'ig')
   }
@@ -23,6 +24,17 @@ const proxy = function(server, host, port, is_secure) {
     res.setHeader('Access-Control-Allow-Headers',     '*')
     res.setHeader('Access-Control-Allow-Credentials', 'true')
     res.setHeader('Access-Control-Max-Age',           '86400')
+  }
+
+  const get_request_options = function(url) {
+    if (!req_headers) return url
+
+    let request_options = Object.assign(
+      {},
+      parse_url(url),
+      {headers: req_headers}
+    )
+    return request_options
   }
 
   const modify_m3u8_content = function(m3u8_content, m3u8_url) {
@@ -37,11 +49,12 @@ const proxy = function(server, host, port, is_secure) {
   server.on('request', (req, res) => {
     const url     = base64_decode( req.url.replace(regexs.wrap, '$1') )
     const is_m3u8 = regexs.m3u8.test(url)
+    const options = get_request_options(url)
     console.log('proxying:', url)
 
     add_CORS_headers(res)
 
-    request(url, '', {binary: !is_m3u8, stream: !is_m3u8})
+    request(options, '', {binary: !is_m3u8, stream: !is_m3u8})
     .then(({response}) => {
       if (!is_m3u8) {
         response.pipe(res)

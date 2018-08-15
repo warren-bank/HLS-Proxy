@@ -23,7 +23,7 @@ npm install --global "@warren-bank/hls-proxy"
 ```bash
 hlsd --help
 
-hlsd [--host "127.0.0.1"] [--port "80"] [--tls]
+hlsd [--tls] [--host "127.0.0.1"] [--port "80"] [--req-headers "/path/to/request/headers.json"]
 ```
 
 #### Examples:
@@ -46,8 +46,12 @@ hlsd [--host "127.0.0.1"] [--port "80"] [--tls]
 6. start HTTPS proxy at specific host:port<br>
   `hlsd --host "192.168.0.100" --port "8081" --tls`
 
+7. start HTTPS proxy at default host:port and send specific HTTP headers<br>
+  `hlsd --tls --req-headers "/path/to/request/headers.json"`
+
 #### Options:
 
+* _--tls_ is a flag to start HTTP**S** proxy, rather than HTTP
 * _--host_ must be an IP address of the server on the LAN (so Chromecast can proxy requests through it)
   * ex: `192.168.0.100`
   * used to modify URLs in .m3u8 files
@@ -64,7 +68,8 @@ hlsd [--host "127.0.0.1"] [--port "80"] [--tls]
   * when this option is not specified:
     * HTTP proxy binds to: `80`
     * HTTPS proxy binds to: `443`
-* _--tls_ is a flag to start HTTP**S** proxy, rather than HTTP
+* _--req-headers_ is the filepath to a JSON data Object containing key:value pairs
+  * each _key_ is the name of an HTTP header to send in in every outbound request
 
 - - - -
 
@@ -87,15 +92,15 @@ npm install
 # Linux considers port numbers < 1024 to be priviliged.
 # Use "sudo":
 # ----------------------------------------------------------------------
-npm run sudo-http  [-- [--host "127.0.0.1"] [--port  "80"] ]
-npm run sudo-https [-- [--host "127.0.0.1"] [--port "443"] ]
+npm run sudo-http  [-- [--host "127.0.0.1"] [--port  "80"] [--req-headers "/path/to/request/headers.json"] ]
+npm run sudo-https [-- [--host "127.0.0.1"] [--port "443"] [--req-headers "/path/to/request/headers.json"] ]
 
 # ----------------------------------------------------------------------
 # If using a port number >= 1024 on Linux, or
 # If using Windows:
 # ----------------------------------------------------------------------
-npm run http  [-- [--host "127.0.0.1"] [--port  "80"] ]
-npm run https [-- [--host "127.0.0.1"] [--port "443"] ]
+npm run http  [-- [--host "127.0.0.1"] [--port  "80"] [--req-headers "/path/to/request/headers.json"] ]
+npm run https [-- [--host "127.0.0.1"] [--port "443"] [--req-headers "/path/to/request/headers.json"] ]
 ```
 
 #### Examples:
@@ -124,6 +129,8 @@ npm run https -- --host "192.168.0.100" --port "8081"
   * when this option is not specified:
     * HTTP proxy binds to: `80`
     * HTTPS proxy binds to: `443`
+* _--req-headers_ is the filepath to a JSON data Object containing key:value pairs
+  * each _key_ is the name of an HTTP header to send in in every outbound request
 
 - - - -
 

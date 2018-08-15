@@ -3,7 +3,7 @@ const proxy     = require('../proxy')
 const bootstrap = require('./process_argv').bootstrap_server
 const http      = require('http')
 
-const start_server = function(host, port) {
+const start_server = function(host, port, req_headers) {
   if (!port || isNaN(port)) port = 80
 
   new Promise((resolve, reject) => {
@@ -17,7 +17,7 @@ const start_server = function(host, port) {
     }
 
     const server = http.createServer()
-    proxy(server, host, port, false)
+    proxy(server, host, port, false, req_headers)
     server.listen(port, function () {
       console.log(`HTTP server is listening at: ${host}:${port}`)
     })

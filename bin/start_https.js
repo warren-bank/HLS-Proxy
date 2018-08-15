@@ -4,7 +4,7 @@ const bootstrap = require('./process_argv').bootstrap_server
 const https     = require('https')
 const fs        = require('fs')
 
-const start_server = function(host, port) {
+const start_server = function(host, port, req_headers) {
   if (!port || isNaN(port)) port = 443
 
   new Promise((resolve, reject) => {
@@ -27,7 +27,7 @@ const start_server = function(host, port) {
     }
 
     const server = https.createServer(ssl_options)
-    proxy(server, host, port, true)
+    proxy(server, host, port, true, req_headers)
     server.listen(port, function () {
       console.log(`HTTPS server is listening at: ${host}:${port}`)
     })
