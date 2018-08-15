@@ -10,6 +10,50 @@
 
 - - - -
 
+### Installation and Usage: Globally
+
+#### How to: Install:
+
+```bash
+npm install --global "@warren-bank/hls-proxy"
+```
+
+#### How to: Run the server(s):
+
+```bash
+hlsd help
+
+hlsd [<host=127.0.0.1> <port=80> <tls>]
+```
+
+#### Examples:
+
+1. start HTTP proxy at default host:ip [_localhost:80_]<br>
+  `hlsd`
+
+2. start HTTP proxy at specific host:ip<br>
+  `hlsd "192.168.0.100" "8080"`
+
+3. start HTTPS proxy at default host:ip [_localhost:443_]<br>
+  `hlsd "" "" tls`
+
+4. start HTTPS proxy at specific host:ip<br>
+  `hlsd "192.168.0.100" "8080" tls`
+
+#### Options:
+
+* _host_ should be the IP address of the server on the LAN
+  * ex: `192.168.0.100` ..so Chromecast can proxy requests through it
+  * only used to modify .ts URLs in .m3u8 files
+* _port_ is the port number that the server listens on
+  * ex: `8080`
+  * also used to modify .ts URLs in .m3u8 files
+* _tls_ is an optional flag to start HTTP**S** proxy, rather than HTTP
+
+- - - -
+
+### Installation and Usage: Working with a Local `git` Repo
+
 #### How to: Install:
 
 ```bash
@@ -38,10 +82,12 @@ npm run http  [-- <host=127.0.0.1> <port=80> ]
 npm run https [-- <host=127.0.0.1> <port=443>]
 ```
 
-#### Example:
+#### Examples:
 
 ```bash
-npm run http -- "192.168.0.100" "8080"
+npm run http  -- "192.168.0.100" "8080"
+
+npm run https -- "192.168.0.100" "8081"
 ```
 
 #### Options:
