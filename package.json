@@ -1,7 +1,7 @@
 {
   "name": "@warren-bank/hls-proxy",
   "description": "Node.js server to proxy HLS video streams and bypass restrictive CORS headers",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "scripts": {
     "start":           "node bin/start_http.js",
     "http":            "node bin/start_http.js",

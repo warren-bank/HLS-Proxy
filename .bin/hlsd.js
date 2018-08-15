@@ -16,9 +16,11 @@ usage examples:
   process.exit(0)
 }
 
+let start_server
 if ( (process.argv.length > 4) && (process.argv[4].toLowerCase().replace(/[^a-z]/g, '') === "tls") ) {
-  require('../bin/start_https')
+  start_server = require('../bin/start_https')
 }
 else {
-  require('../bin/start_http')
+  start_server = require('../bin/start_http')
 }
+start_server(process.argv[2], Number(process.argv[3]))

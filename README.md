@@ -6,7 +6,7 @@
 * to all proxied files:
   * add permissive CORS response headers
 * to .m3u8:
-  * modify contents such that URLs to .ts files will also pass through the proxy
+  * modify contents such that URLs in the playlist will also pass through the proxy
 
 - - - -
 
@@ -28,26 +28,36 @@ hlsd [<host=127.0.0.1> <port=80> <tls>]
 
 #### Examples:
 
-1. start HTTP proxy at default host:ip [_localhost:80_]<br>
+1. start HTTP proxy at default host:ip<br>
   `hlsd`
 
 2. start HTTP proxy at specific host:ip<br>
   `hlsd "192.168.0.100" "8080"`
 
-3. start HTTPS proxy at default host:ip [_localhost:443_]<br>
+3. start HTTPS proxy at default host:ip<br>
   `hlsd "" "" tls`
 
 4. start HTTPS proxy at specific host:ip<br>
-  `hlsd "192.168.0.100" "8080" tls`
+  `hlsd "192.168.0.100" "8081" tls`
 
 #### Options:
 
 * _host_ should be the IP address of the server on the LAN
   * ex: `192.168.0.100` ..so Chromecast can proxy requests through it
-  * only used to modify .ts URLs in .m3u8 files
+  * used to modify URLs in .m3u8 files
+  * when this option is not specified:
+    * the list of available network addresses is determined
+    * if there are none, 'localhost' is used silently
+    * if there is only a single address on the LAN, it is used silently
+    * if there are multiple addresses:
+      * they are listed
+      * a prompt asks the user to choose (the numeric index) of one
 * _port_ is the port number that the server listens on
   * ex: `8080`
-  * also used to modify .ts URLs in .m3u8 files
+  * used to modify URLs in .m3u8 files
+  * when this option is not specified:
+    * HTTP proxy binds to: `80`
+    * HTTPS proxy binds to: `443`
 * _tls_ is an optional flag to start HTTP**S** proxy, rather than HTTP
 
 - - - -
@@ -94,10 +104,20 @@ npm run https -- "192.168.0.100" "8081"
 
 * _host_ should be the IP address of the server on the LAN
   * ex: `192.168.0.100` ..so Chromecast can proxy requests through it
-  * only used to modify .ts URLs in .m3u8 files
+  * used to modify URLs in .m3u8 files
+  * when this option is not specified:
+    * the list of available network addresses is determined
+    * if there are none, 'localhost' is used silently
+    * if there is only a single address on the LAN, it is used silently
+    * if there are multiple addresses:
+      * they are listed
+      * a prompt asks the user to choose (the numeric index) of one
 * _port_ is the port number that the server listens on
   * ex: `8080`
-  * also used to modify .ts URLs in .m3u8 files
+  * used to modify URLs in .m3u8 files
+  * when this option is not specified:
+    * HTTP proxy binds to: `80`
+    * HTTPS proxy binds to: `443`
 
 - - - -
 
