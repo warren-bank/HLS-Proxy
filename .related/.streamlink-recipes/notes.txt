@@ -1,0 +1,35 @@
+--------------------------------------------------------------------------------
+
+to play in VLC:
+===============
+* Media > Open Network Stream...
+  * Network URL: http://192.168.XXX.XXX:8080/
+
+to play on Chromecast through VLC:
+==================================
+* Playback > Renderer
+  * displays list of Chromecasts found in LAN
+  * select one
+
+--------------------------------------------------------------------------------
+
+observations:
+=============
+* the stream plays perfectly
+* after several minutes, Streamlink encounters a problem:
+    [stream.hls][error] Failed to create decryptor:
+    Unable to open URL: https://key.livecamtv.me/RKUtex2CodYBuOkTGq6A/1534542841
+   (444 Client Error:  for url: https://key.livecamtv.me/RKUtex2CodYBuOkTGq6A/1534542841)
+* after this occurs,
+  when the host website is revisited,
+  the URL of the .m3u8 has changed ever so slightly:
+    * the subdomains are numbered
+    * the number of the subdomain has changed
+* I'm not sure if the change of subdomain is a problem,
+  or if the videos are simply being hosted by several identical servers,
+  and this is load balance at play
+* it seems more likely that it has something to do with pinging the host website,
+  to keep the session active/alive
+    * will need to run a test..
+
+--------------------------------------------------------------------------------
