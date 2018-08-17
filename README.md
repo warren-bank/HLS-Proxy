@@ -171,6 +171,32 @@ curl --silent --insecure "$URL"
 
 - - - -
 
+#### Other (Loosely Related) Projects:
+
+* [Streamlink](https://github.com/streamlink/streamlink)
+  * notes:
+    * this project has __way__ more features, and is __way__ more polished
+    * though its main purpose is to transcode online video with ffmpeg and pipe the output into another program, it can be configured to not load a video player and instead start a web server
+    * it can strongly support individual websites through single-purpose plugins
+    * it can also support streams via direct URLs
+      * using URLs from the wild will have mixed results, since cookies and headers and authentication aren't being managed by any plugin
+  * docs:
+    * [user guide](https://streamlink.github.io/#user-guide)
+    * [command-line usage](https://streamlink.github.io/cli.html#command-line-usage)
+    * [list of supported websites via plugins](https://streamlink.github.io/plugin_matrix.html)
+  * binaries:
+    * [Windows portable](https://github.com/streamlink/streamlink-portable/releases)
+      * minimum system requirements:
+        * Windows 7 SP1
+        * .NET Framework 4.5
+  * usage test:
+    * `streamlink --player-external-http --player-external-http-port 8080 --default-stream best --http-ignore-env --http-no-ssl-verify --url "https://XXX/video.m3u8"`
+  * usage result:
+    * [doesn't appear to work with HTML5 video players or Chromecast](https://github.com/streamlink/streamlink/issues/1704#issuecomment-413661578)
+    * the server starts and works as it was intended, but something about the format of the data it "streams" is incompatible
+
+- - - -
+
 #### Legal:
 
 * copyright: [Warren Bank](https://github.com/warren-bank)
