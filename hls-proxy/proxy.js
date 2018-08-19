@@ -77,7 +77,7 @@ const proxy = function(server, host, port, is_secure, req_headers, debug_level) 
       }
       debug(1, 'modify:', matching_url)
 
-      return `${head}${ is_secure ? 'https' : 'http' }://${host}:${port}/${ base64_encode(matching_url) }${file_ext}${tail}`
+      return `${head}${ is_secure ? 'https' : 'http' }://${host}:${port}/${ base64_encode(matching_url) }${file_ext || ''}${tail}`
     })
 
     m3u8_content = m3u8_content.replace(regexs.keys, function(match, head, key_url, tail) {
