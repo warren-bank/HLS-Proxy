@@ -15,7 +15,9 @@ const proxy = function(server, host, port, is_secure, req_headers) {
   const regexs = {
     wrap: new RegExp('/?([^\\.]+)(?:\\..*)?$', 'i'),
     m3u8: new RegExp('\\.m3u8$', 'i'),
-    urls: new RegExp('(^|[\\s\'"])(https?://(?:[^/\\s,\'"]*/)+)?([^/\\s,\'"]+)(\\.[^/\\.\\s,\'"]+)(["\'\\s]|$)', 'ig')
+//  urls: new RegExp('(^|[\\s\'"])(https?://(?:[^/\\s,\'"]*/)+)?([^/\\s,\'"]+)(\\.[^/\\.\\s,\'"]+)(["\'\\s]|$)', 'img'),
+    urls: new RegExp('(^)(https?://(?:[^/\\s,\'"]*/)+)?([^/\\s,\'"]+)(\\.[^/\\.\\s,\'"]+)($)', 'img'),
+    keys: new RegExp('(^#EXT-X-KEY:[^"]*")([^"]+)(".*$)', 'img')
   }
 
   const add_CORS_headers = function(res) {
@@ -40,9 +42,19 @@ const proxy = function(server, host, port, is_secure, req_headers) {
   const modify_m3u8_content = function(m3u8_content, m3u8_url) {
     const base_url = m3u8_url.replace(/[^\/]+$/, '')
 
-    return m3u8_content.replace(regexs.urls, function(match, head, abs_path, file_name, file_ext, tail) {
+    m3u8_content = m3u8_content.replace(regexs.urls, function(match, head, abs_path, file_name, file_ext, tail) {
       return `${head}${ is_secure ? 'https' : 'http' }://${host}:${port}/${ base64_encode(`${abs_path || base_url}${file_name}${file_ext}`) }${file_ext}${tail}`
     })
+
+    m3u8_content = m3u8_content.replace(regexs.keys, function(match, head, key_url, tail) {
+      console.log('key:', key_url)
+
+    //return ''
+    //return `${head}${'http://192.168.1.254:80/1534621801'}${tail}`
+      return `${head}${key_url}${tail}`
+    })
+
+    return m3u8_content
   }
 
   // Create an HTTP tunneling proxy
