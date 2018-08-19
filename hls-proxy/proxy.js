@@ -60,8 +60,15 @@ const proxy = function(server, host, port, is_secure, req_headers, debug_level) 
       "absolute": m3u8_url.replace(/(:\/\/[^\/]+).*$/, '$1')
     }
 
+    if (debug_level >= 2) {
+      m3u8_content = m3u8_content.replace(regexs.keys, function(match, head, key_url, tail) {
+        debug(2, 'key (unproxied):', key_url)
+        return match
+      })
+    }
+
     m3u8_content = m3u8_content.replace(regexs.urls, function(match, head, abs_path, file_name, file_ext, tail) {
-      debug(2, 'modify raw:', {match, head, abs_path, file_name, file_ext, tail})
+      debug(3, 'modify (raw):', {match, head, abs_path, file_name, file_ext, tail})
 
       if (!abs_path && !file_ext) return match
 
@@ -93,7 +100,7 @@ const proxy = function(server, host, port, is_secure, req_headers, debug_level) 
 
   // Create an HTTP tunneling proxy
   server.on('request', (req, res) => {
-    debug(2, 'proxying raw:', req.url)
+    debug(3, 'proxying (raw):', req.url)
 
     const url     = base64_decode( req.url.replace(regexs.wrap, '$1') )
     const is_m3u8 = regexs.m3u8.test(url)
