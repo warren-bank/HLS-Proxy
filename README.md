@@ -74,11 +74,11 @@ hlsd [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <fi
   * `0` (default):
     * show errors only
   * `1`:
-    * show a minimal amount of information
+    * show an informative amount of information
   * `2`:
-    * show slightly more information
+    * show technical details
   * `3`:
-    * show advanced information (used while tracing and debugging unexpected behavior)
+    * show an enhanced technical trace (useful while debugging unexpected behavior)
 
 - - - -
 
@@ -143,7 +143,7 @@ curl --silent "$URL"
   ```bash
 headers_file="${TMPDIR}/headers.json"
 echo '{"Origin" : "http://XXX:80", "Referer": "http://XXX:80/page.html"}' > "$headers_file"
-npm start -- --port "8081" --req-headers "$headers_file" --tls -v 2
+npm start -- --port "8081" --req-headers "$headers_file" --tls -v 1
 
 URL='https://127.0.0.1:8081/aHR0cHM6Ly9odHRwYmluLm9yZy9oZWFkZXJzCg==.json'
 curl --silent --insecure "$URL"

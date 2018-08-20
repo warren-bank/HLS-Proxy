@@ -55,9 +55,9 @@ const proxy = function(server, host, port, is_secure, req_headers, debug_level) 
       "absolute": m3u8_url.replace(/(:\/\/[^\/]+).*$/, '$1')
     }
 
-    if (debug_level >= 2) {
+    if (debug_level >= 1) {
       m3u8_content = m3u8_content.replace(regexs.keys, function(match, head, key_url, tail) {
-        debug(2, 'key (unproxied):', key_url)
+        debug(1, 'key:', key_url)
         return match
       })
     }
@@ -77,17 +77,20 @@ const proxy = function(server, host, port, is_secure, req_headers, debug_level) 
       else {
         matching_url = `${abs_path}${file_name}${file_ext || ''}`
       }
-      debug(1, 'modify:', matching_url)
+      debug(1, 'redirecting:', matching_url)
 
-      return `${head}${ is_secure ? 'https' : 'http' }://${host}:${port}/${ base64_encode(matching_url) }${file_ext || ''}${tail}`
+      let redirected_url = `${ is_secure ? 'https' : 'http' }://${host}:${port}/${ base64_encode(matching_url) }${file_ext || ''}`
+      debug(2, 'redirecting (proxied):', redirected_url)
+
+      return `${head}${redirected_url}${tail}`
     })
 
-    m3u8_content = m3u8_content.replace(regexs.keys, function(match, head, key_url, tail) {
-      debug(1, 'key:', key_url)
-
-    //return ''
-      return `${head}${key_url}${tail}`
-    })
+    if (debug_level >= 2) {
+      m3u8_content = m3u8_content.replace(regexs.keys, function(match, head, key_url, tail) {
+        debug(2, 'key (proxied):', key_url)
+        return match
+      })
+    }
 
     return m3u8_content
   }
