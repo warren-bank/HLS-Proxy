@@ -1,5 +1,7 @@
 @echo off
 
+start "keep alive session authorization" cmd /c "%~dp0.\auth\keep_authorization.bat"
+
 set port=8081
 set req_headers="%~dp0.\req-headers.json"
 

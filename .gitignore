@@ -1,1 +1,5 @@
 node_modules/
+
+.recipes/**/auth/cookies.txt
+
+.related/.streamlink-recipes/auth/**/cookies.txt
