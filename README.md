@@ -21,7 +21,7 @@ npm install --global "@warren-bank/hls-proxy"
 #### How to: Run the server(s):
 
 ```bash
-hlsd [--help] [--tls] [--host "127.0.0.1"] [--port "80"] [--req-headers "/path/to/request/headers.json"]
+hlsd [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [-v <number>]
 ```
 
 #### Examples:
@@ -68,6 +68,17 @@ hlsd [--help] [--tls] [--host "127.0.0.1"] [--port "80"] [--req-headers "/path/t
     * HTTPS proxy binds to: `443`
 * _--req-headers_ is the filepath to a JSON data Object containing key:value pairs
   * each _key_ is the name of an HTTP header to send in in every outbound request
+* _-v_ sets logging verbosity level:
+  * `-1`:
+    * silent
+  * `0` (default):
+    * show errors only
+  * `1`:
+    * show a minimal amount of information
+  * `2`:
+    * show slightly more information
+  * `3`:
+    * show advanced information (used while tracing and debugging unexpected behavior)
 
 - - - -
 
@@ -88,7 +99,7 @@ npm install
 # If using a port number >= 1024 on Linux, or
 # If using Windows:
 # ----------------------------------------------------------------------
-npm start [-- [--help] [--tls] [--host "127.0.0.1"] [--port "80"] [--req-headers "/path/to/request/headers.json"] ]
+npm start [-- [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [-v <number>] ]
 
 # ----------------------------------------------------------------------
 # https://www.w3.org/Daemon/User/Installation/PrivilegedPorts.html
@@ -96,7 +107,7 @@ npm start [-- [--help] [--tls] [--host "127.0.0.1"] [--port "80"] [--req-headers
 # Linux considers port numbers < 1024 to be privileged.
 # Use "sudo":
 # ----------------------------------------------------------------------
-npm run sudo [-- [--help] [--tls] [--host "127.0.0.1"] [--port "80"] [--req-headers "/path/to/request/headers.json"] ]
+npm run sudo [-- [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [-v <number>] ]
 ```
 
 #### Examples:
@@ -132,7 +143,7 @@ curl --silent "$URL"
   ```bash
 headers_file="${TMPDIR}/headers.json"
 echo '{"Origin" : "http://XXX:80", "Referer": "http://XXX:80/page.html"}' > "$headers_file"
-npm start -- --port "8081" --req-headers "$headers_file" --tls
+npm start -- --port "8081" --req-headers "$headers_file" --tls -v 2
 
 URL='https://127.0.0.1:8081/aHR0cHM6Ly9odHRwYmluLm9yZy9oZWFkZXJzCg==.json'
 curl --silent --insecure "$URL"
@@ -194,6 +205,7 @@ curl --silent --insecure "$URL"
   * usage result:
     * [doesn't appear to work with HTML5 video players or Chromecast](https://github.com/streamlink/streamlink/issues/1704#issuecomment-413661578)
     * the server starts and works as it was intended, but something about the format of the data it "streams" is incompatible
+    * [VLC](https://portableapps.com/apps/music_video/vlc_portable) can play the video stream from the server, and be used to render the video on Chromecast
 
 - - - -
 

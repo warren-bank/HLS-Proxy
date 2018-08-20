@@ -5,13 +5,18 @@ const argv_vals = grep_argv({
   "--port":        {num:  true},
   "--tls":         {bool: true},
   "--help":        {bool: true},
-  "--req-headers": {file: "json"}
+  "--req-headers": {file: "json"},
+  "-v":            {num:  true}
 })
 
 if (argv_vals["--help"]) {
   console.log(`
-usage examples:
-===============
+usage:
+======
+hlsd [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [-v <number>]
+
+examples:
+=========
 1) print help
      hlsd --help
 2) start HTTP proxy at default host:port
@@ -35,7 +40,8 @@ const bootstrap_server = function(start_server) {
   start_server(
     argv_vals["--host"],
     argv_vals["--port"],
-    argv_vals["--req-headers"]
+    argv_vals["--req-headers"],
+    argv_vals["-v"] || 0
   )
 }
 
