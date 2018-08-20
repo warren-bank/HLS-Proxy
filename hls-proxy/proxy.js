@@ -11,7 +11,39 @@ const base64_decode = function(str) {
   return Buffer.from(str, 'base64').toString('binary')
 }
 
-const proxy = function(server, host, port, is_secure, req_headers, debug_level) {
+const proxy = function(server, host, port, is_secure, req_headers, debug_level, error_handler) {
+
+// ----------------------------------------------------------------------------- livecamtv.me:
+const url_pattern = new RegExp('^(https?://e)(\\d+)(\\..+)$')
+const max_subdomain_index = 20
+let current_subdomain_index
+
+error_handler = function(url, is_m3u8, most_recent_m3u8_url) {
+  let retry_url
+
+  if (url_pattern.test(url)) {
+    retry_url = url.replace(url_pattern, (match, $1, $2, $3) => {
+      let subdomain_index = Number($2)
+      if (isNaN(subdomain_index)) return false
+
+      if (current_subdomain_index === undefined) current_subdomain_index = subdomain_index
+
+      if (current_subdomain_index === subdomain_index) {
+        subdomain_index = (subdomain_index + 1) % max_subdomain_index
+        subdomain_index = (subdomain_index === 0) ? max_subdomain_index : subdomain_index
+        current_subdomain_index = subdomain_index
+      }
+      else {
+        subdomain_index = current_subdomain_index
+      }
+
+      return $1 + subdomain_index + $3
+    })
+  }
+  return retry_url
+}
+// -----------------------------------------------------------------------------
+
   debug_level = debug_level || 0
 
   const debug = function() {
@@ -95,18 +127,18 @@ const proxy = function(server, host, port, is_secure, req_headers, debug_level) 
     return m3u8_content
   }
 
-  // Create an HTTP tunneling proxy
-  server.on('request', (req, res) => {
-    debug(3, 'proxying (raw):', req.url)
+  let most_recent_m3u8_url
 
-    const url     = base64_decode( req.url.replace(regexs.wrap, '$1') )
+  const max_errors = 5
+
+  const process_request = function(url, res, error_counter) {
     const is_m3u8 = regexs.m3u8.test(url)
     const options = get_request_options(url)
-    debug(1, 'proxying:', url)
+    debug(1, (error_counter === 0 ? 'proxying:' : 'retrying:'), url)
 
-    add_CORS_headers(res)
+    if (is_m3u8) most_recent_m3u8_url = url
 
-    request(options, '', {binary: !is_m3u8, stream: !is_m3u8})
+    return request(options, '', {binary: !is_m3u8, stream: !is_m3u8})
     .then(({response}) => {
       if (!is_m3u8) {
         response.pipe(res)
@@ -117,10 +149,36 @@ const proxy = function(server, host, port, is_secure, req_headers, debug_level) 
       }
     })
     .catch((e) => {
+      if (typeof error_handler !== 'function') throw e
+
+      error_counter++
+      if (error_counter > max_errors) throw e
+
+      return new Promise((resolve, reject) => {
+        const retry_url = error_handler(url, is_m3u8, most_recent_m3u8_url)
+
+        if (!retry_url) {
+          reject(e)
+        }
+        else {
+          resolve( process_request(retry_url, res, error_counter) )
+        }
+      })
+    })
+    .catch((e) => {
       debug(0, e.message)
       res.writeHead(500, e.message)
       res.end()
     })
+  }
+
+  // Create an HTTP tunneling proxy
+  server.on('request', (req, res) => {
+    debug(3, 'proxying (raw):', req.url)
+
+    const url = base64_decode( req.url.replace(regexs.wrap, '$1') )
+    add_CORS_headers(res)
+    process_request(url, res, 0)
   })
 }
 
