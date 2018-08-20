@@ -26,11 +26,6 @@ const proxy = function(server, host, port, is_secure, req_headers, debug_level) 
   const regexs = {
     wrap: new RegExp('/?([^\\.]+)(?:\\..*)?$', 'i'),
     m3u8: new RegExp('\\.m3u8$', 'i'),
-//  urls: new RegExp('(^)(https?://(?:[^/\\s,\'"]*/)+)?([^/\\s,\'"]+)(\\.[^/\\.\\s,\'"]+)($)', 'img'),
-//  urls: new RegExp('(^|[\\s\'"])(https?://(?:[^/\\s,\'"]*/)+)?([^/\\s,\'"]+)(\\.[^/\\.\\s,\'"]+)(["\'\\s]|$)', 'img'),
-//  urls: new RegExp('(^|[\\s\'"])(https?://(?:[^/\\s,\'"]*/)+)?([^/\\s,\'"]+)(\\.[^/\\.\\s,\'"]+)?(["\'\\s]|$)', 'img'),
-//  urls: new RegExp('(^|[\\s\'"])((?:https?://)?(?:[^/\\s,\'"]*/)+)?([^/\\s,\'"]+)(\\.[^/\\.\\s,\'"]+)?(["\'\\s]|$)', 'img'),
-//  urls: new RegExp('(^|[\\s\'"])((?:https?:/)?/(?:[^/\\s,\'"]*/)+)?([^/\\s,\'"]+)(\\.[^/\\.\\s,\'"]+)?(["\'\\s]|$)', 'img'),
     urls: new RegExp('(^|[\\s\'"])((?:https?:/)?/(?:[^/\\s,\'"]*/)+)?([^/\\s,\'"]+?)(\\.[^/\\.\\s,\'"]+)?(["\'\\s]|$)', 'img'),
     keys: new RegExp('(^#EXT-X-KEY:[^"]*")([^"]+)(".*$)', 'img')
   }
@@ -91,7 +86,6 @@ const proxy = function(server, host, port, is_secure, req_headers, debug_level) 
       debug(1, 'key:', key_url)
 
     //return ''
-    //return `${head}${'http://192.168.1.254:80/1534621801'}${tail}`
       return `${head}${key_url}${tail}`
     })
 

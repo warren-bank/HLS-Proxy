@@ -11,8 +11,12 @@ const argv_vals = grep_argv({
 
 if (argv_vals["--help"]) {
   console.log(`
-usage examples:
-===============
+usage:
+======
+hlsd [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [-v <number>]
+
+examples:
+=========
 1) print help
      hlsd --help
 2) start HTTP proxy at default host:port

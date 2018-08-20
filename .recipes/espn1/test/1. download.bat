@@ -1,9 +1,5 @@
 @echo off
 
-set url="https://e11.livecamtv.me/zmelive/RKUtex2CodYBuOkTGq6A/playlist.m3u8"
-set url="https://e11.livecamtv.me/zmelive/RKUtex2CodYBuOkTGq6A/chunklist.m3u8"
-set url="https://key.livecamtv.me/RKUtex2CodYBuOkTGq6A/1534621801"
-
 set wget_opts=
 set wget_opts=%wget_opts% --header "Origin: https://www.seelive.me"
 set wget_opts=%wget_opts% --header "Referer: https://www.seelive.me/sdembed?v=2xespn"
@@ -11,4 +7,15 @@ set wget_opts=%wget_opts% --header "User-Agent: Mozilla/5.0 (Windows NT 6.1; Win
 set wget_opts=%wget_opts% --no-check-certificate -e robots=off
 set wget_opts=%wget_opts% -P "%~dp0.\data"
 
-wget %wget_opts% %url%
+call :dl "https://e11.livecamtv.me/zmelive/RKUtex2CodYBuOkTGq6A/playlist.m3u8"
+call :dl "https://e11.livecamtv.me/zmelive/RKUtex2CodYBuOkTGq6A/chunklist.m3u8"
+call :dl "https://key.livecamtv.me/RKUtex2CodYBuOkTGq6A/1534621801"
+
+goto :done
+
+:dl
+  set url="%~1"
+  wget %wget_opts% %url%
+  goto :eof
+
+:done
