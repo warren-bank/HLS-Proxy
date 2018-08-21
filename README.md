@@ -205,7 +205,7 @@ curl --silent --insecure "$URL"
   * usage result:
     * [doesn't appear to work with HTML5 video players or Chromecast](https://github.com/streamlink/streamlink/issues/1704#issuecomment-413661578)
     * the server starts and works as it was intended, but something about the format of the data it "streams" is incompatible
-    * [VLC](https://portableapps.com/apps/music_video/vlc_portable) can play the video stream from the server, and be used to render the video on Chromecast
+    * [VLC](https://portableapps.com/apps/music_video/vlc_portable) can play the video stream from the server, and be used to [render the video on Chromecast](https://github.com/warren-bank/HLS-proxy/blob/master/.related/.streamlink-recipes/notes.txt)
 
 - - - -
 
