@@ -25,7 +25,7 @@ const proxy = function(server, host, port, is_secure, req_headers, debug_level) 
 
   const regexs = {
     wrap: new RegExp('/?([^\\.]+)(?:\\..*)?$', 'i'),
-    m3u8: new RegExp('\\.m3u8$', 'i'),
+    m3u8: new RegExp('\\.m3u8(?:[\\?#]|$)', 'i'),
     urls: new RegExp('(^|[\\s\'"])((?:https?:/)?/(?:[^/\\s,\'"]*/)+)?([^/\\s,\'"]+?)(\\.[^/\\.\\s,\'"]+)?(["\'\\s]|$)', 'img'),
     keys: new RegExp('(^#EXT-X-KEY:[^"]*")([^"]+)(".*$)', 'img')
   }
