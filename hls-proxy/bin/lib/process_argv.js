@@ -1,17 +1,24 @@
 const grep_argv = require('./grep_argv')
 
-const argv_vals = grep_argv({
-  "--host":        {},
-  "--port":        {num:  true},
-  "--tls":         {bool: true},
-  "--help":        {bool: true},
-  "--req-headers": {file: "json"},
-  "--origin":      {},
-  "--referer":     {},
-  "--useragent":   {},
-  "--header":      {many: true},
-  "-v":            {num:  true}
-}, true)
+let argv_vals
+try {
+  argv_vals = grep_argv({
+    "--host":        {},
+    "--port":        {num:  true},
+    "--tls":         {bool: true},
+    "--help":        {bool: true},
+    "--req-headers": {file: "json"},
+    "--origin":      {},
+    "--referer":     {},
+    "--useragent":   {},
+    "--header":      {many: true},
+    "-v":            {num:  true}
+  }, true)
+}
+catch(e) {
+  console.log('ERROR: ' + e.message)
+  process.exit(0)
+}
 
 if (argv_vals["--help"]) {
   console.log(`
