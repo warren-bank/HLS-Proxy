@@ -3,7 +3,7 @@ const fs = require('fs')
 // assumes that all arguments are passed with the convention: -key value
 // where "-key" is a flag
 
-const retrieve_flag_value = function(flag_opts, args, index) {
+const retrieve_flag_value = function(flag_opts, args, index, throw_error_if_value_matches_any_flag_key, flag_keys) {
   let val
 
   if (index >= 0) {
@@ -12,6 +12,10 @@ const retrieve_flag_value = function(flag_opts, args, index) {
     }
     else if (index + 1 < args.length) {
       val = args[index + 1]
+
+      if (throw_error_if_value_matches_any_flag_key && (flag_keys.indexOf(val) >= 0)) {
+        throw new Error('The command-line contains option ' + val + ' at a position where a value for the previous option ' + args[index] + ' is expected.')
+      }
 
       if (flag_opts && flag_opts["num"]) {
         val = Number(val)
@@ -40,19 +44,20 @@ const retrieve_flag_value = function(flag_opts, args, index) {
   return val
 }
 
-const grep_argv = function(flags) {
-  const args = process.argv.slice(2)
+const grep_argv = function(flags, throw_error_if_value_matches_any_flag_key) {
+  const args      = process.argv.slice(2)
+  const flag_keys = Object.keys(flags)
   const vals = {}
 
   if (args.length > 0) {
-    (Object.keys(flags)).forEach((flag) => {
+    flag_keys.forEach((flag) => {
       let flag_opts = flags[flag]
       let is_array  = flag_opts && flag_opts["many"]
       let index     = args.indexOf(flag)
       let val
 
       if (!is_array) {
-        val = retrieve_flag_value(flag_opts, args, index)
+        val = retrieve_flag_value(flag_opts, args, index, throw_error_if_value_matches_any_flag_key, flag_keys)
 
         if (val !== undefined) {
           vals[flag] = val
@@ -62,7 +67,7 @@ const grep_argv = function(flags) {
         vals[flag] = []
 
         while (index >=0) {
-          val = retrieve_flag_value(flag_opts, args, index)
+          val = retrieve_flag_value(flag_opts, args, index, throw_error_if_value_matches_any_flag_key, flag_keys)
 
           if (val !== undefined) {
             vals[flag].push(val)

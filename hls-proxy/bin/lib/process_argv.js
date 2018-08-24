@@ -11,7 +11,7 @@ const argv_vals = grep_argv({
   "--useragent":   {},
   "--header":      {many: true},
   "-v":            {num:  true}
-})
+}, true)
 
 if (argv_vals["--help"]) {
   console.log(`
