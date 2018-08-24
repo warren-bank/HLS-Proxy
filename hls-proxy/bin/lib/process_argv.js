@@ -6,6 +6,10 @@ const argv_vals = grep_argv({
   "--tls":         {bool: true},
   "--help":        {bool: true},
   "--req-headers": {file: "json"},
+  "--origin":      {},
+  "--referer":     {},
+  "--useragent":   {},
+  "--header":      {many: true},
   "-v":            {num:  true}
 })
 
@@ -13,7 +17,7 @@ if (argv_vals["--help"]) {
   console.log(`
 usage:
 ======
-hlsd [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [-v <number>]
+hlsd [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [-v <number>]
 
 examples:
 =========
@@ -34,6 +38,30 @@ examples:
      hlsd --tls --req-headers "/path/to/request/headers.json"
 ` )
   process.exit(0)
+}
+
+if (argv_vals["--origin"] || argv_vals["--referer"] || argv_vals["--useragent"] || argv_vals["--header"].length) {
+  argv_vals["--req-headers"] = argv_vals["--req-headers"] || {}
+
+  if (argv_vals["--origin"]) {
+    argv_vals["--req-headers"]["Origin"] = argv_vals["--origin"]
+  }
+  if (argv_vals["--referer"]) {
+    argv_vals["--req-headers"]["Referer"] = argv_vals["--referer"]
+  }
+  if (argv_vals["--useragent"]) {
+    argv_vals["--req-headers"]["User-Agent"] = argv_vals["--useragent"]
+  }
+  argv_vals["--header"].forEach((header) => {
+    let parts = header.split(/\s*[:=]\s*/)
+    let key, val
+
+    if (parts.length === 2) {
+      key = parts[0]
+      val = parts[1]
+      argv_vals["--req-headers"][key] = val
+    }
+  })
 }
 
 const bootstrap_server = function(start_server) {

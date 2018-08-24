@@ -3,45 +3,71 @@ const fs = require('fs')
 // assumes that all arguments are passed with the convention: -key value
 // where "-key" is a flag
 
+const retrieve_flag_value = function(flags, args, flag, index) {
+  let val
+
+  if (index >= 0) {
+    if (flags[flag] && flags[flag]["bool"]) {
+      val = true
+    }
+    else if (index + 1 < args.length) {
+      val = args[index + 1]
+
+      if (flags[flag] && flags[flag]["num"]) {
+        val = Number(val)
+
+        if (isNaN(val)) val = ""
+      }
+
+      if (flags[flag] && flags[flag]["file"]) {
+        try {
+          val = fs.realpathSync(val, {encoding: 'utf8'})
+          val = fs.readFileSync(val, {encoding: 'utf8'})
+
+          if ( (typeof flags[flag]["file"] === "string") && (flags[flag]["file"].toLowerCase() === "json") ) {
+            val = JSON.parse(val)
+          }
+        }
+        catch(e){
+          val = ""
+        }
+      }
+    }
+  }
+
+  if (val === "") val = undefined
+
+  return val
+}
+
 const grep_argv = function(flags) {
   const args = process.argv.slice(2)
   const vals = {}
 
   if (args.length > 0) {
     (Object.keys(flags)).forEach((flag) => {
+      let is_array = (flags[flag] && flags[flag]["many"])
       let index = args.indexOf(flag)
       let val
 
-      if (index >= 0) {
-        if (flags[flag] && flags[flag]["bool"]) {
-          vals[flag] = true
+      if (!is_array) {
+        val = retrieve_flag_value(flags, args, flag, index)
+
+        if (val !== undefined) {
+          vals[flag] = val
         }
-        else if (index + 1 < args.length) {
-          val = args[index + 1]
+      }
+      else {
+        vals[flag] = []
 
-          if (flags[flag] && flags[flag]["num"]) {
-            val = Number(val)
+        while (index >=0) {
+          val = retrieve_flag_value(flags, args, flag, index)
 
-            if (isNaN(val)) val = ""
+          if (val !== undefined) {
+            vals[flag].push(val)
           }
 
-          if (flags[flag] && flags[flag]["file"]) {
-            try {
-              val = fs.realpathSync(val, {encoding: 'utf8'})
-              val = fs.readFileSync(val, {encoding: 'utf8'})
-
-              if ( (typeof flags[flag]["file"] === "string") && (flags[flag]["file"].toLowerCase() === "json") ) {
-                val = JSON.parse(val)
-              }
-            }
-            catch(e){
-              val = ""
-            }
-          }
-
-          if (val !== "") {
-            vals[flag] = val
-          }
+          index = args.indexOf(flag, (index + 1))
         }
       }
     })

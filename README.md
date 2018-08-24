@@ -21,7 +21,7 @@ npm install --global "@warren-bank/hls-proxy"
 #### How to: Run the server(s):
 
 ```bash
-hlsd [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [-v <number>]
+hlsd [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [-v <number>]
 ```
 
 #### Examples:
@@ -68,6 +68,15 @@ hlsd [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <fi
     * HTTPS proxy binds to: `443`
 * _--req-headers_ is the filepath to a JSON data Object containing key:value pairs
   * each _key_ is the name of an HTTP header to send in in every outbound request
+* _--origin_ is the value of the corresponding HTTP request header
+* _--referer_ is the value of the corresponding HTTP request header
+* _--useragent_ is the value of the corresponding HTTP request header
+* _--header_ is a single name:value pair
+  * this option can be used multiple times to include several HTTP request headers
+  * the pair can be written:
+    * "name: value"
+    * "name=value"
+    * "name = value"
 * _-v_ sets logging verbosity level:
   * `-1`:
     * silent
@@ -99,7 +108,7 @@ npm install
 # If using a port number >= 1024 on Linux, or
 # If using Windows:
 # ----------------------------------------------------------------------
-npm start [-- [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [-v <number>] ]
+npm start [-- [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [-v <number>] ]
 
 # ----------------------------------------------------------------------
 # https://www.w3.org/Daemon/User/Installation/PrivilegedPorts.html
@@ -107,7 +116,7 @@ npm start [-- [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-he
 # Linux considers port numbers < 1024 to be privileged.
 # Use "sudo":
 # ----------------------------------------------------------------------
-npm run sudo [-- [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [-v <number>] ]
+npm run sudo [-- [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [-v <number>] ]
 ```
 
 #### Examples:
@@ -144,6 +153,19 @@ curl --silent "$URL"
 headers_file="${TMPDIR}/headers.json"
 echo '{"Origin" : "http://XXX:80", "Referer": "http://XXX:80/page.html"}' > "$headers_file"
 npm start -- --port "8081" --req-headers "$headers_file" --tls -v 1
+
+URL='https://127.0.0.1:8081/aHR0cHM6Ly9odHRwYmluLm9yZy9oZWFkZXJzCg==.json'
+curl --silent --insecure "$URL"
+```
+
+8. start HTTPS proxy at specific port and send custom request headers<br>
+  ```bash
+h_origin='http://XXX:80'
+h_referer='http://XXX:80/page.html'
+h_useragent='Chromium'
+h_custom_1='X-Foo: 123'
+h_custom_2='X-Bar: baz'
+npm start -- --port "8081" --origin "$h_origin" --referer "$h_referer" --useragent "$h_useragent" --header "$h_custom_1" --header "$h_custom_2" --tls -v 1
 
 URL='https://127.0.0.1:8081/aHR0cHM6Ly9odHRwYmluLm9yZy9oZWFkZXJzCg==.json'
 curl --silent --insecure "$URL"
