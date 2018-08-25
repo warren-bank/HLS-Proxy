@@ -17,7 +17,7 @@ set hlsd_js="%~dp0..\..\hls-proxy\bin\hlsd.js"
 
 set hlsd_opts=
 set hlsd_opts=%hlsd_opts% --origin "%origin%" --referer "%referer%" --useragent "%useragent%"
-set hlsd_opts=%hlsd_opts% -v 0
+set hlsd_opts=%hlsd_opts% -v 1
 
 if defined port (
   set hlsd_opts=%hlsd_opts% --port "%port%"

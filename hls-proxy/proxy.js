@@ -99,10 +99,11 @@ const proxy = function(server, host, port, is_secure, req_headers, debug_level) 
   server.on('request', (req, res) => {
     debug(3, 'proxying (raw):', req.url)
 
-    const url     = base64_decode( req.url.replace(regexs.wrap, '$1') )
+    const url     = base64_decode( req.url.replace(regexs.wrap, '$1') ).trim()
     const is_m3u8 = regexs.m3u8.test(url)
     const options = get_request_options(url)
     debug(1, 'proxying:', url)
+    debug(3, 'm3u8:', (is_m3u8 ? 'true' : 'false'))
 
     add_CORS_headers(res)
 
