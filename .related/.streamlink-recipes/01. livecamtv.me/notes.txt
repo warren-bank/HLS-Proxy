@@ -1,0 +1,9 @@
+observations:
+=============
+* video streams play perfectly
+
+* "livecamtv.me" video streams need to contact an authorization server at 5 minute intervals
+  - otherwise, Streamlink encounters a problem:
+      [stream.hls][error] Failed to create decryptor:
+      Unable to open URL: https://key.livecamtv.me/RKUtex2CodYBuOkTGq6A/1534542841
+     (444 Client Error:  for url: https://key.livecamtv.me/RKUtex2CodYBuOkTGq6A/1534542841)
