@@ -1,13 +1,13 @@
 @echo off
 
-set streamID=hbosd
+set streamID=MLB15h
 set port=8080
 set tls=0
 
 rem :: HLS url obtained using "WebCast-Reloaded" on webpage:
-rem ::   https://www.vipleague.cc/hbo-streaming-link-1
+rem ::   https://www.mlbstream.io/tampa-bay-rays-vs-boston-red-sox-live/stream-1
 
-set video_URL=https://e1.livecamtv.me/zmelive/6rIAHeghLaYNOscpJQW8/playlist.m3u8
+set video_URL=https://e1.livecamtv.me/zmelive/Yiz2tBq735ycJQCAxGmL/playlist.m3u8
 set play_in_VLC=0
 
 set PATH=%~dp0..\..;%PATH%
