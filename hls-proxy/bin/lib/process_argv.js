@@ -3,10 +3,11 @@ const grep_argv = require('./grep_argv')
 let argv_vals
 try {
   argv_vals = grep_argv({
+    "--help":         {bool: true},
+    "--version":      {bool: true},
+    "--tls":          {bool: true},
     "--host":         {},
     "--port":         {num:  true},
-    "--tls":          {bool: true},
-    "--help":         {bool: true},
     "--req-headers":  {file: "json"},
     "--origin":       {},
     "--referer":      {},
@@ -26,29 +27,37 @@ if (argv_vals["--help"]) {
   console.log(`
 usage:
 ======
-hlsd [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--prefetch] [--max-segments <number>] [-v <number>]
+hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--prefetch] [--max-segments <number>] [-v <number>]
 
 examples:
 =========
 1) print help
      hlsd --help
-2) start HTTP proxy at default host:port
+2) print version
+     hlsd --version
+3) start HTTP proxy at default host:port
      hlsd
-3) start HTTP proxy at default host and specific port
+4) start HTTP proxy at default host and specific port
      hlsd --port "8080"
-4) start HTTP proxy at specific host:port
+5) start HTTP proxy at specific host:port
      hlsd --host "192.168.0.100" --port "8080"
-5) start HTTPS proxy at default host:port
+6) start HTTPS proxy at default host:port
      hlsd --tls
-6) start HTTPS proxy at specific host:port
+7) start HTTPS proxy at specific host:port
      hlsd --tls --host "192.168.0.100" --port "8081"
-7) start HTTPS proxy at default host:port
+8) start HTTPS proxy at default host:port
    and include specific HTTP headers in every outbound request
      hlsd --tls --req-headers "/path/to/request/headers.json"
-8) start HTTPS proxy at default host:port
+9) start HTTPS proxy at default host:port
    and enable prefetch of 10 video segments
      hlsd --tls --prefetch --max-segments 10
 ` )
+  process.exit(0)
+}
+
+if (argv_vals["--version"]) {
+  let data = require('../../../package.json')
+  console.log(data.version)
   process.exit(0)
 }
 

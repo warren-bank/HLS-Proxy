@@ -21,7 +21,7 @@ npm install --global "@warren-bank/hls-proxy"
 #### How to: Run the server(s):
 
 ```bash
-hlsd [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--prefetch] [--max-segments <number>] [-v <number>]
+hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--prefetch] [--max-segments <number>] [-v <number>]
 ```
 
 #### Examples:
@@ -29,25 +29,28 @@ hlsd [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <fi
 1. print help<br>
   `hlsd --help`
 
-2. start HTTP proxy at default host:port<br>
+2. print version<br>
+  `hlsd --version`
+
+3. start HTTP proxy at default host:port<br>
   `hlsd`
 
-3. start HTTP proxy at default host and specific port<br>
+4. start HTTP proxy at default host and specific port<br>
   `hlsd --port "8080"`
 
-4. start HTTP proxy at specific host:port<br>
+5. start HTTP proxy at specific host:port<br>
   `hlsd --host "192.168.0.100" --port "8080"`
 
-5. start HTTPS proxy at default host:port<br>
+6. start HTTPS proxy at default host:port<br>
   `hlsd --tls`
 
-6. start HTTPS proxy at specific host:port<br>
+7. start HTTPS proxy at specific host:port<br>
   `hlsd --tls --host "192.168.0.100" --port "8081"`
 
-7. start HTTPS proxy at default host:port and send specific HTTP headers<br>
+8. start HTTPS proxy at default host:port and send specific HTTP headers<br>
   `hlsd --tls --req-headers "/path/to/request/headers.json"`
 
-8. start HTTPS proxy at default host:port and enable prefetch of 10 video segments<br>
+9. start HTTPS proxy at default host:port and enable prefetch of 10 video segments<br>
   `hlsd --tls --prefetch --max-segments 10`
 
 #### Options:
@@ -120,7 +123,7 @@ npm install
 # If using a port number >= 1024 on Linux, or
 # If using Windows:
 # ----------------------------------------------------------------------
-npm start [-- [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--prefetch] [--max-segments <number>] [-v <number>] ]
+npm start [-- [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--prefetch] [--max-segments <number>] [-v <number>] ]
 
 # ----------------------------------------------------------------------
 # https://www.w3.org/Daemon/User/Installation/PrivilegedPorts.html
@@ -128,7 +131,7 @@ npm start [-- [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-he
 # Linux considers port numbers < 1024 to be privileged.
 # Use "sudo":
 # ----------------------------------------------------------------------
-npm run sudo [-- [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--prefetch] [--max-segments <number>] [-v <number>] ]
+npm run sudo [-- [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--prefetch] [--max-segments <number>] [-v <number>] ]
 ```
 
 #### Examples:
