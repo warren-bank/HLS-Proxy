@@ -21,7 +21,7 @@ npm install --global "@warren-bank/hls-proxy"
 #### How to: Run the server(s):
 
 ```bash
-hlsd [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [-v <number>]
+hlsd [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--prefetch] [--max-segments <number>] [-v <number>]
 ```
 
 #### Examples:
@@ -42,10 +42,13 @@ hlsd [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <fi
   `hlsd --tls`
 
 6. start HTTPS proxy at specific host:port<br>
-  `hlsd --host "192.168.0.100" --port "8081" --tls`
+  `hlsd --tls --host "192.168.0.100" --port "8081"`
 
 7. start HTTPS proxy at default host:port and send specific HTTP headers<br>
   `hlsd --tls --req-headers "/path/to/request/headers.json"`
+
+8. start HTTPS proxy at default host:port and enable prefetch of 10 video segments<br>
+  `hlsd --tls --prefetch --max-segments 10`
 
 #### Options:
 
@@ -77,6 +80,15 @@ hlsd [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <fi
     * "name: value"
     * "name=value"
     * "name = value"
+* _--prefetch_ is a flag to enable the prefetch and caching of video segments
+  * when .m3u8 files are downloaded and modified inflight, all of the URLs in the playlist are known
+  * at this time, it is possible to prefetch the .ts files
+  * when the .ts files are requested at a later time, the data is already cached (in memory) and can be returned immediately
+* _--max-segments_ is the maximum number of .ts files (ie: video segments) to hold in the cache
+  * this option is only meaningful when _--prefetch_ is enabled
+  * when the cache grows larger than this size, the oldest data is removed to make room to store new data
+  * when this option is not specified:
+    * default value: `20`
 * _-v_ sets logging verbosity level:
   * `-1`:
     * silent
@@ -108,7 +120,7 @@ npm install
 # If using a port number >= 1024 on Linux, or
 # If using Windows:
 # ----------------------------------------------------------------------
-npm start [-- [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [-v <number>] ]
+npm start [-- [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--prefetch] [--max-segments <number>] [-v <number>] ]
 
 # ----------------------------------------------------------------------
 # https://www.w3.org/Daemon/User/Installation/PrivilegedPorts.html
@@ -116,7 +128,7 @@ npm start [-- [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-he
 # Linux considers port numbers < 1024 to be privileged.
 # Use "sudo":
 # ----------------------------------------------------------------------
-npm run sudo [-- [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [-v <number>] ]
+npm run sudo [-- [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--prefetch] [--max-segments <number>] [-v <number>] ]
 ```
 
 #### Examples:

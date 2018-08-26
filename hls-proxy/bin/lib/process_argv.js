@@ -3,16 +3,18 @@ const grep_argv = require('./grep_argv')
 let argv_vals
 try {
   argv_vals = grep_argv({
-    "--host":        {},
-    "--port":        {num:  true},
-    "--tls":         {bool: true},
-    "--help":        {bool: true},
-    "--req-headers": {file: "json"},
-    "--origin":      {},
-    "--referer":     {},
-    "--useragent":   {},
-    "--header":      {many: true},
-    "-v":            {num:  true}
+    "--host":         {},
+    "--port":         {num:  true},
+    "--tls":          {bool: true},
+    "--help":         {bool: true},
+    "--req-headers":  {file: "json"},
+    "--origin":       {},
+    "--referer":      {},
+    "--useragent":    {},
+    "--header":       {many: true},
+    "--prefetch":     {bool: true},
+    "--max-segments": {num:  true},
+    "-v":             {num:  true}
   }, true)
 }
 catch(e) {
@@ -24,7 +26,7 @@ if (argv_vals["--help"]) {
   console.log(`
 usage:
 ======
-hlsd [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [-v <number>]
+hlsd [--help] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--prefetch] [--max-segments <number>] [-v <number>]
 
 examples:
 =========
@@ -39,10 +41,13 @@ examples:
 5) start HTTPS proxy at default host:port
      hlsd --tls
 6) start HTTPS proxy at specific host:port
-     hlsd --host "192.168.0.100" --port "8081" --tls
+     hlsd --tls --host "192.168.0.100" --port "8081"
 7) start HTTPS proxy at default host:port
    and include specific HTTP headers in every outbound request
      hlsd --tls --req-headers "/path/to/request/headers.json"
+8) start HTTPS proxy at default host:port
+   and enable prefetch of 10 video segments
+     hlsd --tls --prefetch --max-segments 10
 ` )
   process.exit(0)
 }
@@ -76,6 +81,8 @@ const bootstrap_server = function(start_server) {
     argv_vals["--host"],
     argv_vals["--port"],
     argv_vals["--req-headers"],
+    argv_vals["--prefetch"],
+    argv_vals["--max-segments"],
     argv_vals["-v"] || 0
   )
 }

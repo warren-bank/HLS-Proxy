@@ -1,5 +1,6 @@
-const request   = require('@warren-bank/node-request').request
-const parse_url = require('url').parse
+const segment_cache = require('./segment_cache')
+const request       = require('@warren-bank/node-request').request
+const parse_url     = require('url').parse
 
 // btoa
 const base64_encode = function(str) {
@@ -11,8 +12,9 @@ const base64_decode = function(str) {
   return Buffer.from(str, 'base64').toString('binary')
 }
 
-const proxy = function(server, host, port, is_secure, req_headers, debug_level) {
-  debug_level = debug_level || 0
+const proxy = function(server, host, port, is_secure, req_headers, cache_segments, max_segments, debug_level) {
+  debug_level  = debug_level  ||  0
+  max_segments = max_segments || 20
 
   const debug = function() {
     let args      = [...arguments]
@@ -49,6 +51,11 @@ const proxy = function(server, host, port, is_secure, req_headers, debug_level) 
     return request_options
   }
 
+  let prefetch_segment, get_segment
+  if (cache_segments) {(
+    {prefetch_segment, get_segment} = segment_cache({debug, request, get_request_options, max_segments})
+  )}
+
   const modify_m3u8_content = function(m3u8_content, m3u8_url) {
     const base_urls = {
       "relative": m3u8_url.replace(/[^\/]+$/, ''),
@@ -77,7 +84,12 @@ const proxy = function(server, host, port, is_secure, req_headers, debug_level) 
       else {
         matching_url = `${abs_path}${file_name}${file_ext || ''}`
       }
+      matching_url = matching_url.trim()
       debug(1, 'redirecting:', matching_url)
+
+      if (cache_segments) {
+        prefetch_segment(matching_url)
+      }
 
       let redirected_url = `${ is_secure ? 'https' : 'http' }://${host}:${port}/${ base64_encode(matching_url) }${file_ext || ''}`
       debug(2, 'redirecting (proxied):', redirected_url)
@@ -99,13 +111,24 @@ const proxy = function(server, host, port, is_secure, req_headers, debug_level) 
   server.on('request', (req, res) => {
     debug(3, 'proxying (raw):', req.url)
 
+    add_CORS_headers(res)
+
     const url     = base64_decode( req.url.replace(regexs.wrap, '$1') ).trim()
     const is_m3u8 = regexs.m3u8.test(url)
+
+    if (cache_segments && !is_m3u8) {
+      let segment = get_segment(url)  // Buffer or undefined
+
+      if (segment && segment.length) {
+        res.writeHead(200, { "Content-Type": "video/MP2T" })
+        res.end(segment)
+        return
+      }
+    }
+
     const options = get_request_options(url)
     debug(1, 'proxying:', url)
     debug(3, 'm3u8:', (is_m3u8 ? 'true' : 'false'))
-
-    add_CORS_headers(res)
 
     request(options, '', {binary: !is_m3u8, stream: !is_m3u8})
     .then(({response}) => {

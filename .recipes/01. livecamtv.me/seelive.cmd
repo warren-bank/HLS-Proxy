@@ -3,6 +3,7 @@
 set streamID=%~1
 set port=%~2
 set tls=%~3
+set prefetch=%~4
 
 if not defined streamID (
   echo stream ID is required!
@@ -24,6 +25,9 @@ if defined port (
 )
 if "%tls%"=="1" (
   set hlsd_opts=%hlsd_opts% --tls
+)
+if "%prefetch%"=="1" (
+  set hlsd_opts=%hlsd_opts% --prefetch --max-segments 20
 )
 
 start "keep alive session authorization" cmd /c ""%~dp0.\auth\keep_authorization.bat" "%origin%" "%referer%" "%useragent%""
