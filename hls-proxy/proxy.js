@@ -26,7 +26,7 @@ const proxy = function(server, host, port, is_secure, req_headers, cache_segment
   }
 
   const regexs = {
-    wrap: new RegExp('/?([^\\.]+)(?:\\..*)?$', 'i'),
+    wrap: new RegExp('/?([^\\._]+)(?:[\\._].*)?$', 'i'),
     m3u8: new RegExp('\\.m3u8(?:[\\?#]|$)', 'i'),
     urls: new RegExp('(^|[\\s\'"])((?:https?:/)?/(?:[^/\\s,\'"]*/)+)?([^/\\s,\'"]+?)(\\.[^/\\.\\s,\'"]+)?(["\'\\s]|$)', 'img'),
     keys: new RegExp('(^#EXT-X-KEY:[^"]*")([^"]+)(".*$)', 'img')
@@ -69,6 +69,23 @@ const proxy = function(server, host, port, is_secure, req_headers, cache_segment
       })
     }
 
+    const ts_regexs = {
+      "file_ext": /^\.ts/i,
+      "sequence_number": /[^\d](\d+)$/i
+    }
+
+    const get_ts_file_ext = function(file_name, file_ext) {
+      let ts_file_ext, matches
+
+      if (ts_regexs["file_ext"].test(file_ext)) {
+        matches = ts_regexs["sequence_number"].exec(file_name)
+        if (matches && matches.length) {
+          ts_file_ext = `_${matches[1]}${file_ext}`
+        }
+      }
+      return ts_file_ext
+    }
+
     m3u8_content = m3u8_content.replace(regexs.urls, function(match, head, abs_path, file_name, file_ext, tail) {
       debug(3, 'modify (raw):', {match, head, abs_path, file_name, file_ext, tail})
 
@@ -91,7 +108,8 @@ const proxy = function(server, host, port, is_secure, req_headers, cache_segment
         prefetch_segment(matching_url)
       }
 
-      let redirected_url = `${ is_secure ? 'https' : 'http' }://${host}:${port}/${ base64_encode(matching_url) }${file_ext || ''}`
+      let ts_file_ext    = get_ts_file_ext(file_name, file_ext)
+      let redirected_url = `${ is_secure ? 'https' : 'http' }://${host}:${port}/${ base64_encode(matching_url) }${ts_file_ext || file_ext || ''}`
       debug(2, 'redirecting (proxied):', redirected_url)
 
       return `${head}${redirected_url}${tail}`
