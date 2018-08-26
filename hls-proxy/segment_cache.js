@@ -32,7 +32,13 @@ module.exports = function({debug, request, get_request_options, max_segments}) {
       segment = ts[index].databuffer
 
       // cleanup: remove all previous segments
-      ts.splice(0, (index + 1))
+      // =====================================
+      // todo:
+      //   - why does this sometimes cause the video player to get stuck.. repeatedly request the .m3u8 file, but stop requesting any .ts segments?
+      //   - is it a coincidence that commenting this line appears to stop such behavior?
+      //   - could it possibly be a race condition? cleanup also occurs asynchronously when prefetch responses are received, but javascript (node) is single threaded.. and this code doesn't yield or use a timer.
+      // =====================================
+      // ts.splice(0, (index + 1))
     }
     else {
       debug(2, 'cache (miss):', url)
