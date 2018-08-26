@@ -19,6 +19,9 @@ const proxy = function(server, host, port, is_secure, req_headers, cache_segment
   const debug = function() {
     let args      = [...arguments]
     let verbosity = args.shift()
+    let append_LF = true
+
+    if (append_LF) args.push("\n")
 
     if (debug_level >= verbosity) {
       console.log.apply(console.log, args)
