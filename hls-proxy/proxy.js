@@ -162,8 +162,8 @@ const proxy = function(server, host, port, is_secure, req_headers, cache_segment
       }
     })
     .catch((e) => {
-      debug(0, e.message)
-      res.writeHead(500, e.message)
+      debug(0, 'ERROR:', e.message)
+      res.writeHead(500)
       res.end()
     })
   })
