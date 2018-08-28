@@ -4,6 +4,7 @@ set streamID=%~1
 set port=%~2
 set tls=%~3
 set prefetch=%~4
+set verbosity=%~5
 
 if not defined streamID (
   echo stream ID is required!
@@ -18,8 +19,10 @@ set hlsd_js="%~dp0..\..\hls-proxy\bin\hlsd.js"
 
 set hlsd_opts=
 set hlsd_opts=%hlsd_opts% --origin "%origin%" --referer "%referer%" --useragent "%useragent%"
-set hlsd_opts=%hlsd_opts% -v 1
 
+if defined verbosity (
+  set hlsd_opts=%hlsd_opts% -v "%verbosity%"
+)
 if defined port (
   set hlsd_opts=%hlsd_opts% --port "%port%"
 )

@@ -3,6 +3,7 @@
 set port=%~1
 set tls=%~2
 set prefetch=%~3
+set verbosity=%~4
 
 set origin=https://www.streamlive.to
 set referer=https://www.streamlive.to/channels
@@ -12,8 +13,10 @@ set hlsd_js="%~dp0..\..\hls-proxy\bin\hlsd.js"
 
 set hlsd_opts=
 set hlsd_opts=%hlsd_opts% --origin "%origin%" --referer "%referer%" --useragent "%useragent%"
-set hlsd_opts=%hlsd_opts% -v 2
 
+if defined verbosity (
+  set hlsd_opts=%hlsd_opts% -v "%verbosity%"
+)
 if defined port (
   set hlsd_opts=%hlsd_opts% --port "%port%"
 )

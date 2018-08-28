@@ -1,24 +1,32 @@
-module.exports = function({debug, request, get_request_options, max_segments}) {
+module.exports = function({debug, debug_level, request, get_request_options, max_segments}) {
   max_segments = max_segments || 20
 
   const ts = []
 
+  const regexs = {
+    "ts_extension": /\.ts(?:[\?#]|$)/i,
+    "ts_sequence":  /^.*?(\d+\.ts).*$/i
+  }
+
+  const should_prefetch_url = function(url) {
+    return regexs["ts_extension"].test(url)
+  }
+
+  const get_key_from_url = function(url) {
+    return url.replace(regexs["ts_sequence"], '$1')
+  }
+
   const find_index_of_segment = function(url) {
+    let key = get_key_from_url(url)
     let index
     for (let i=0; i < ts.length; i++) {
-      let segment = ts[i]  // {url, databuffer}
-      if (segment.url === url) {
+      let segment = ts[i]  // {key, databuffer}
+      if (segment && (segment.key === key)) {
         index = i
         break
       }
     }
     return index
-  }
-
-  const segment_pattern = /\.ts(?:[\?#]|$)/i
-
-  const should_prefetch_url = function(url) {
-    return segment_pattern.test(url)
   }
 
   const prefetch_segment = function(url) {
@@ -30,12 +38,16 @@ module.exports = function({debug, request, get_request_options, max_segments}) {
 
       // placeholder to prevent multiple download requests
       index = ts.length
-      ts[index] = {url, databuffer: false}
+      ts[index] = {key: get_key_from_url(url), databuffer: false}
 
       let options = get_request_options(url)
       request(options, '', {binary: true, stream: false})
       .then(({response}) => {
         debug(2, `prefetch (complete, ${response.length} bytes):`, url)
+
+        // asynchronous callback could occur after garbage collection; the index could've changed
+        index = find_index_of_segment(url)
+        if (index === undefined) throw new Error('Prefetch completed after pending request was ejected from cache. Try increasing the "--max-segments" option.')
 
         let segment = ts[index].databuffer
         if (segment && (segment instanceof Array)) {
@@ -115,6 +127,14 @@ module.exports = function({debug, request, get_request_options, max_segments}) {
       }
     }
     return true
+  }
+
+  if (debug_level >= 3) {
+    setInterval(() => {
+      let ts_cache_keys = []
+      ts.forEach((cache) => ts_cache_keys.push(cache.key))
+      debug(3, 'cache (keys):', JSON.stringify(ts_cache_keys))
+    }, 5000)
   }
 
   return {

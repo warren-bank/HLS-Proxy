@@ -55,7 +55,7 @@ const proxy = function(server, host, port, is_secure, req_headers, cache_segment
 
   let prefetch_segment, get_segment, add_listener
   if (cache_segments) {(
-    {prefetch_segment, get_segment, add_listener} = require('./segment_cache')({debug, request, get_request_options, max_segments})
+    {prefetch_segment, get_segment, add_listener} = require('./segment_cache')({debug, debug_level, request, get_request_options, max_segments})
   )}
 
   const modify_m3u8_content = function(m3u8_content, m3u8_url) {
