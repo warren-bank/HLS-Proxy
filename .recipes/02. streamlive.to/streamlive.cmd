@@ -27,7 +27,7 @@ if "%prefetch%"=="1" (
   set hlsd_opts=%hlsd_opts% --prefetch --max-segments 20
 )
 
-node %hlsd_js% %hlsd_opts%
+node %hlsd_node_opts% %hlsd_js% %hlsd_opts%
 
 if not %ERRORLEVEL% EQU 0 (
   echo.

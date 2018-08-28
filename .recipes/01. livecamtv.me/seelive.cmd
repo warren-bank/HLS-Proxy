@@ -35,7 +35,7 @@ if "%prefetch%"=="1" (
 
 start "keep alive session authorization" cmd /c ""%~dp0.\auth\keep_authorization.bat" "%origin%" "%referer%" "%useragent%""
 
-node %hlsd_js% %hlsd_opts%
+node %hlsd_node_opts% %hlsd_js% %hlsd_opts%
 
 if not %ERRORLEVEL% EQU 0 (
   echo.

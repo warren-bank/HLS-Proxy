@@ -3,6 +3,15 @@ module.exports = function({debug, debug_level, request, get_request_options, max
 
   const ts = []
 
+  const ts_garbage_collect = function(start, count) {
+    for (let i=start; i < (start + count); i++) {
+      if (i >= ts.length) break
+
+      ts[i].databuffer = undefined
+    }
+    ts.splice(start, count)
+  }
+
   const regexs = {
     "ts_extension": /\.ts(?:[\?#]|$)/i,
     "ts_sequence":  /^.*?(\d+\.ts).*$/i
@@ -62,12 +71,15 @@ module.exports = function({debug, debug_level, request, get_request_options, max
         // cleanup: prune length of ts[] so it contains no more than "max_segments"
         if (ts.length > max_segments) {
           let overflow = ts.length - max_segments
-          ts.splice(0, overflow)
+          ts_garbage_collect(0, overflow)
         }
       })
       .catch((e) => {
         debug(3, 'prefetch (error):', e.message)
-        delete ts[index]
+
+        // asynchronous callback could occur after garbage collection; the index could've changed
+        index = find_index_of_segment(url)
+        if (index !== undefined) ts_garbage_collect(index, 1)
       })
     }
   }
@@ -94,7 +106,7 @@ module.exports = function({debug, debug_level, request, get_request_options, max
       //   - is it a coincidence that commenting this line appears to stop such behavior?
       //   - could it possibly be a race condition? cleanup also occurs asynchronously when prefetch responses are received, but javascript (node) is single threaded.. and this code doesn't yield or use a timer.
       // =====================================
-      // ts.splice(0, (index + 1))
+      // ts_garbage_collect(0, (index + 1))
     }
     else {
       debug(2, 'cache (miss):', url)
