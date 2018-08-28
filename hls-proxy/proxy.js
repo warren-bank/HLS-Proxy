@@ -112,14 +112,14 @@ const proxy = function(server, host, port, is_secure, req_headers, cache_segment
 
       let ts_file_ext    = get_ts_file_ext(file_name, file_ext)
       let redirected_url = `${ is_secure ? 'https' : 'http' }://${host}:${port}/${ base64_encode(matching_url) }${ts_file_ext || file_ext || ''}`
-      debug(2, 'redirecting (proxied):', redirected_url)
+      debug(3, 'redirecting (proxied):', redirected_url)
 
       return `${head}${redirected_url}${tail}`
     })
 
-    if (debug_level >= 2) {
+    if (debug_level >= 3) {
       m3u8_content = m3u8_content.replace(regexs.keys, function(match, head, key_url, tail) {
-        debug(2, 'key (proxied):', key_url)
+        debug(3, 'key (proxied):', key_url)
         return match
       })
     }
