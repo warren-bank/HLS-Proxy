@@ -4,7 +4,7 @@ set streamID=2xfox
 set port=8080
 set tls=0
 set prefetch=1
-set verbosity=2
+set verbosity=1
 
 rem :: HLS url obtained using "WebCast-Reloaded" on webpage:
 rem ::   https://www.vipleague.cc/fox--entertainment-streaming-link-1

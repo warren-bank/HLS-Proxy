@@ -4,7 +4,7 @@ set streamID=2xespn2
 set port=8080
 set tls=0
 set prefetch=1
-set verbosity=2
+set verbosity=1
 
 rem :: HLS url obtained using "WebCast-Reloaded" on webpage:
 rem ::   https://www.vipleague.cc/espn-2-streaming-link-1

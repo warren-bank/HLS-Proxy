@@ -41,9 +41,11 @@ module.exports = function({debug, debug_level, request, get_request_options, max
   const prefetch_segment = function(url) {
     if (! should_prefetch_url(url)) return
 
+    let debug_url = (debug_level >= 3) ? url : get_key_from_url(url)
+
     let index = find_index_of_segment(url)
     if (index === undefined) {
-      debug(2, 'prefetch (start):', url)
+      debug(1, 'prefetch (start):', debug_url)
 
       // placeholder to prevent multiple download requests
       index = ts.length
@@ -52,7 +54,7 @@ module.exports = function({debug, debug_level, request, get_request_options, max
       let options = get_request_options(url)
       request(options, '', {binary: true, stream: false})
       .then(({response}) => {
-        debug(2, `prefetch (complete, ${response.length} bytes):`, url)
+        debug(1, `prefetch (complete, ${response.length} bytes):`, debug_url)
 
         // asynchronous callback could occur after garbage collection; the index could've changed
         index = find_index_of_segment(url)
@@ -63,7 +65,7 @@ module.exports = function({debug, debug_level, request, get_request_options, max
           segment.forEach((cb) => {
             cb(response)
 
-            debug(2, 'cache (callback complete):', url)
+            debug(1, 'cache (callback complete):', debug_url)
           })
         }
         ts[index].databuffer = response
@@ -75,7 +77,8 @@ module.exports = function({debug, debug_level, request, get_request_options, max
         }
       })
       .catch((e) => {
-        debug(3, 'prefetch (error):', e.message)
+        debug(1, 'prefetch (error):', debug_url)
+        debug(2, 'prefetch (error):', e.message)
 
         // asynchronous callback could occur after garbage collection; the index could've changed
         index = find_index_of_segment(url)
@@ -87,17 +90,19 @@ module.exports = function({debug, debug_level, request, get_request_options, max
   const get_segment = function(url) {
     if (! should_prefetch_url(url)) return undefined
 
+    let debug_url = (debug_level >= 3) ? url : get_key_from_url(url)
+
     let segment
     let index = find_index_of_segment(url)
     if (index !== undefined) {
       segment = ts[index].databuffer
 
       if ((segment === false) || (segment instanceof Array)) {
-        debug(2, 'cache (pending prefetch):', url)
+        debug(1, 'cache (pending prefetch):', debug_url)
 
         return false
       }
-      debug(2, 'cache (hit):', url)
+      debug(1, 'cache (hit):', debug_url)
 
       // cleanup: remove all previous segments
       // =====================================
@@ -109,13 +114,15 @@ module.exports = function({debug, debug_level, request, get_request_options, max
       // ts_garbage_collect(0, (index + 1))
     }
     else {
-      debug(2, 'cache (miss):', url)
+      debug(1, 'cache (miss):', debug_url)
     }
     return segment
   }
 
   const add_listener = function(url, cb) {
     if (! should_prefetch_url(url)) return false
+
+    let debug_url = (debug_level >= 3) ? url : get_key_from_url(url)
 
     let segment
     let index = find_index_of_segment(url)
@@ -125,17 +132,17 @@ module.exports = function({debug, debug_level, request, get_request_options, max
       if (segment === false) {
         ts[index].databuffer = [cb]
 
-        debug(3, 'cache (callback added):', url)
+        debug(1, 'cache (callback added):', debug_url)
       }
       else if (segment instanceof Array) {
         ts[index].databuffer.push(cb)
 
-        debug(3, 'cache (callback added):', url)
+        debug(1, 'cache (callback added):', debug_url)
       }
       else {
         cb(segment)
 
-        debug(3, 'cache (callback complete):', url)
+        debug(1, 'cache (callback complete):', debug_url)
       }
     }
     return true

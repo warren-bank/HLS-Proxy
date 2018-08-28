@@ -64,9 +64,9 @@ const proxy = function(server, host, port, is_secure, req_headers, cache_segment
       "absolute": m3u8_url.replace(/(:\/\/[^\/]+).*$/, '$1')
     }
 
-    if (debug_level >= 1) {
+    if (debug_level >= 2) {
       m3u8_content = m3u8_content.replace(regexs.keys, function(match, head, key_url, tail) {
-        debug(1, 'key:', key_url)
+        debug(2, 'key:', key_url)
         return match
       })
     }
@@ -104,7 +104,7 @@ const proxy = function(server, host, port, is_secure, req_headers, cache_segment
         matching_url = `${abs_path}${file_name}${file_ext || ''}`
       }
       matching_url = matching_url.trim()
-      debug(1, 'redirecting:', matching_url)
+      debug(2, 'redirecting:', matching_url)
 
       if (cache_segments) {
         prefetch_segment(matching_url)
