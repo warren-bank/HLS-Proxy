@@ -19,7 +19,7 @@ module.exports = function({debug, debug_level, request, get_request_options, max
   const find_index_of_segment = function(url) {
     let key = get_key_from_url(url)
     let index
-    for (let i=0; i < ts.length; i++) {
+    for (let i=(ts.length - 1); i>=0; i--) {
       let segment = ts[i]  // {key, databuffer}
       if (segment && (segment.key === key)) {
         index = i
