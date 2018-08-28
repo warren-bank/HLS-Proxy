@@ -21,15 +21,59 @@ module.exports = function({debug, request, get_request_options, max_segments}) {
     return segment_pattern.test(url)
   }
 
+  const prefetch_segment = function(url) {
+    if (! should_prefetch_url(url)) return
+
+    let index = find_index_of_segment(url)
+    if (index === undefined) {
+      debug(2, 'prefetch (start):', url)
+
+      // placeholder to prevent multiple download requests
+      index = ts.length
+      ts[index] = {url, databuffer: false}
+
+      let options = get_request_options(url)
+      request(options, '', {binary: true, stream: false})
+      .then(({response}) => {
+        debug(2, `prefetch (complete, ${response.length} bytes):`, url)
+
+        let segment = ts[index].databuffer
+        if (segment && (segment instanceof Array)) {
+          segment.forEach((cb) => {
+            cb(response)
+
+            debug(2, 'cache (callback complete):', url)
+          })
+        }
+        ts[index].databuffer = response
+
+        // cleanup: prune length of ts[] so it contains no more than "max_segments"
+        if (ts.length > max_segments) {
+          let overflow = ts.length - max_segments
+          ts.splice(0, overflow)
+        }
+      })
+      .catch((e) => {
+        debug(3, 'prefetch (error):', e.message)
+        delete ts[index]
+      })
+    }
+  }
+
   const get_segment = function(url) {
     if (! should_prefetch_url(url)) return undefined
 
     let segment
     let index = find_index_of_segment(url)
     if (index !== undefined) {
-      debug(2, 'cache (hit):', url)
-
       segment = ts[index].databuffer
+
+      if ((segment === false) || (segment instanceof Array)) {
+        debug(2, 'cache (pending prefetch):', url)
+
+        return false
+      }
+      debug(2, 'cache (hit):', url)
 
       // cleanup: remove all previous segments
       // =====================================
@@ -46,39 +90,36 @@ module.exports = function({debug, request, get_request_options, max_segments}) {
     return segment
   }
 
-  const prefetch_segment = function(url) {
-    if (! should_prefetch_url(url)) return
+  const add_listener = function(url, cb) {
+    if (! should_prefetch_url(url)) return false
 
+    let segment
     let index = find_index_of_segment(url)
-    if (index === undefined) {
-      debug(2, 'prefetch (start):', url)
+    if (index !== undefined) {
+      segment = ts[index].databuffer
 
-      // placeholder to prevent multiple download requests
-      index = ts.length
-      ts[index] = {url, databuffer: undefined}
+      if (segment === false) {
+        ts[index].databuffer = [cb]
 
-      let options = get_request_options(url)
-      request(options, '', {binary: true, stream: false})
-      .then(({response}) => {
-        debug(2, `prefetch (complete, ${response.length} bytes):`, url)
+        debug(3, 'cache (callback added):', url)
+      }
+      else if (segment instanceof Array) {
+        ts[index].databuffer.push(cb)
 
-        ts[index].databuffer = response
+        debug(3, 'cache (callback added):', url)
+      }
+      else {
+        cb(segment)
 
-        // cleanup: prune length of ts[] so it contains no more than "max_segments"
-        if (ts.length > max_segments) {
-          let overflow = ts.length - max_segments
-          ts.splice(0, overflow)
-        }
-      })
-      .catch((e) => {
-        debug(3, 'prefetch (error):', e.message)
-        delete ts[index]
-      })
+        debug(3, 'cache (callback complete):', url)
+      }
     }
+    return true
   }
 
   return {
     prefetch_segment,
-    get_segment
+    get_segment,
+    add_listener
   }
 }

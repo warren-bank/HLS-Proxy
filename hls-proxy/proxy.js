@@ -1,6 +1,5 @@
-const segment_cache = require('./segment_cache')
-const request       = require('@warren-bank/node-request').request
-const parse_url     = require('url').parse
+const request   = require('@warren-bank/node-request').request
+const parse_url = require('url').parse
 
 // btoa
 const base64_encode = function(str) {
@@ -54,9 +53,9 @@ const proxy = function(server, host, port, is_secure, req_headers, cache_segment
     return request_options
   }
 
-  let prefetch_segment, get_segment
+  let prefetch_segment, get_segment, add_listener
   if (cache_segments) {(
-    {prefetch_segment, get_segment} = segment_cache({debug, request, get_request_options, max_segments})
+    {prefetch_segment, get_segment, add_listener} = require('./segment_cache')({debug, request, get_request_options, max_segments})
   )}
 
   const modify_m3u8_content = function(m3u8_content, m3u8_url) {
@@ -137,12 +136,20 @@ const proxy = function(server, host, port, is_secure, req_headers, cache_segment
     const url     = base64_decode( req.url.replace(regexs.wrap, '$1') ).trim()
     const is_m3u8 = regexs.m3u8.test(url)
 
-    if (cache_segments && !is_m3u8) {
-      let segment = get_segment(url)  // Buffer or undefined
+    const send_ts = function(segment) {
+      res.writeHead(200, { "Content-Type": "video/MP2T" })
+      res.end(segment)
+    }
 
-      if (segment && segment.length) {
-        res.writeHead(200, { "Content-Type": "video/MP2T" })
-        res.end(segment)
+    if (cache_segments && !is_m3u8) {
+      let segment = get_segment(url)   // Buffer (cached segment data), false (prefetch is pending: add callback), undefined (no prefetch is pending)
+
+      if (segment && segment.length) { // Buffer (cached segment data)
+        send_ts(segment)
+        return
+      }
+      else if (segment === false) {    // false (prefetch is pending: add callback)
+        add_listener(url, send_ts)
         return
       }
     }
