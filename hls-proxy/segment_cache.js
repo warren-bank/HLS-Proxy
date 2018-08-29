@@ -1,5 +1,6 @@
-module.exports = function({debug, debug_level, request, get_request_options, max_segments}) {
+module.exports = function({debug, debug_level, request, get_request_options, max_segments, cache_key}) {
   max_segments = max_segments || 20
+  cache_key    = cache_key    ||  0
 
   const ts = []
 
@@ -14,6 +15,7 @@ module.exports = function({debug, debug_level, request, get_request_options, max
 
   const regexs = {
     "ts_extension": /\.ts(?:[\?#]|$)/i,
+    "ts_filename":  /^.*?\/([^\/]+\.ts).*$/i,
     "ts_sequence":  /^.*?(\d+\.ts).*$/i
   }
 
@@ -22,7 +24,21 @@ module.exports = function({debug, debug_level, request, get_request_options, max
   }
 
   const get_key_from_url = function(url) {
-    return url.replace(regexs["ts_sequence"], '$1')
+    switch (cache_key) {
+      case 2:
+        // full URL of .ts file
+        return url
+        break
+      case 1:
+        // full filename of .ts file
+        return url.replace(regexs["ts_filename"], '$1')
+        break
+      case 0:
+      default:
+        // sequence number of .ts file w/ .ts file extension (ex: "123.ts")
+        return url.replace(regexs["ts_sequence"], '$1')
+        break
+    }
   }
 
   const find_index_of_segment = function(url) {

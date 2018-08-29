@@ -15,6 +15,7 @@ try {
     "--header":       {many: true},
     "--prefetch":     {bool: true},
     "--max-segments": {num:  true},
+    "--cache-key":    {num:  true},
     "-v":             {num:  true}
   }, true)
 }
@@ -27,7 +28,7 @@ if (argv_vals["--help"]) {
   console.log(`
 usage:
 ======
-hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--prefetch] [--max-segments <number>] [-v <number>]
+hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>]
 
 examples:
 =========
@@ -92,6 +93,7 @@ const bootstrap_server = function(start_server) {
     req_headers:    argv_vals["--req-headers"],
     cache_segments: argv_vals["--prefetch"],
     max_segments:   argv_vals["--max-segments"],
+    cache_key:      argv_vals["--cache-key"] || 0,
     verbosity:      argv_vals["-v"] || 0
   })
 }

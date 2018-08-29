@@ -21,7 +21,7 @@ npm install --global "@warren-bank/hls-proxy"
 #### How to: Run the server(s):
 
 ```bash
-hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--prefetch] [--max-segments <number>] [-v <number>]
+hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>]
 ```
 
 #### Examples:
@@ -92,6 +92,20 @@ hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req
   * when the cache grows larger than this size, the oldest data is removed to make room to store new data
   * when this option is not specified:
     * default value: `20`
+* _--cache-key_ sets the type of string used for keys in the cache hashtable
+  * this option is only meaningful when _--prefetch_ is enabled
+  * `0` (default):
+    * sequence number of .ts file w/ .ts file extension (ex: "123.ts")
+      * pros:
+        * shortest type of string
+        * makes the log output easiest to read
+      * cons:
+        * in the wild, I've encountered video servers that assign each .ts file a unique filename that always terminate with the same static sequence number
+          * this is a really weird edge case, but this option provides an easy workaround
+  * `1`:
+    * full filename of .ts file
+  * `2`:
+    * full URL of .ts file
 * _-v_ sets logging verbosity level:
   * `-1`:
     * silent
@@ -123,7 +137,7 @@ npm install
 # If using a port number >= 1024 on Linux, or
 # If using Windows:
 # ----------------------------------------------------------------------
-npm start [-- [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--prefetch] [--max-segments <number>] [-v <number>] ]
+npm start [-- [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>] ]
 
 # ----------------------------------------------------------------------
 # https://www.w3.org/Daemon/User/Installation/PrivilegedPorts.html
@@ -131,7 +145,7 @@ npm start [-- [--help] [--version] [--tls] [--host <ip_address>] [--port <number
 # Linux considers port numbers < 1024 to be privileged.
 # Use "sudo":
 # ----------------------------------------------------------------------
-npm run sudo [-- [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--prefetch] [--max-segments <number>] [-v <number>] ]
+npm run sudo [-- [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>] ]
 ```
 
 #### Examples:

@@ -11,9 +11,10 @@ const base64_decode = function(str) {
   return Buffer.from(str, 'base64').toString('binary')
 }
 
-const proxy = function(server, host, port, is_secure, req_headers, cache_segments, max_segments, debug_level) {
-  debug_level  = debug_level  ||  0
+const proxy = function({server, host, port, is_secure, req_headers, cache_segments, max_segments, cache_key, debug_level}) {
   max_segments = max_segments || 20
+  cache_key    = cache_key    ||  0
+  debug_level  = debug_level  ||  0
 
   const debug = function() {
     let args      = [...arguments]
@@ -55,7 +56,7 @@ const proxy = function(server, host, port, is_secure, req_headers, cache_segment
 
   let prefetch_segment, get_segment, add_listener
   if (cache_segments) {(
-    {prefetch_segment, get_segment, add_listener} = require('./segment_cache')({debug, debug_level, request, get_request_options, max_segments})
+    {prefetch_segment, get_segment, add_listener} = require('./segment_cache')({debug, debug_level, request, get_request_options, max_segments, cache_key})
   )}
 
   const modify_m3u8_content = function(m3u8_content, m3u8_url) {
