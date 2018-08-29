@@ -1,12 +1,30 @@
-### [HTTP Live Streaming Proxy](https://github.com/warren-bank/HLS-proxy)
+### [HTTP Live Streaming Proxy](https://github.com/warren-bank/HLS-Proxy)
 
-#### Intended Purpose:
+#### Basic Functionality:
 
 * proxy .m3u8 files, and the .ts files they internally reference
 * to all proxied files:
   * add permissive CORS response headers
 * to .m3u8:
   * modify contents such that URLs in the playlist will also pass through the proxy
+
+#### Advanced Features:
+
+* inject custom HTTP headers in all outbound proxied requests
+* prefetch video segments (.ts files)
+
+#### Benefits:
+
+* any video player (on the LAN) can access the proxied video stream
+  * including Chromecast
+* prefetch and caching of video segments ahead-of-time makes playback of the video stream very stable
+  * solves buffering problems
+* the proxy can easily be configured to bypass many of the security measures used by video servers to restrict access:
+  * CORS response headers (to XHR requests)
+    * used by web browsers to enforce a security policy that limits which website may access the content
+  * HTTP request headers
+    * `Origin` and `Referer` are often inspected by the server
+      * when these headers don't match the site hosting the content, a `403 Forbidden` response is returned (in lieu of the requested data)
 
 - - - -
 
@@ -125,8 +143,8 @@ hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req
 #### How to: Install:
 
 ```bash
-git clone "https://github.com/warren-bank/HLS-proxy.git"
-cd "HLS-proxy"
+git clone "https://github.com/warren-bank/HLS-Proxy.git"
+cd "HLS-Proxy"
 npm install
 ```
 
@@ -233,7 +251,44 @@ curl --silent --insecure "$URL"
 
 - - - -
 
-#### Other (Loosely Related) Projects:
+#### Other Projects:
+##### (directly related, but very loosely coupled)
+
+* [Webcast-Reloaded](https://github.com/warren-bank/crx-webcast-reloaded)
+  * consists of 2 parts:
+    1. a Chromium web browser extension (.crx)
+       * on each browser tab, it's silently watching the URL of all outbound requests
+       * every requested URL matching a regex pattern that identifies it to be a video file is displayed in the modal window that toggles open when the extension's icon is clicked
+       * links in this modal window open to URLs of component &#35;2
+    2. a static website
+       * [there](https://warren-bank.github.io/crx-webcast-reloaded/external_website/index.html) is a selection of several HTML5 videos players
+         * each is better at some things and worse at others
+         * each integrates with a different Chromecast receiver app
+       * [there](https://warren-bank.github.io/crx-webcast-reloaded/external_website/proxy.html) is a page to help redirect the intercepted video URL through a local instance of HLS-Proxy
+
+* [Faux Searchbar](https://github.com/warren-bank/crx-faux-searchbar)
+  * provides a simple way to keep and organize bookmarks
+    * my [recipe](https://github.com/warren-bank/crx-faux-searchbar/raw/master/.recipes/video-streams/video-streams.json) of favorite video stream servers
+      * some require "Webcast-Reloaded" to intercept the .m3u8 URL
+      * some require "Webcast-Reloaded" to intercept the .m3u8 URL, and "HLS-Proxy" to enable casting the stream to Chromecast
+      * some of the .m3u8 URLs are static, enabling the bookmark to directly load the video on the "Webcast-Reloaded" website
+
+* [FirstOne TV](https://github.com/warren-bank/crx-FirstOne-TV)
+  * a Chromium browser extension (user script) for a [particular website](https://www.firstonetv.net/Live) that hosts many excellent video streams
+  * removes visual clutter and prevents their site from stealing CPU cycles
+
+* [Streamlive](https://github.com/warren-bank/HLS-Proxy/raw/master/.recipes/02.%20streamlive.to/.channels/streamlive.user.js)
+  * a Chromium browser extension (user script) for a [particular website](https://www.streamlive.to/channels) that hosts many excellent video streams
+  * uses their XHR search form to dynamically request a __lot__ of channels, and then filters the results to only display the ones that can be watched for free
+
+* [PBS Passport](https://github.com/warren-bank/crx-pbs-passport)
+  * a Chromium browser extension (user script) for a [particular website](https://www.pbs.org/shows/) that hosts many excellent video streams
+  * removes visual clutter and busts through their paywall (like: Kool-Aid Man)
+
+- - - -
+
+#### Other Projects:
+##### (unrelated, but somewhat similar in scope and purpose)
 
 * [Streamlink](https://github.com/streamlink/streamlink)
   * notes:
@@ -253,10 +308,10 @@ curl --silent --insecure "$URL"
         * .NET Framework 4.5
   * usage test:
     * `streamlink --player-external-http --player-external-http-port 8080 --default-stream best --http-ignore-env --http-no-ssl-verify --url "https://XXX/video.m3u8"`
-  * usage result:
+  * usage test result:
     * [doesn't appear to work with HTML5 video players or Chromecast](https://github.com/streamlink/streamlink/issues/1704#issuecomment-413661578)
     * the server starts and works as it was intended, but something about the format of the data it "streams" is incompatible
-    * [VLC](https://portableapps.com/apps/music_video/vlc_portable) can play the video stream from the server, and be used to [render the video on Chromecast](https://github.com/warren-bank/HLS-proxy/blob/master/.related/.streamlink-recipes/notes.txt)
+    * [VLC](https://portableapps.com/apps/music_video/vlc_portable) can play the video stream from the server, and be used to [render the video on Chromecast](https://github.com/warren-bank/HLS-Proxy/blob/master/.related/.streamlink-recipes/notes.txt)
 
 - - - -
 
