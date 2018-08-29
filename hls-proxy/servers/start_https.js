@@ -3,7 +3,7 @@ const proxy  = require('../proxy')
 const https  = require('https')
 const fs     = require('fs')
 
-const start_server = function(host, port, req_headers, cache_segments, max_segments, verbosity) {
+const start_server = function({host, port, req_headers, cache_segments, max_segments, verbosity}) {
   if (!port || isNaN(port)) port = 443
 
   new Promise((resolve, reject) => {

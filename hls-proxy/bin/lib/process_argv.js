@@ -86,14 +86,14 @@ if (argv_vals["--origin"] || argv_vals["--referer"] || argv_vals["--useragent"] 
 }
 
 const bootstrap_server = function(start_server) {
-  start_server(
-    argv_vals["--host"],
-    argv_vals["--port"],
-    argv_vals["--req-headers"],
-    argv_vals["--prefetch"],
-    argv_vals["--max-segments"],
-    argv_vals["-v"] || 0
-  )
+  start_server({
+    host:           argv_vals["--host"],
+    port:           argv_vals["--port"],
+    req_headers:    argv_vals["--req-headers"],
+    cache_segments: argv_vals["--prefetch"],
+    max_segments:   argv_vals["--max-segments"],
+    verbosity:      argv_vals["-v"] || 0
+  })
 }
 
 module.exports = {argv_vals, bootstrap_server}
