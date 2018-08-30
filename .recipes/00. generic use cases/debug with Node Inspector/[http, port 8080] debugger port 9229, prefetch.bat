@@ -9,4 +9,4 @@ rem :: -------------------------------------------------------------------------
 
 set hlsd_node_opts=%hlsd_node_opts% --inspect-brk="127.0.0.1:9229"
 
-call "%~dp0..\[http, port 8080].bat"
+call "%~dp0..\[http, port 8080] prefetch.bat"
