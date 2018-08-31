@@ -12,6 +12,7 @@
 
 * inject custom HTTP headers in all outbound proxied requests
 * prefetch video segments (.ts files)
+* use a hook function to conditionally redirect URLs in the playlist (before they're modified to pass through the proxy)
 
 #### Benefits:
 
@@ -21,10 +22,13 @@
   * solves buffering problems
 * the proxy can easily be configured to bypass many of the security measures used by video servers to restrict access:
   * CORS response headers (to XHR requests)
-    * used by web browsers to enforce a security policy that limits which website may access the content
+    * used by web browsers to enforce a security policy that limits which website(s) may access the content
   * HTTP request headers
     * `Origin` and `Referer` are often inspected by the server
       * when these headers don't match the site hosting the content, a `403 Forbidden` response is returned (in lieu of the requested data)
+  * restricted access to encryption keys
+    * often times the encrypted video segments (.ts files) are readily available, but the encryption keys are well protected
+      * if the keys can be obtained from another source, then a hook function can be used to redirect only those URL requests
 
 - - - -
 
