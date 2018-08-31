@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<head>
+  <script src="https://cdn.jsdelivr.net/clappr/latest/clappr.min.js" type="text/javascript"></script>
+  <script src="https://cdn.jsdelivr.net/clappr.level-selector/latest/level-selector.min.js" type="text/javascript"></script>
+  <script src="https://cdn.jsdelivr.net/clappr.chromecast-plugin/latest/clappr-chromecast-plugin.js"></script>
+  <style>#player {width: 640px; height: 360px;}</style>
+  <meta http-equiv="cache-control" content="max-age=0" />
+  <meta http-equiv="cache-control" content="no-cache" />
+  <meta http-equiv="pragma" content="no-cache" />
+  <script>
+    var video_url = "https://hlslive-l3c-ewr1.media.mlb.com/ls01/mlb/2018/08/31/Home_VIDEO_eng_Arizona_Diamondbacks_Los__20180831_1535672988710/master_desktop_complete.m3u8"
+  </script>
+</head>
+<body>
+  <div id="player"></div>
+  <script>
+    var player = new Clappr.Player({
+      source:   video_url,
+      mimeType: 'application/x-mpegURL',
+      width:    '100%',
+      height:   '100%',
+      autoPlay: false,
+      parentId: '#player',
+      plugins: {
+        core:   [ChromecastPlugin, LevelSelector]
+      },
+      chromecast: {
+        appId:  '9DFB77C0'
+      }
+    });
+    (function(open) {
+      XMLHttpRequest.prototype.open = function(method, url, async, user, pass) {
+        if (url.toLowerCase().indexOf('fwmrm.net') >= 0) {
+          return;
+        }
+        var rewrittenUrl = url;
+        rewrittenUrl = rewrittenUrl.replace('https://playback.svcs.mlb.com/events/', 'http://bilasport.net/keys/Dodgers.file?');
+        open.call(this, method, rewrittenUrl, async, user, pass);
+      };
+    })(XMLHttpRequest.prototype.open);
+  </script>
+</body>
+</html>

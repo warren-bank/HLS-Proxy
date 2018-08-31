@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/clappr/latest/clappr.min.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/clappr.level-selector/latest/level-selector.min.js"></script>
+  <style>#player {width: 640px; height: 360px;}</style>
+</head>
+<body>	
+  <div id='player'></div>
+  <script>
+    var player = new Clappr.Player({source: "http://mlblive-akc.mlb.com/ls01/mlbam/mlb_network/NETWORK_LINEAR_1/master_wired.m3u8", width: '100%', height: '100%', autoPlay: false, parentId: "#player"});
+  </script>
+</body>
+</html>

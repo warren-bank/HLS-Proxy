@@ -1,0 +1,143 @@
+--------------------------------------------------------------------------------
+
+observations:
+=============
+
+* TONS of websites stream games directly from a subdomain of: mlb.com
+  - how??
+
+* attempts to play these .m3u8 streams in a video player external from these websites
+  results in problems with the key URLs not be accessible
+  - do these sites have in-page javascript that parses the .m3u8 to find the key URLs
+    and obtain them from elsewhere (ie: a pirate site with credentials that mirrors the keys)?
+
+--------------------------------------------------------------------------------
+
+analysis:
+=========
+
+* a good example (because it's a 24/7 live stream) is MLB Network
+  - http://mlblive-akc.mlb.com/ls01/mlbam/mlb_network/NETWORK_LINEAR_1/master_wired.m3u8
+
+* example host:
+  - http://mlbstreams.net/mlb-network-tv-live-stream/
+  - http://footystreams.net/mlb/mlb-network.php
+      * embedded iframe that contains only the video player
+      * very clean page to work with..
+
+* side note:
+  - http://footystreams.net/
+      * they host a TON of good content
+      * presumably, a workaround would work for all
+
+* interesting:
+  - the player APPEARS to be very vanilla:
+
+--------------------------------------------------------------------------------
+
+<!DOCTYPE html>
+<html>
+<head>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/clappr/latest/clappr.min.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/clappr.level-selector/latest/level-selector.min.js"></script>
+  <style>#player {width: 640px; height: 360px;}</style>
+</head>
+<body>	
+  <div id='player'></div>
+  <script>
+    var player = new Clappr.Player({source: "http://mlblive-akc.mlb.com/ls01/mlbam/mlb_network/NETWORK_LINEAR_1/master_wired.m3u8", width: '100%', height: '100%', autoPlay: true, parentId: "#player"});
+  </script>
+</body>
+</html>
+
+--------------------------------------------------------------------------------
+
+result of running the above page (from file:/):
+===============================================
+Uncaught (in promise) DOMException: play() failed because the user didn't interact with the document first.
+
+related issue?:
+===============
+https://github.com/clappr/clappr/issues/1639
+
+workaround:
+===========
+* disable auto play: {autoPlay: false}
+
+result:
+=======
+* it WORKS!
+
+--------------------------------------------------------------------------------
+
+post-mortem:
+============
+* why does it work?
+
+* what is the level-selector plugin?
+  - https://github.com/clappr/clappr-level-selector-plugin
+      * not very interesting
+      * provides UI to choose one of the available stream bitrates (as included in the manifest)
+
+* so, it looks like this open-source clappr video player somehow automagically supports these MLB streams
+  - to do (later):
+      * dig into clappr source code and figure out how this works..
+  - to do (now):
+      * test if clappr can play these videos on Chromecast
+
+--------------------------------------------------------------------------------
+
+Chromecast:
+===========
+* can clappr player cast these MLB streams?
+
+* there is a Chromecast plugin:
+  - https://github.com/clappr/clappr-chromecast-plugin
+* demo:
+  - https://clappr.github.io/clappr-chromecast-plugin
+      * again, the video player configuration is super simple:
+
+--------------------------------------------------------------------------------
+
+<!DOCTYPE html>
+<html>
+<head>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/clappr/latest/clappr.min.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/clappr.level-selector/latest/level-selector.min.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/clappr.chromecast-plugin/latest/clappr-chromecast-plugin.min.js"></script>
+  <style>#player {width: 640px; height: 360px;}</style>
+</head>
+<body>	
+  <div id='player'></div>
+  <script>
+    var player = new Clappr.Player({
+      source:   'http://mlblive-akc.mlb.com/ls01/mlbam/mlb_network/NETWORK_LINEAR_1/master_wired.m3u8',
+      width:    '100%',
+      height:   '100%',
+      autoPlay: false,
+      parentId: '#player',
+      plugins: [ChromecastPlugin],
+      chromecast: {
+        appId:  '9DFB77C0'
+      }
+    });
+  </script>
+</body>
+</html>
+
+--------------------------------------------------------------------------------
+
+result of running the above page (from file:/):
+===============================================
+* works great
+
+my mistake:
+===========
+* all of this analysis is based on a false assumption
+  - this MLB Network HLS stream is NOT secured in the same way as games that are in-progress
+  - this MLB Network HLS stream DOES play equally well in the HTML5 video players included on the "Webcast-Reloaded" external website (ie: THEOplayer, VisualOn, etc)
+
+* will need to start the analysis over again,
+  this time using an HLS for a game in-progress..
+
+--------------------------------------------------------------------------------
