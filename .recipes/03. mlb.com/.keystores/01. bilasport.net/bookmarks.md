@@ -15,6 +15,6 @@
 
 #### Notes:
 
-* I haven't tested this yet, but I'd be willing to bet that..
-  * all of the "keystore" endpoints are identical
-  * any of the "keystore" endpoints could be used for all MLB teams
+* the "keystore" endpoints are __not__ identical / interchangeable
+  * each team needs custom configuration
+  * on the upside, each individual endpoint (for a specific team) has a static URL

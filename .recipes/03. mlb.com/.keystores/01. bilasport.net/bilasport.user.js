@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name BilaSport MLB Keystore
 // @description Extract information about MLB stream
-// @version 0.1.0
+// @version 0.2.0
 // @match *://bilasport.net/mlb/*
 // @icon http://bilasport.net/img/e2f33d2d006318df9fb1636fd2851df6.png
 // ==/UserScript==
@@ -18,7 +18,11 @@ var payload = function(){
         let msg = ''
         msg += 'video stream:'    + "\n"
         msg += '============='    + "\n"
-        msg += window.data.source
+        msg += window.data.source + "\n\n"
+
+        msg += 'video stream (HLS-Proxy):' + "\n"
+        msg += '=========================' + "\n"
+        msg += 'https://warren-bank.github.io/crx-webcast-reloaded/external_website/proxy.html#/watch/' + encodeURIComponent(encodeURIComponent( btoa(window.data.source) ))  // yes, the base64 value was url-encoded twice intentionally.. you can thank AngularJS (1.x) router
 
         let keystore
         try {
@@ -35,8 +39,8 @@ var payload = function(){
 
         if (keystore) {
           msg += "\n\n"
-          msg += 'keystore:'        + "\n"
-          msg += '========='        + "\n"
+          msg += 'keystore:' + "\n"
+          msg += '=========' + "\n"
           msg += keystore
         }
 
