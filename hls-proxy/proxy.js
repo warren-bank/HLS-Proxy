@@ -11,7 +11,7 @@ const base64_decode = function(str) {
   return Buffer.from(str, 'base64').toString('binary')
 }
 
-const proxy = function({server, host, port, is_secure, req_headers, cache_segments, max_segments, cache_key, debug_level}) {
+const proxy = function({server, host, port, is_secure, req_headers, hooks, cache_segments, max_segments, cache_key, debug_level}) {
   max_segments = max_segments || 20
   cache_key    = cache_key    ||  0
   debug_level  = debug_level  ||  0
@@ -31,7 +31,7 @@ const proxy = function({server, host, port, is_secure, req_headers, cache_segmen
   const regexs = {
     wrap: new RegExp('/?([^\\._]+)(?:[\\._].*)?$', 'i'),
     m3u8: new RegExp('\\.m3u8(?:[\\?#]|$)', 'i'),
-    urls: new RegExp('(^|[\\s\'"])((?:https?:/)?/(?:[^/\\s,\'"]*/)+)?([^/\\s,\'"]+?)(\\.[^/\\.\\s,\'"]+)?(["\'\\s]|$)', 'img'),
+    urls: new RegExp('(^|[\\s\'"])((?:https?:/)?/)?((?:[^/\\s,\'"]*?/)+)?([^/\\s,\'"]+?)(\\.[^/\\.\\s,\'"]+)?(["\'\\s]|$)', 'img'),
     keys: new RegExp('(^#EXT-X-KEY:[^"]*")([^"]+)(".*$)', 'img')
   }
 
@@ -89,22 +89,40 @@ const proxy = function({server, host, port, is_secure, req_headers, cache_segmen
       return ts_file_ext
     }
 
-    m3u8_content = m3u8_content.replace(regexs.urls, function(match, head, abs_path, file_name, file_ext, tail) {
+    m3u8_content = m3u8_content.replace(regexs.urls, function(match, head, abs_path, rel_path, file_name, file_ext, tail) {
       debug(3, 'modify (raw):', {match, head, abs_path, file_name, file_ext, tail})
 
-      if (!abs_path && !file_ext) return match
+      if (!(abs_path || rel_path) && !file_ext) return match
 
       let matching_url
       if (!abs_path) {
-        matching_url = `${base_urls.relative}${file_name}${file_ext || ''}`
+        matching_url = `${base_urls.relative}${rel_path || ''}${file_name}${file_ext || ''}`
       }
       else if (abs_path[0] === '/') {
-        matching_url = `${base_urls.absolute}${abs_path}${file_name}${file_ext || ''}`
+        matching_url = `${base_urls.absolute}${abs_path}${rel_path || ''}${file_name}${file_ext || ''}`
       }
       else {
-        matching_url = `${abs_path}${file_name}${file_ext || ''}`
+        matching_url = `${abs_path}${rel_path || ''}${file_name}${file_ext || ''}`
       }
       matching_url = matching_url.trim()
+
+      if (hooks && (hooks instanceof Object) && hooks.redirect && (typeof hooks.redirect === 'function')) {
+        debug(3, 'redirecting (pre-hook):', matching_url)
+
+        try {
+          matching_url = hooks.redirect(matching_url)
+
+          if (typeof matching_url !== 'string') throw new Error('bad return value')
+        }
+        catch(e) {
+          matching_url = ''
+        }
+
+        if (!matching_url) {
+          debug(3, 'redirecting (post-hook):', 'URL filtered, removed from manifest')
+          return `${head}${tail}`
+        }
+      }
       debug(2, 'redirecting:', matching_url)
 
       if (cache_segments) {

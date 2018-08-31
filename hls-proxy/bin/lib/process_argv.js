@@ -13,6 +13,7 @@ try {
     "--referer":      {},
     "--useragent":    {},
     "--header":       {many: true},
+    "--hooks":        {file: "module"},
     "--prefetch":     {bool: true},
     "--max-segments": {num:  true},
     "--cache-key":    {num:  true},
@@ -28,7 +29,7 @@ if (argv_vals["--help"]) {
   console.log(`
 usage:
 ======
-hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>]
+hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--hooks <filepath>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>]
 
 examples:
 =========
@@ -91,10 +92,11 @@ const bootstrap_server = function(start_server) {
     host:           argv_vals["--host"],
     port:           argv_vals["--port"],
     req_headers:    argv_vals["--req-headers"],
+    hooks:          argv_vals["--hooks"],
     cache_segments: argv_vals["--prefetch"],
-    max_segments:   argv_vals["--max-segments"],
-    cache_key:      argv_vals["--cache-key"] || 0,
-    verbosity:      argv_vals["-v"] || 0
+    max_segments:   argv_vals["--max-segments"] || 20,
+    cache_key:      argv_vals["--cache-key"]    ||  0,
+    verbosity:      argv_vals["-v"]             ||  0
   })
 }
 

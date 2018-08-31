@@ -26,10 +26,16 @@ const retrieve_flag_value = function(flag_opts, args, index, throw_error_if_valu
       if (flag_opts && flag_opts["file"]) {
         try {
           val = fs.realpathSync(val, {encoding: 'utf8'})
-          val = fs.readFileSync(val, {encoding: 'utf8'})
 
-          if ( (typeof flag_opts["file"] === "string") && (flag_opts["file"].toLowerCase() === "json") ) {
-            val = JSON.parse(val)
+          if ( (typeof flag_opts["file"] === "string") && (flag_opts["file"].toLowerCase() === "module") ) {
+            val = require(val)
+          }
+          else {
+            val = fs.readFileSync(val, {encoding: 'utf8'})
+
+            if ( (typeof flag_opts["file"] === "string") && (flag_opts["file"].toLowerCase() === "json") ) {
+              val = JSON.parse(val)
+            }
           }
         }
         catch(e){

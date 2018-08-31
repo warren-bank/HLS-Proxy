@@ -39,7 +39,7 @@ npm install --global "@warren-bank/hls-proxy"
 #### How to: Run the server(s):
 
 ```bash
-hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>]
+hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--hooks <filepath>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>]
 ```
 
 #### Examples:
@@ -90,7 +90,7 @@ hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req
   * when this option is not specified:
     * HTTP proxy binds to: `80`
     * HTTPS proxy binds to: `443`
-* _--req-headers_ is the filepath to a JSON data Object containing key:value pairs
+* _--req-headers_ is the filepath to a JSON data _Object_ containing key:value pairs
   * each _key_ is the name of an HTTP header to send in in every outbound request
 * _--origin_ is the value of the corresponding HTTP request header
 * _--referer_ is the value of the corresponding HTTP request header
@@ -101,6 +101,12 @@ hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req
     * "name: value"
     * "name=value"
     * "name = value"
+* _--hooks_ is the filepath to a CommonJS module that exports a single JSON _Object_
+  * each _key_ is the name of a hook function
+  * each _value_ is the implementation of the corresponding _Function_
+  * hook function signatures:
+    * `"redirect": (url) => new_url`
+      * conditionally redirect the URLs encountered in .m3u8 files __before__ they are modified to pass through the proxy
 * _--prefetch_ is a flag to enable the prefetch and caching of video segments
   * when .m3u8 files are downloaded and modified inflight, all of the URLs in the playlist are known
   * at this time, it is possible to prefetch the .ts files
@@ -155,7 +161,7 @@ npm install
 # If using a port number >= 1024 on Linux, or
 # If using Windows:
 # ----------------------------------------------------------------------
-npm start [-- [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>] ]
+npm start [-- [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--hooks <filepath>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>] ]
 
 # ----------------------------------------------------------------------
 # https://www.w3.org/Daemon/User/Installation/PrivilegedPorts.html
@@ -163,7 +169,7 @@ npm start [-- [--help] [--version] [--tls] [--host <ip_address>] [--port <number
 # Linux considers port numbers < 1024 to be privileged.
 # Use "sudo":
 # ----------------------------------------------------------------------
-npm run sudo [-- [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>] ]
+npm run sudo [-- [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--hooks <filepath>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>] ]
 ```
 
 #### Examples:
