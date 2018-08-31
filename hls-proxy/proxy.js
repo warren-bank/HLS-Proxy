@@ -89,6 +89,8 @@ const proxy = function({server, host, port, is_secure, req_headers, hooks, cache
       return ts_file_ext
     }
 
+    const prefetch_urls = []
+
     m3u8_content = m3u8_content.replace(regexs.urls, function(match, head, abs_path, rel_path, file_name, file_ext, tail) {
       debug(3, 'modify (raw):', {match, head, abs_path, file_name, file_ext, tail})
 
@@ -125,8 +127,11 @@ const proxy = function({server, host, port, is_secure, req_headers, hooks, cache
       }
       debug(2, 'redirecting:', matching_url)
 
-      if (cache_segments) {
-        prefetch_segment(matching_url)
+      // aggregate prefetch URLs into an array while iterating.
+      // after the loop is complete, check the count.
+      // if it exceeds the size of the cache, remove overflow elements from the beginning.
+      if (cache_segments && (ts_regexs["file_ext"].test(file_ext))) {
+        prefetch_urls.push(matching_url)
       }
 
       let ts_file_ext    = get_ts_file_ext(file_name, file_ext)
@@ -135,6 +140,20 @@ const proxy = function({server, host, port, is_secure, req_headers, hooks, cache
 
       return `${head}${redirected_url}${tail}`
     })
+
+    if (prefetch_urls.length) {
+      if (prefetch_urls.length > max_segments) {
+        let overflow = prefetch_urls.length - max_segments
+
+        prefetch_urls.splice(0, overflow)
+        debug(3, 'prefetch (ignored):', `${overflow} URLs in m3u8 skipped to prevent cache overflow`)
+      }
+      prefetch_urls.forEach((matching_url, index) => {
+        prefetch_segment(matching_url)
+
+        prefetch_urls[index] = undefined
+      })
+    }
 
     if (debug_level >= 3) {
       m3u8_content = m3u8_content.replace(regexs.keys, function(match, head, key_url, tail) {
