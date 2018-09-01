@@ -11,7 +11,7 @@ const base64_decode = function(str) {
   return Buffer.from(str, 'base64').toString('binary')
 }
 
-const proxy = function({server, host, port, is_secure, req_headers, hooks, cache_segments, max_segments, cache_key, debug_level}) {
+const proxy = function({server, host, port, is_secure, req_headers, req_options, hooks, cache_segments, max_segments, cache_key, debug_level}) {
   max_segments = max_segments || 20
   cache_key    = cache_key    ||  0
   debug_level  = debug_level  ||  0
@@ -44,12 +44,13 @@ const proxy = function({server, host, port, is_secure, req_headers, hooks, cache
   }
 
   const get_request_options = function(url) {
-    if (!req_headers) return url
+    if (!req_headers && !req_options) return url
 
     let request_options = Object.assign(
       {},
       parse_url(url),
-      {headers: req_headers}
+      {headers: (req_headers || {})},
+      (req_options || {})
     )
     return request_options
   }

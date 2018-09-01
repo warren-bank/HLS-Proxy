@@ -11,6 +11,6 @@ rem :: from an HTTPS server that uses encryption so weak
 rem :: that it is no-longer supported when using the default tls cipher suite
 rem :: --------------------------------------------------------------------------
 
-set hlsd_node_opts=%hlsd_node_opts% --tls-cipher-list="AES128-SHA"
+set hlsd_opts=%hlsd_opts% --req-secure-ciphers "AES128-SHA"
 
 call "%~dp0..\..\[http, port 8080] prefetch.bat"
