@@ -95,6 +95,7 @@ const proxy = function({server, host, port, is_secure, req_headers, hooks, cache
       debug(3, 'modify (raw):', {match, head, abs_path, rel_path, file_name, file_ext, tail})
 
       if (!(abs_path || rel_path) && !file_ext) return match
+      if (!abs_path &&  rel_path && ( rel_path.indexOf('#EXT') === 0)) return match
       if (!abs_path && !rel_path && (file_name.indexOf('#EXT') === 0)) return match
 
       let matching_url
