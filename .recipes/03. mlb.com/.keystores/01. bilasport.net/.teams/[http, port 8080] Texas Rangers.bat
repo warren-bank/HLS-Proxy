@@ -1,12 +1,12 @@
 @echo off
 
 rem :: "keystore" obtained with "bilasport.user.js" on:
-rem ::   http://bilasport.net/mlb/dodgers.html
+rem ::   http://bilasport.net/mlb/texas.html
 
-set keystore=http://bilasport.net/keys/Dodgers.file?
+set keystore=http://bilasport.net/keys/Texas.file?
 set port=8080
 set tls=0
-set prefetch=1
+set prefetch=0
 set verbosity=1
 
 set PATH=%~dp0..\..\..;%PATH%
