@@ -63,7 +63,7 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
 
   const modify_m3u8_content = function(m3u8_content, m3u8_url) {
     const base_urls = {
-      "relative": m3u8_url.replace(/[^\/]+$/, ''),
+      "relative": m3u8_url.replace(/[\?#].*$/, '').replace(/[^\/]+$/, ''),
       "absolute": m3u8_url.replace(/(:\/\/[^\/]+).*$/, '$1')
     }
 
