@@ -123,6 +123,10 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
           matching_url = hooks.redirect(matching_url)
 
           if (typeof matching_url !== 'string') throw new Error('bad return value')
+
+          if (matching_url.length && matching_url.toLowerCase().indexOf('http') !== 0) {
+            matching_url = ( (matching_url[0] === '/') ? base_urls.absolute : base_urls.relative ) + matching_url
+          }
         }
         catch(e) {
           matching_url = ''

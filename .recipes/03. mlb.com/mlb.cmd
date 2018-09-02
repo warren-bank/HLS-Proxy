@@ -25,7 +25,7 @@ rem ::   * "5600"  //  1280x720 @ 60 fps
 rem :: ---------------------------------
 
 set hooks_js_path=%~dp0.\auth\hooks.js
-echo module.exports = {redirect: function(url){ if ('%bitrate%') if (/\.m3u8/i.test(url)) if (! /%bitrate%K\/%bitrate%_complete\.m3u8/i.test(url)) return ''; return url.replace('https://playback.svcs.mlb.com/events/', '%keystore%'); }} >"%hooks_js_path%"
+echo module.exports = {redirect: function(url){ if ('%bitrate%') if (/\.m3u8/i.test(url)) if (! /%bitrate%K\/%bitrate%_complete\.m3u8/i.test(url)) return '%bitrate%K/%bitrate%_complete.m3u8'; return url.replace('https://playback.svcs.mlb.com/events/', '%keystore%'); }} >"%hooks_js_path%"
 
 set origin=https://www.mlb.com
 set referer=https://www.mlb.com/live-stream-games/
