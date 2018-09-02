@@ -1,18 +1,31 @@
 @echo off
 
 set keystore=%~1
-set port=%~2
-set tls=%~3
-set prefetch=%~4
-set verbosity=%~5
+set bitrate=%~2
+set port=%~3
+set tls=%~4
+set prefetch=%~5
+set verbosity=%~6
 
 if not defined keystore (
   echo URL of encryption key server is required!
   exit /b 1
 )
 
+rem :: ---------------------------------
+rem :: valid options for "bitrate":
+rem ::   *  "192"  //   320x180 @ 30 fps
+rem ::   *  "514"  //   384x216 @ 30 fps
+rem ::   *  "800"  //   512x288 @ 30 fps
+rem ::   * "1200"  //   640x360 @ 30 fps
+rem ::   * "1800"  //   896x504 @ 30 fps
+rem ::   * "2500"  //   960x540 @ 30 fps
+rem ::   * "3500"  //  1280x720 @ 30 fps
+rem ::   * "5600"  //  1280x720 @ 60 fps
+rem :: ---------------------------------
+
 set hooks_js_path=%~dp0.\auth\hooks.js
-echo module.exports = {redirect: function(url){ return url.replace('https://playback.svcs.mlb.com/events/', '%keystore%') }} >"%hooks_js_path%"
+echo module.exports = {redirect: function(url){ if ('%bitrate%') if (/\.m3u8/i.test(url)) if (! /%bitrate%K\/%bitrate%_complete\.m3u8/i.test(url)) return ''; return url.replace('https://playback.svcs.mlb.com/events/', '%keystore%'); }} >"%hooks_js_path%"
 
 set origin=https://www.mlb.com
 set referer=https://www.mlb.com/live-stream-games/
