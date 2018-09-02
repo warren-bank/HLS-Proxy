@@ -20,6 +20,7 @@ try {
     "--req-secure-honor-server-cipher-order": {bool: true},
     "--req-secure-ciphers":                   {},
     "--req-secure-protocol":                  {},
+    "--req-secure-curve":                     {},
 
     "--hooks":                                {file: "module"},
 
@@ -39,7 +40,7 @@ if (argv_vals["--help"]) {
   console.log(`
 usage:
 ======
-hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--req-options <filepath>] [--req-secure-honor-server-cipher-order] [--req-secure-ciphers <string>] [--req-secure-protocol <string>] [--hooks <filepath>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>]
+hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--req-options <filepath>] [--req-secure-honor-server-cipher-order] [--req-secure-ciphers <string>] [--req-secure-protocol <string>] [--req-secure-curve <string>] [--hooks <filepath>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>]
 
 examples:
 =========
@@ -105,7 +106,7 @@ if (argv_vals["--origin"] || argv_vals["--referer"] || argv_vals["--useragent"] 
 //   https://www.openssl.org/docs/man1.1.0/ssl/ssl.html#Dealing-with-Protocol-Methods
 //   https://www.openssl.org/docs/man1.1.0/ssl/SSL_CTX_new.html
 // =============================================================================
-if (argv_vals["--req-secure-honor-server-cipher-order"] || argv_vals["--req-secure-ciphers"] || argv_vals["--req-secure-protocol"]) {
+if (argv_vals["--req-secure-honor-server-cipher-order"] || argv_vals["--req-secure-ciphers"] || argv_vals["--req-secure-protocol"] || argv_vals["--req-secure-curve"]) {
   argv_vals["--req-options"] = argv_vals["--req-options"] || {}
 
   if (argv_vals["--req-secure-honor-server-cipher-order"]) {
@@ -116,6 +117,9 @@ if (argv_vals["--req-secure-honor-server-cipher-order"] || argv_vals["--req-secu
   }
   if (argv_vals["--req-secure-protocol"]) {
     argv_vals["--req-options"]["secureProtocol"] = argv_vals["--req-secure-protocol"]
+  }
+  if (argv_vals["--req-secure-curve"]) {
+    argv_vals["--req-options"]["ecdhCurve"] = argv_vals["--req-secure-curve"]
   }
 }
 

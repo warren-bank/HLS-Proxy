@@ -43,7 +43,7 @@ npm install --global "@warren-bank/hls-proxy"
 #### How to: Run the server(s):
 
 ```bash
-hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--req-options <filepath>] [--req-secure-honor-server-cipher-order] [--req-secure-ciphers <string>] [--req-secure-protocol <string>] [--hooks <filepath>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>]
+hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--req-options <filepath>] [--req-secure-honor-server-cipher-order] [--req-secure-ciphers <string>] [--req-secure-protocol <string>] [--req-secure-curve <string>] [--hooks <filepath>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>]
 ```
 
 #### Examples:
@@ -119,12 +119,20 @@ hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req
         * default value: [`"ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA"`](https://nodejs.org/api/tls.html#tls_modifying_the_default_tls_cipher_suite)
       * `secureProtocol`
         * default value: [`"TLS_method"`](https://www.openssl.org/docs/man1.1.0/ssl/ssl.html#Dealing-with-Protocol-Methods)
+      * `ecdhCurve`
+        * default value: [`tls.DEFAULT_ECDH_CURVE`](https://nodejs.org/api/tls.html#tls_tls_default_ecdh_curve)
+          * the exact value depends on the version of node
+          * most commonly:
+            * older versions of node: `"prime256v1"`
+            * newer versions of node: `"auto"`
 * _--req-secure-honor-server-cipher-order_ is a flag to set the following key in the request options _Object_ to configure the context for secure __https__ requests:
   * `{honorCipherOrder: true}`
 * _--req-secure-ciphers_ is the value to assign to the following key in the request options _Object_ to configure the context for secure __https__ requests:
   * `{ciphers: value}`
 * _--req-secure-protocol_ is the value to assign to the following key in the request options _Object_ to configure the context for secure __https__ requests:
   * `{secureProtocol: value}`
+* _--req-secure-curve_ is the value to assign to the following key in the request options _Object_ to configure the context for secure __https__ requests:
+  * `{ecdhCurve: value}`
 * _--hooks_ is the filepath to a CommonJS module that exports a single JSON _Object_
   * each _key_ is the name of a hook function
   * each _value_ is the implementation of the corresponding _Function_
@@ -185,7 +193,7 @@ npm install
 # If using a port number >= 1024 on Linux, or
 # If using Windows:
 # ----------------------------------------------------------------------
-npm start [-- [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--req-options <filepath>] [--req-secure-honor-server-cipher-order] [--req-secure-ciphers <string>] [--req-secure-protocol <string>] [--hooks <filepath>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>] ]
+npm start [-- [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--req-options <filepath>] [--req-secure-honor-server-cipher-order] [--req-secure-ciphers <string>] [--req-secure-protocol <string>] [--req-secure-curve <string>] [--hooks <filepath>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>] ]
 
 # ----------------------------------------------------------------------
 # https://www.w3.org/Daemon/User/Installation/PrivilegedPorts.html
@@ -193,7 +201,7 @@ npm start [-- [--help] [--version] [--tls] [--host <ip_address>] [--port <number
 # Linux considers port numbers < 1024 to be privileged.
 # Use "sudo":
 # ----------------------------------------------------------------------
-npm run sudo [-- [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--req-options <filepath>] [--req-secure-honor-server-cipher-order] [--req-secure-ciphers <string>] [--req-secure-protocol <string>] [--hooks <filepath>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>] ]
+npm run sudo [-- [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--req-options <filepath>] [--req-secure-honor-server-cipher-order] [--req-secure-ciphers <string>] [--req-secure-protocol <string>] [--req-secure-curve <string>] [--hooks <filepath>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>] ]
 ```
 
 #### Examples:
@@ -283,17 +291,19 @@ curl --silent --insecure "$URL"
 
 * error:<br>
   `ssl3_check_cert_and_algorithm:dh key too small`
-  * fix:<br>
-    `--req-secure-ciphers "AES128-SHA"`
+  1. attempted fix:<br>
+     `--req-secure-ciphers "AES128-SHA"`
 
 * error:<br>
   `SSL routines:SSL23_GET_SERVER_HELLO:sslv3 alert handshake failure`
-  * attempted fix:<br>
-    `--req-secure-protocol "SSLv3_method"`
-  * result:<br>
-    `Error: SSLv3 methods disabled`
-  * issue:
-    * [node #3695](https://github.com/nodejs/node/issues/3695)
+  1. attempted fix:<br>
+     `--req-secure-protocol "SSLv3_method"`
+     * result:<br>
+       `Error: SSLv3 methods disabled`
+     * issue:
+       * [node #3695](https://github.com/nodejs/node/issues/3695)
+  2. attempted fix:<br>
+     `--req-secure-curve "auto"`
 
 - - - -
 
