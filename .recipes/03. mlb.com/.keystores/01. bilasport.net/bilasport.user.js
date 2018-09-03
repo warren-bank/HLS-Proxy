@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name BilaSport MLB Keystore
 // @description Extract information about MLB stream
-// @version 0.2.0
+// @version 0.2.1
 // @match *://bilasport.net/mlb/*
 // @icon http://bilasport.net/img/e2f33d2d006318df9fb1636fd2851df6.png
 // ==/UserScript==
@@ -22,7 +22,7 @@ var payload = function(){
 
         msg += 'video stream (HLS-Proxy):' + "\n"
         msg += '=========================' + "\n"
-        msg += 'https://warren-bank.github.io/crx-webcast-reloaded/external_website/proxy.html#/watch/' + encodeURIComponent(encodeURIComponent( btoa(window.data.source) ))  // yes, the base64 value was url-encoded twice intentionally.. you can thank AngularJS (1.x) router
+        msg += 'http://gitcdn.link/cdn/warren-bank/crx-webcast-reloaded/gh-pages/external_website/proxy.html#/watch/' + encodeURIComponent(encodeURIComponent( btoa(window.data.source) ))  // yes, the base64 value was url-encoded twice intentionally.. you can thank AngularJS (1.x) router
 
         let keystore
         try {
