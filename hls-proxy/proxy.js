@@ -94,7 +94,10 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
     const prefetch_urls = []
 
     m3u8_content = m3u8_content.replace(regexs.urls, function(match, head, abs_path, rel_path, file_name, file_ext, tail) {
-      debug(3, 'modify (raw):', {match, head, abs_path, rel_path, file_name, file_ext, tail})
+      if (
+        ((head === `"`) || (head === `'`) || (tail === `"`) || (tail === `'`)) &&
+        (head !== tail)
+      ) return match
 
       if (
         !abs_path && (
@@ -103,6 +106,8 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
           || (!rel_path && (file_name.indexOf('#EXT') === 0))
         )
       ) return match
+
+      debug(3, 'modify (raw):', {match, head, abs_path, rel_path, file_name, file_ext, tail})
 
       let matching_url
       if (!abs_path) {
