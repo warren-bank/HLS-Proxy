@@ -4,4 +4,6 @@ node_modules/
 .recipes/.lib/temp2.txt
 .recipes/**/auth/hooks.js
 .recipes/**/auth/cookies.txt
-.related/.streamlink-recipes/**/auth/cookies.txt
+.related/.recipes/**/auth/cookies.txt
+.related/.recipes/**/*.mp4
+.related/.recipes/**/*.aac

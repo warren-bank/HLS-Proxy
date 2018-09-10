@@ -1,5 +1,7 @@
 @echo off
 
+call "%~dp0..\env.bat"
+
 set url=%~1
 set streamID=%~2
 set port=%~3
@@ -15,9 +17,6 @@ if not defined streamID (
 )
 
 if not defined port set port=8080
-
-set streamlink_home=C:\PortableApps\Streamlink\0.14.2
-set PATH=%streamlink_home%;%PATH%
 
 set origin=https://www.seelive.me
 set referer=https://www.seelive.me/sdembed?v=%streamID%
