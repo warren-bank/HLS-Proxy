@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name BilaSport MLB Keystore
 // @description Extract information about MLB stream
-// @version 0.2.1
+// @version 0.3.0
 // @match *://bilasport.net/mlb/*
 // @icon http://bilasport.net/img/e2f33d2d006318df9fb1636fd2851df6.png
 // ==/UserScript==
@@ -15,14 +15,47 @@ var payload = function(){
   else {
     try {
       if (window.data.source && (window.data.source.toLowerCase().indexOf('.m3u8') >= 0)) {
+        let video_url = window.data.source
+
         let msg = ''
-        msg += 'video stream:'    + "\n"
-        msg += '============='    + "\n"
-        msg += window.data.source + "\n\n"
+        msg += 'video stream:' + "\n"
+        msg += '=============' + "\n"
+        msg += video_url       + "\n\n"
 
         msg += 'video stream (HLS-Proxy):' + "\n"
         msg += '=========================' + "\n"
-        msg += 'http://gitcdn.link/cdn/warren-bank/crx-webcast-reloaded/gh-pages/external_website/proxy.html#/watch/' + encodeURIComponent(encodeURIComponent( btoa(window.data.source) ))  // yes, the base64 value was url-encoded twice intentionally.. you can thank AngularJS (1.x) router
+        msg += '( adaptive )        '
+        msg += 'http://gitcdn.link/cdn/warren-bank/crx-webcast-reloaded/gh-pages/external_website/proxy.html#/watch/' + encodeURIComponent(encodeURIComponent( btoa(video_url) ))  // yes, the base64 value was url-encoded twice intentionally.. you can thank AngularJS (1.x) router
+
+        let constant_bitrates = [{
+          name: " 320x180 @ 30 fps",
+          m3u8: "192K/192_complete.m3u8"
+        },{
+          name: " 384x216 @ 30 fps",
+          m3u8: "514K/514_complete.m3u8"
+        },{
+          name: " 512x288 @ 30 fps",
+          m3u8: "800K/800_complete.m3u8"
+        },{
+          name: " 640x360 @ 30 fps",
+          m3u8: "1200K/1200_complete.m3u8"
+        },{
+          name: " 896x504 @ 30 fps",
+          m3u8: "1800K/1800_complete.m3u8"
+        },{
+          name: " 960x540 @ 30 fps",
+          m3u8: "2500K/2500_complete.m3u8"
+        },{
+          name: "1280x720 @ 30 fps",
+          m3u8: "3500K/3500_complete.m3u8"
+        },{
+          name: "1280x720 @ 60 fps",
+          m3u8: "5600K/5600_complete.m3u8"
+        }]
+        constant_bitrates.forEach((bitrate) => {
+          let url = video_url.replace(/[^\/]+?\.m3u8/i, bitrate.m3u8)
+          msg += "\n" + `(${bitrate.name}) ` + 'http://gitcdn.link/cdn/warren-bank/crx-webcast-reloaded/gh-pages/external_website/proxy.html#/watch/' + encodeURIComponent(encodeURIComponent( btoa(url) ))
+        })
 
         let keystore
         try {
