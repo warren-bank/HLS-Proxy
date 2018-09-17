@@ -13,9 +13,10 @@ set video_URL=https://e1.livecamtv.me/zmelive/Qy4A0r6jvBxeaoIpsgZW/playlist.m3u8
 set play_in_VLC=0
 
 set PATH=%~dp0..\..;%PATH%
+set recipes_home=%~dp0..\..\..\..
 
-call "%~dp0..\..\..\.lib\print_proxied_url.bat" "%video_URL%" "%port%" "%tls%"
+call "%recipes_home%\.lib\print_proxied_url.bat" "%video_URL%" "%port%" "%tls%"
 
-if "%play_in_VLC%"=="1" call "%~dp0..\..\..\.bin\play_in_VLC.cmd" "%proxied_URL%"
+if "%play_in_VLC%"=="1" call "%recipes_home%\.bin\play_in_VLC.cmd" "%proxied_URL%"
 
 seelive "%streamID%" "%port%" "%tls%" "%prefetch%" "%verbosity%"

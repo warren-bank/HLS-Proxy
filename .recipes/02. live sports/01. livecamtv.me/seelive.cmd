@@ -33,4 +33,4 @@ if "%prefetch%"=="1" (
 
 start "keep alive session authorization" cmd /c ""%~dp0.\auth\keep_authorization.bat" "%origin%" "%referer%" "%useragent%""
 
-call "%~dp0..\.bin\start_hlsd.bat"
+call "%~dp0..\..\.bin\start_hlsd.bat"
