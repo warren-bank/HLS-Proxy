@@ -333,11 +333,11 @@ curl --silent --insecure "$URL"
   * a Chromium browser extension (user script) for a [particular website](https://www.firstonetv.net/Live) that hosts many excellent video streams
   * removes visual clutter and prevents their site from stealing CPU cycles
 
-* [Streamlive](https://github.com/warren-bank/HLS-Proxy/raw/master/.recipes/02.%20live%20sports/02.%20streamlive.to/.channels/streamlive.user.js)
+* [Streamlive](https://github.com/warren-bank/HLS-Proxy/raw/master/.recipes/01.%20live%20TV/02.%20streamlive.to/.channels/streamlive.user.js)
   * a Chromium browser extension (user script) for a [particular website](https://www.streamlive.to/channels) that hosts many excellent video streams
   * uses their XHR search form to dynamically request a __lot__ of channels, and then filters the results to only display the ones that can be watched for free
 
-* [BilaSport MLB Keystore](https://github.com/warren-bank/HLS-Proxy/raw/master/.recipes/02.%20live%20sports/03.%20mlb.com/.keystores/01.%20bilasport.net/bilasport.user.js)
+* [BilaSport MLB Keystore](https://github.com/warren-bank/HLS-Proxy/raw/master/.recipes/02.%20live%20sports/02.%20mlb.com/.keystores/01.%20bilasport.net/bilasport.user.js)
   * a Chromium browser extension (user script) for a [particular website](http://bilasport.net/schedule.html) that hosts many excellent video streams of live MLB sporting events
   * moves the embedded iframe containing the video player to the topmost window, and displays information about the video stream in a modal alert box as well as the console log
 
