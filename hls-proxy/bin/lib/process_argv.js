@@ -86,16 +86,35 @@ if (argv_vals["--origin"] || argv_vals["--referer"] || argv_vals["--useragent"] 
   if (argv_vals["--useragent"]) {
     argv_vals["--req-headers"]["User-Agent"] = argv_vals["--useragent"]
   }
-  argv_vals["--header"].forEach((header) => {
-    let parts = header.split(/\s*[:=]\s*/)
-    let key, val
+  if (argv_vals["--header"].length) {
+    let split = function(str, sep) {
+      let chunks, start
 
-    if (parts.length === 2) {
-      key = parts[0]
-      val = parts[1]
-      argv_vals["--req-headers"][key] = val
+      chunks = str.split(sep, 2)
+      if (chunks.length !== 2) return chunks
+
+      start = chunks[0].length
+      start = chunks[1] ? str.indexOf(chunks[1], start) : -1
+
+      if (start === -1)
+        delete chunks[1]
+      else
+        chunks[1] = str.substr(start)
+
+      return chunks
     }
-  })
+
+    argv_vals["--header"].forEach((header) => {
+      let parts = split(header, /\s*[:=]\s*/g)
+      let key, val
+
+      if (parts.length === 2) {
+        key = parts[0]
+        val = parts[1]
+        argv_vals["--req-headers"][key] = val
+      }
+    })
+  }
 }
 
 // =============================================================================
