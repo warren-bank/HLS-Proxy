@@ -125,7 +125,18 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
         debug(3, 'redirecting (pre-hook):', matching_url)
 
         try {
-          matching_url = hooks.redirect(matching_url)
+          let result = hooks.redirect(matching_url)
+
+          if (result) {
+            if (typeof result === 'string') {
+              matching_url = result
+            }
+            else if (result instanceof Object) {
+              if (result.matching_url) matching_url = result.matching_url
+              if (result.file_name)    file_name    = result.file_name
+              if (result.file_ext)     file_ext     = result.file_ext
+            }
+          }
 
           if (typeof matching_url !== 'string') throw new Error('bad return value')
 
