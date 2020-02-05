@@ -5,14 +5,10 @@ set tls=%~2
 set prefetch=%~3
 set verbosity=%~4
 
-set origin=https://www.firstonetv.net
-set referer=https://www.firstonetv.net/Live/United-States-(USA)
+set origin=http://yoursports.stream
+set referer=http://yoursports.stream/
 set useragent=Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3500.0 Safari/537.36
 
-set hooks_js_path=%~dp0.\auth\hooks.js
-echo module.exports = {redirect: function(url){ if (/\.jpg$/i.test(url)) return {matching_url: (url + '#chunk.ts'), file_ext: '.ts'}; return false; }} >"%hooks_js_path%"
-
-set hlsd_opts=%hlsd_opts% --hooks "%hooks_js_path%"
 set hlsd_opts=%hlsd_opts% --origin "%origin%" --referer "%referer%" --useragent "%useragent%"
 
 if defined verbosity (
