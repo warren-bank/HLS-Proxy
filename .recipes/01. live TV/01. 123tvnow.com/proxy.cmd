@@ -5,8 +5,8 @@ set tls=%~2
 set prefetch=%~3
 set verbosity=%~4
 
-set origin=http://yoursports.stream
-set referer=http://yoursports.stream/
+set origin=123tvnow.com
+set referer=http://123tvnow.com/category/united-states-usa/
 set useragent=Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3500.0 Safari/537.36
 
 set hlsd_opts=%hlsd_opts% --origin "%origin%" --referer "%referer%" --useragent "%useragent%"

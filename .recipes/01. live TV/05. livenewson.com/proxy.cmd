@@ -5,8 +5,8 @@ set tls=%~2
 set prefetch=%~3
 set verbosity=%~4
 
-set origin=https://www.livenewson.com
-set referer=https://www.livenewson.com/category/american
+set origin=www.livenewsnow.com
+set referer=https://www.livenewsnow.com/category/american
 set useragent=Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3500.0 Safari/537.36
 
 set hlsd_opts=%hlsd_opts% --origin "%origin%" --referer "%referer%" --useragent "%useragent%"

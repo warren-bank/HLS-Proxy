@@ -43,7 +43,7 @@ npm install --global "@warren-bank/hls-proxy"
 #### How to: Run the server(s):
 
 ```bash
-hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--req-options <filepath>] [--req-secure-honor-server-cipher-order] [--req-secure-ciphers <string>] [--req-secure-protocol <string>] [--req-secure-curve <string>] [--hooks <filepath>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>]
+hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--req-options <filepath>] [--req-secure-honor-server-cipher-order] [--req-secure-ciphers <string>] [--req-secure-protocol <string>] [--req-secure-curve <string>] [--hooks <filepath>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>] [--acl-whitelist <ip_address_list>]
 ```
 
 #### Examples:
@@ -173,6 +173,8 @@ hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req
     * show technical details
   * `3`:
     * show an enhanced technical trace (useful while debugging unexpected behavior)
+* _--acl-whitelist_ restricts proxy server access to clients at IP addresses in whitelist
+  * ex: `"192.168.1.100,192.168.1.101,192.168.1.102"`
 
 - - - -
 

@@ -1,12 +1,15 @@
 @echo off
 
+rem :: workaround for error: "unable to verify the first certificate"
+set NODE_TLS_REJECT_UNAUTHORIZED=0
+
 set port=%~1
 set tls=%~2
 set prefetch=%~3
 set verbosity=%~4
 
-set origin=https://www.streamlive.to
-set referer=https://www.streamlive.to/channels
+set origin=www.arconaitv.us
+set referer=https://www.arconaitv.us/
 set useragent=Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3500.0 Safari/537.36
 
 set hlsd_opts=%hlsd_opts% --origin "%origin%" --referer "%referer%" --useragent "%useragent%"

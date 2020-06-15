@@ -28,7 +28,8 @@ try {
     "--max-segments":                         {num:  true},
     "--cache-key":                            {num:  true},
 
-    "-v":                                     {num:  true}
+    "-v":                                     {num:  true},
+    "--acl-whitelist":                        {}
   }, true)
 }
 catch(e) {
@@ -152,7 +153,8 @@ const bootstrap_server = function(start_server) {
     cache_segments: argv_vals["--prefetch"],
     max_segments:   argv_vals["--max-segments"] || 20,
     cache_key:      argv_vals["--cache-key"]    ||  0,
-    verbosity:      argv_vals["-v"]             ||  0
+    verbosity:      argv_vals["-v"]             ||  0,
+    acl_whitelist:  argv_vals["--acl-whitelist"]
   })
 }
 

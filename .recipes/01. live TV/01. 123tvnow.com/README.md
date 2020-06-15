@@ -2,4 +2,4 @@
   * [list of available streams](https://github.com/warren-bank/crx-123TV/tree/master/.channels)
     - [Chromium bookmarks import](https://github.com/warren-bank/crx-123TV/raw/master/.channels/bookmarks.chromium-import.html)
   * [Chromium browser extension](https://github.com/warren-bank/crx-123TV/releases) to provide a better watching experience
-    - [Greasemonkey userscript](https://github.com/warren-bank/crx-123TV/raw/greasemonkey-userscript/123TV-Live/123TV-Live.user.js) with basic functionality, but no advanced optional features
+    - [Greasemonkey userscript](https://github.com/warren-bank/crx-123TV/raw/greasemonkey-userscript/123TV-Live/123TV-Live.user.js)

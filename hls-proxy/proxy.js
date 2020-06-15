@@ -11,7 +11,7 @@ const base64_decode = function(str) {
   return Buffer.from(str, 'base64').toString('binary')
 }
 
-const proxy = function({server, host, port, is_secure, req_headers, req_options, hooks, cache_segments, max_segments, cache_key, debug_level}) {
+const proxy = function({server, host, port, is_secure, req_headers, req_options, hooks, cache_segments, max_segments, cache_key, debug_level, acl_whitelist}) {
   max_segments = max_segments || 20
   cache_key    = cache_key    ||  0
   debug_level  = debug_level  ||  0
@@ -191,6 +191,22 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
     }
 
     return m3u8_content
+  }
+
+  // Access Control
+  if (acl_whitelist) {
+    acl_whitelist = acl_whitelist.trim().split(/\s*,\s*/g)
+
+    server.on('connection', (socket) => {
+      if (socket && socket.remoteAddress) {
+        let remoteIP = socket.remoteAddress.replace(/^::?ffff:/, '')
+
+        if (acl_whitelist.indexOf(remoteIP) === -1) {
+          socket.destroy()
+          debug(2, socket.remoteFamily, 'connection blocked by ACL whitelist:', remoteIP)
+        }
+      }
+    })
   }
 
   // Create an HTTP tunneling proxy
