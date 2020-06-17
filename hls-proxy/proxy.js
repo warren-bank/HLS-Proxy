@@ -195,11 +195,11 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
 
   // Access Control
   if (acl_whitelist) {
-    acl_whitelist = acl_whitelist.trim().split(/\s*,\s*/g)
+    acl_whitelist = acl_whitelist.trim().toLowerCase().split(/\s*,\s*/g)
 
     server.on('connection', (socket) => {
       if (socket && socket.remoteAddress) {
-        let remoteIP = socket.remoteAddress.replace(/^::?ffff:/, '')
+        let remoteIP = socket.remoteAddress.toLowerCase().replace(/^::?ffff:/, '')
 
         if (acl_whitelist.indexOf(remoteIP) === -1) {
           socket.destroy()
