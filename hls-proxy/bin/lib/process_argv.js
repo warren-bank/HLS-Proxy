@@ -75,7 +75,7 @@ if (argv_vals["--version"]) {
   process.exit(0)
 }
 
-if (argv_vals["--origin"] || argv_vals["--referer"] || argv_vals["--useragent"] || argv_vals["--header"].length) {
+if (argv_vals["--origin"] || argv_vals["--referer"] || argv_vals["--useragent"] || (Array.isArray(argv_vals["--header"]) && argv_vals["--header"].length)) {
   argv_vals["--req-headers"] = argv_vals["--req-headers"] || {}
 
   if (argv_vals["--origin"]) {
@@ -87,7 +87,7 @@ if (argv_vals["--origin"] || argv_vals["--referer"] || argv_vals["--useragent"] 
   if (argv_vals["--useragent"]) {
     argv_vals["--req-headers"]["User-Agent"] = argv_vals["--useragent"]
   }
-  if (argv_vals["--header"].length) {
+  if (Array.isArray(argv_vals["--header"]) && argv_vals["--header"].length) {
     let split = function(str, sep) {
       let chunks, start
 
