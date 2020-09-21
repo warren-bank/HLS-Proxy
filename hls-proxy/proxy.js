@@ -11,10 +11,7 @@ const base64_decode = function(str) {
   return Buffer.from(str, 'base64').toString('binary')
 }
 
-const proxy = function({server, host, port, is_secure, req_headers, req_options, hooks, cache_segments, max_segments, cache_key, debug_level, acl_whitelist}) {
-  max_segments = max_segments || 20
-  cache_key    = cache_key    ||  0
-  debug_level  = debug_level  ||  0
+const proxy = function({server, host, port, is_secure, req_headers, req_options, hooks, cache_segments, max_segments, cache_timeout, cache_key, debug_level, acl_whitelist}) {
 
   const debug = function() {
     let args      = [...arguments]
@@ -31,6 +28,7 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
   const regexs = {
     wrap: new RegExp('/?([^\\._]+)(?:[\\._].*)?$', 'i'),
     m3u8: new RegExp('\\.m3u8(?:[\\?#]|$)', 'i'),
+    ts:   new RegExp('\\.ts(?:[\\?#]|$)', 'i'),
 //  urls: new RegExp('(^|[\\s\'"])((?:https?:/)?/)?((?:[^/\\s,\'"]*?/)+)?([^/\\s,\'"]+?)(\\.[^/\\.\\s,\'"]+)?(["\'\\s]|$)', 'img'),
     urls: new RegExp('(^|[\\s\'"])((?:https?:/)?/)?((?:[^\\?#,/\\s\'"]*/)+?)?([^\\?#,/\\s\'"]+?)(\\.[^\\?#,/\\.\\s\'"]+(?:[\\?#][^\\s\'"]*)?)?([\\s\'"]|$)', 'img'),
     keys: new RegExp('(^#EXT-X-KEY:[^"]*")([^"]+)(".*$)', 'img')
@@ -56,9 +54,27 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
     return request_options
   }
 
+  const should_prefetch_url = function(url) {
+    let do_prefetch = !!cache_segments
+
+    if (do_prefetch) {
+      do_prefetch = regexs.ts.test(url)
+
+      if (hooks && (hooks instanceof Object) && hooks.prefetch && (typeof hooks.prefetch === 'function')) {
+        const override_prefetch = hooks.prefetch(url)
+
+        if ((typeof override_prefetch === 'boolean') && (override_prefetch !== do_prefetch)) {
+          debug(3, 'prefetch override:', (override_prefetch ? 'allow' : 'deny'), url)
+          do_prefetch = override_prefetch
+        }
+      }
+    }
+    return do_prefetch
+  }
+
   let prefetch_segment, get_segment, add_listener
   if (cache_segments) {(
-    {prefetch_segment, get_segment, add_listener} = require('./segment_cache')({debug, debug_level, request, get_request_options, max_segments, cache_key})
+    {prefetch_segment, get_segment, add_listener} = require('./segment_cache')({should_prefetch_url, debug, debug_level, request, get_request_options, max_segments, cache_timeout, cache_key})
   )}
 
   const modify_m3u8_content = function(m3u8_content, m3u8_url) {
@@ -158,21 +174,8 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
       // aggregate prefetch URLs into an array while iterating.
       // after the loop is complete, check the count.
       // if it exceeds the size of the cache, remove overflow elements from the beginning.
-      if (cache_segments) {
-        let do_prefetch = ts_regexs["file_ext"].test(file_ext)
-
-        if (hooks && (hooks instanceof Object) && hooks.prefetch && (typeof hooks.prefetch === 'function')) {
-          const override_prefetch = hooks.prefetch(matching_url)
-
-          if ((typeof override_prefetch === 'boolean') && (override_prefetch !== do_prefetch)) {
-            debug(3, 'prefetch override:', (override_prefetch ? 'allow' : 'deny'), matching_url)
-            do_prefetch = override_prefetch
-          }
-        }
-
-        if (do_prefetch)
-          prefetch_urls.push(matching_url)
-      }
+      if (should_prefetch_url(matching_url))
+        prefetch_urls.push(matching_url)
 
       let ts_file_ext    = get_ts_file_ext(file_name, file_ext)
       let redirected_url = `${ is_secure ? 'https' : 'http' }://${host}:${port}/${ base64_encode(matching_url) }${ts_file_ext || file_ext || ''}`
@@ -189,7 +192,7 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
         debug(3, 'prefetch (ignored):', `${overflow} URLs in m3u8 skipped to prevent cache overflow`)
       }
       prefetch_urls.forEach((matching_url, index) => {
-        prefetch_segment(matching_url)
+        prefetch_segment(m3u8_url, matching_url)
 
         prefetch_urls[index] = undefined
       })

@@ -26,6 +26,7 @@ try {
 
     "--prefetch":                             {bool: true},
     "--max-segments":                         {num:  true},
+    "--cache-timeout":                        {num:  true},
     "--cache-key":                            {num:  true},
 
     "-v":                                     {num:  true},
@@ -38,34 +39,8 @@ catch(e) {
 }
 
 if (argv_vals["--help"]) {
-  console.log(`
-usage:
-======
-hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--req-options <filepath>] [--req-secure-honor-server-cipher-order] [--req-secure-ciphers <string>] [--req-secure-protocol <string>] [--req-secure-curve <string>] [--hooks <filepath>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>] [--acl-whitelist <ip_address_list>]
-
-examples:
-=========
-1) print help
-     hlsd --help
-2) print version
-     hlsd --version
-3) start HTTP proxy at default host:port
-     hlsd
-4) start HTTP proxy at default host and specific port
-     hlsd --port "8080"
-5) start HTTP proxy at specific host:port
-     hlsd --host "192.168.0.100" --port "8080"
-6) start HTTPS proxy at default host:port
-     hlsd --tls
-7) start HTTPS proxy at specific host:port
-     hlsd --tls --host "192.168.0.100" --port "8081"
-8) start HTTPS proxy at default host:port
-   and include specific HTTP headers in every outbound request
-     hlsd --tls --req-headers "/path/to/request/headers.json"
-9) start HTTPS proxy at default host:port
-   and enable prefetch of 10 video segments
-     hlsd --tls --prefetch --max-segments 10
-` )
+  const help = require('./help')
+  console.log(help)
   process.exit(0)
 }
 
@@ -143,6 +118,18 @@ if (argv_vals["--req-secure-honor-server-cipher-order"] || argv_vals["--req-secu
   }
 }
 
+if (typeof argv_vals["--max-segments"] !== 'number')
+  argv_vals["--max-segments"] = 20
+
+if (typeof argv_vals["--cache_timeout"] !== 'number')
+  argv_vals["--cache_timeout"] = 60
+
+if (typeof argv_vals["--cache-key"] !== 'number')
+  argv_vals["--cache-key"] = 0
+
+if (typeof argv_vals["-v"] !== 'number')
+  argv_vals["-v"] = 0
+
 const bootstrap_server = function(start_server) {
   start_server({
     host:           argv_vals["--host"],
@@ -151,9 +138,10 @@ const bootstrap_server = function(start_server) {
     req_options:    argv_vals["--req-options"],
     hooks:          argv_vals["--hooks"],
     cache_segments: argv_vals["--prefetch"],
-    max_segments:   argv_vals["--max-segments"] || 20,
-    cache_key:      argv_vals["--cache-key"]    ||  0,
-    verbosity:      argv_vals["-v"]             ||  0,
+    max_segments:   argv_vals["--max-segments"],
+    cache_timeout:  argv_vals["--cache_timeout"],
+    cache_key:      argv_vals["--cache-key"],
+    verbosity:      argv_vals["-v"],
     acl_whitelist:  argv_vals["--acl-whitelist"]
   })
 }

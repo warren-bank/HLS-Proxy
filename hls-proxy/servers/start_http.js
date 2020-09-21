@@ -2,7 +2,7 @@ const prompt = require('./lib/LAN_IPs').prompt
 const proxy  = require('../proxy')
 const http   = require('http')
 
-const start_server = function({host, port, req_headers, req_options, hooks, cache_segments, max_segments, cache_key, verbosity, acl_whitelist}) {
+const start_server = function({host, port, req_headers, req_options, hooks, cache_segments, max_segments, cache_timeout, cache_key, verbosity, acl_whitelist}) {
   if (!port || isNaN(port)) port = 80
 
   new Promise((resolve, reject) => {
@@ -16,7 +16,7 @@ const start_server = function({host, port, req_headers, req_options, hooks, cach
     }
 
     const server = http.createServer()
-    proxy({server, host, port, is_secure: false, req_headers, req_options, hooks, cache_segments, max_segments, cache_key, debug_level: verbosity, acl_whitelist})
+    proxy({server, host, port, is_secure: false, req_headers, req_options, hooks, cache_segments, max_segments, cache_timeout, cache_key, debug_level: verbosity, acl_whitelist})
     server.listen(port, function () {
       console.log(`HTTP server is listening at: ${host}:${port}`)
     })

@@ -44,37 +44,33 @@ npm install --global "@warren-bank/hls-proxy"
 #### How to: Run the server(s):
 
 ```bash
-hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--req-options <filepath>] [--req-secure-honor-server-cipher-order] [--req-secure-ciphers <string>] [--req-secure-protocol <string>] [--req-secure-curve <string>] [--hooks <filepath>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>] [--acl-whitelist <ip_address_list>]
+hlsd <options>
+
+options:
+========
+--help
+--version
+--tls
+--host <ip_address>
+--port <number>
+--req-headers <filepath>
+--origin <header>
+--referer <header>
+--useragent <header>
+--header <name=value>
+--req-options <filepath>
+--req-secure-honor-server-cipher-order
+--req-secure-ciphers <string>
+--req-secure-protocol <string>
+--req-secure-curve <string>
+--hooks <filepath>
+--prefetch
+--max-segments <number>
+--cache-timeout <number>
+--cache-key <number>
+-v <number>
+--acl-whitelist <ip_address_list>
 ```
-
-#### Examples:
-
-1. print help<br>
-  `hlsd --help`
-
-2. print version<br>
-  `hlsd --version`
-
-3. start HTTP proxy at default host:port<br>
-  `hlsd`
-
-4. start HTTP proxy at default host and specific port<br>
-  `hlsd --port "8080"`
-
-5. start HTTP proxy at specific host:port<br>
-  `hlsd --host "192.168.0.100" --port "8080"`
-
-6. start HTTPS proxy at default host:port<br>
-  `hlsd --tls`
-
-7. start HTTPS proxy at specific host:port<br>
-  `hlsd --tls --host "192.168.0.100" --port "8081"`
-
-8. start HTTPS proxy at default host:port and send specific HTTP headers<br>
-  `hlsd --tls --req-headers "/path/to/request/headers.json"`
-
-9. start HTTPS proxy at default host:port and enable prefetch of 10 video segments<br>
-  `hlsd --tls --prefetch --max-segments 10`
 
 #### Options:
 
@@ -149,11 +145,17 @@ hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req
   * when .m3u8 files are downloaded and modified inflight, all of the URLs in the playlist are known
   * at this time, it is possible to prefetch the video segments (.ts files)
   * when the video segments (.ts files) are requested at a later time, the data is already cached (in memory) and can be returned immediately
-* _--max-segments_ is the maximum number of video segments (.ts files) to hold in the cache
+* _--max-segments_ is the maximum number of video segments (.ts files) to hold in each cache
   * this option is only meaningful when _--prefetch_ is enabled
-  * when the cache grows larger than this size, the oldest data is removed to make room to store new data
+  * a cache is created for each unique HLS manifest URL
+    - all of the video segments (.ts files) associated with each distinct video stream are stored in isolation
+  * when any cache grows larger than this size, the oldest data is removed to make room to store new data
   * when this option is not specified:
     * default value: `20`
+* _--cache-timeout_ is the maximum number of seconds that any segment cache can remain unused before its contents are cleared (to reduce wasted space in memory)
+  * this option is only meaningful when _--prefetch_ is enabled
+  * when this option is not specified:
+    * default value: `60`
 * _--cache-key_ sets the type of string used for keys in the cache hashtable
   * this option is only meaningful when _--prefetch_ is enabled
   * `0` (default):
@@ -182,6 +184,35 @@ hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req
 * _--acl-whitelist_ restricts proxy server access to clients at IP addresses in whitelist
   * ex: `"192.168.1.100,192.168.1.101,192.168.1.102"`
 
+#### Examples:
+
+1. print help<br>
+  `hlsd --help`
+
+2. print version<br>
+  `hlsd --version`
+
+3. start HTTP proxy at default host:port<br>
+  `hlsd`
+
+4. start HTTP proxy at default host and specific port<br>
+  `hlsd --port "8080"`
+
+5. start HTTP proxy at specific host:port<br>
+  `hlsd --host "192.168.0.100" --port "8080"`
+
+6. start HTTPS proxy at default host:port<br>
+  `hlsd --tls`
+
+7. start HTTPS proxy at specific host:port<br>
+  `hlsd --tls --host "192.168.0.100" --port "8081"`
+
+8. start HTTPS proxy at default host:port and send specific HTTP headers<br>
+  `hlsd --tls --req-headers "/path/to/request/headers.json"`
+
+9. start HTTPS proxy at default host:port and enable prefetch of 10 video segments<br>
+  `hlsd --tls --prefetch --max-segments 10`
+
 - - - -
 
 ### Installation and Usage: Working with a Local `git` Repo
@@ -201,7 +232,7 @@ npm install
 # If using a port number >= 1024 on Linux, or
 # If using Windows:
 # ----------------------------------------------------------------------
-npm start [-- [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--req-options <filepath>] [--req-secure-honor-server-cipher-order] [--req-secure-ciphers <string>] [--req-secure-protocol <string>] [--req-secure-curve <string>] [--hooks <filepath>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>] ]
+npm start [-- <options>]
 
 # ----------------------------------------------------------------------
 # https://www.w3.org/Daemon/User/Installation/PrivilegedPorts.html
@@ -209,8 +240,12 @@ npm start [-- [--help] [--version] [--tls] [--host <ip_address>] [--port <number
 # Linux considers port numbers < 1024 to be privileged.
 # Use "sudo":
 # ----------------------------------------------------------------------
-npm run sudo [-- [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req-headers <filepath>] [--origin <header>] [--referer <header>] [--useragent <header>] [--header <name=value>] [--req-options <filepath>] [--req-secure-honor-server-cipher-order] [--req-secure-ciphers <string>] [--req-secure-protocol <string>] [--req-secure-curve <string>] [--hooks <filepath>] [--prefetch] [--max-segments <number>] [--cache-key <number>] [-v <number>] ]
+npm run sudo [-- <options>]
 ```
+
+#### Options:
+
+* identical to the [command-line binary](#installation-and-usage-globally)
 
 #### Examples:
 
@@ -263,10 +298,6 @@ npm start -- --port "8081" --origin "$h_origin" --referer "$h_referer" --userage
 URL='https://127.0.0.1:8081/aHR0cHM6Ly9odHRwYmluLm9yZy9oZWFkZXJzCg==.json'
 curl --silent --insecure "$URL"
 ```
-
-#### Options:
-
-* identical to the [command-line binary](#installation-and-usage-globally)
 
 - - - -
 
@@ -329,29 +360,6 @@ curl --silent --insecure "$URL"
          * each is better at some things and worse at others
          * each integrates with a different Chromecast receiver app
        * [there](https://warren-bank.github.io/crx-webcast-reloaded/external_website/proxy.html) is a page to help redirect the intercepted video URL through a local instance of HLS-Proxy
-
-* [Faux Searchbar](https://github.com/warren-bank/crx-faux-searchbar)
-  * provides a simple way to keep and organize bookmarks
-    * my [recipe](https://github.com/warren-bank/crx-faux-searchbar/raw/master/.recipes/video-streams/video-streams.json) of favorite video stream servers
-      * some require "Webcast-Reloaded" to intercept the .m3u8 URL
-      * some require "Webcast-Reloaded" to intercept the .m3u8 URL, and "HLS-Proxy" to enable casting the stream to Chromecast
-      * some of the .m3u8 URLs are static, enabling the bookmark to directly load the video on the "Webcast-Reloaded" website
-
-* [FirstOne TV](https://github.com/warren-bank/crx-FirstOne-TV)
-  * a Chromium browser extension (user script) for a [particular website](https://www.firstonetv.net/Live) that hosts many excellent video streams
-  * removes visual clutter and prevents their site from stealing CPU cycles
-
-* [Streamlive](https://github.com/warren-bank/HLS-Proxy/raw/master/.recipes/01.%20live%20TV/02.%20streamlive.to/.channels/streamlive.user.js)
-  * a Chromium browser extension (user script) for a [particular website](https://www.streamlive.to/channels) that hosts many excellent video streams
-  * uses their XHR search form to dynamically request a __lot__ of channels, and then filters the results to only display the ones that can be watched for free
-
-* [BilaSport MLB Keystore](https://github.com/warren-bank/HLS-Proxy/raw/master/.recipes/02.%20live%20sports/02.%20mlb.com/.keystores/01.%20bilasport.net/bilasport.user.js)
-  * a Chromium browser extension (user script) for a [particular website](http://bilasport.net/schedule.html) that hosts many excellent video streams of live MLB sporting events
-  * moves the embedded iframe containing the video player to the topmost window, and displays information about the video stream in a modal alert box as well as the console log
-
-* [PBS Passport](https://github.com/warren-bank/crx-pbs-passport)
-  * a Chromium browser extension (user script) for a [particular website](https://www.pbs.org/shows/) that hosts many excellent video streams
-  * removes visual clutter and busts through their paywall (like: Kool-Aid Man)
 
 - - - -
 
