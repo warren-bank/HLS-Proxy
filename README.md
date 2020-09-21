@@ -156,8 +156,19 @@ options:
   * this option is only meaningful when _--prefetch_ is enabled
   * when this option is not specified:
     * default value: `60`
-* _--cache-key_ sets the type of string used for keys in the cache hashtable
+* _--cache-key_ sets the type of string used to represent keys in the cache hashtable when logged
   * this option is only meaningful when _--prefetch_ is enabled
+  * scope:
+    - v0.16.0 and earlier
+      * keys in the cache hashtable used this string representation
+    - v0.16.1 and later
+      * keys in the cache hashtable are full URLs
+        - the data structure to cache video segments (.ts files) was updated
+        - each unique HLS manifest is associated with a distinct FIFO list that holds _--max-segments_
+        - when a video segment is requested
+          * the proxy needs to search every FIFO list for a match
+          * when keys in the cache hashtable lose fidelity, collisions can occur and the wrong video segment can be returned
+          * full URLs are unique and guarantee correct behavior
   * `0` (default):
     * sequence number of .ts file w/ .ts file extension (ex: "123.ts")
       * pros:

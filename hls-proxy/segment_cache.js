@@ -75,7 +75,9 @@ module.exports = function({should_prefetch_url, debug, debug_level, request, get
     return regexs["ts_extension"].test(url)
   }
 
-  const get_key_from_url = function(url) {
+  const get_privatekey_from_url = (url) => url
+
+  const get_publickey_from_url = function(url) {
     // short-circuit for special case: hook function allows prefetching urls with non-standard file extensions
     if (!is_ts_file(url))
       return url
@@ -103,7 +105,7 @@ module.exports = function({should_prefetch_url, debug, debug_level, request, get
     const ts = get_ts(m3u8_url)
     if (!ts) return index
 
-    const key = get_key_from_url(url)
+    const key = get_privatekey_from_url(url)
     let i, segment
 
     for (i=(ts.length - 1); i>=0; i--) {
@@ -138,7 +140,7 @@ module.exports = function({should_prefetch_url, debug, debug_level, request, get
     touch_access(m3u8_url)
     const ts = get_ts(m3u8_url)
 
-    let debug_url = (debug_level >= 3) ? url : get_key_from_url(url)
+    let debug_url = (debug_level >= 3) ? url : get_publickey_from_url(url)
 
     let index = find_index_of_segment(m3u8_url, url)
     if (index === undefined) {
@@ -146,7 +148,7 @@ module.exports = function({should_prefetch_url, debug, debug_level, request, get
 
       // placeholder to prevent multiple download requests
       index = ts.length
-      ts[index] = {key: get_key_from_url(url), databuffer: false}
+      ts[index] = {key: get_privatekey_from_url(url), databuffer: false}
 
       let options = get_request_options(url)
       request(options, '', {binary: true, stream: false})
@@ -188,7 +190,7 @@ module.exports = function({should_prefetch_url, debug, debug_level, request, get
   const get_segment = function(url) {
     if (! should_prefetch_url(url)) return undefined
 
-    let debug_url = (debug_level >= 3) ? url : get_key_from_url(url)
+    let debug_url = (debug_level >= 3) ? url : get_publickey_from_url(url)
 
     let segment = find_segment(url)
     if (segment !== undefined) {
@@ -223,7 +225,7 @@ module.exports = function({should_prefetch_url, debug, debug_level, request, get
   const add_listener = function(url, cb) {
     if (! should_prefetch_url(url)) return false
 
-    let debug_url = (debug_level >= 3) ? url : get_key_from_url(url)
+    let debug_url = (debug_level >= 3) ? url : get_publickey_from_url(url)
 
     let segment = find_segment(url)
     if (segment !== undefined) {
