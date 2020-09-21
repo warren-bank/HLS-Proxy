@@ -2,7 +2,7 @@
 
 #### Basic Functionality:
 
-* proxy .m3u8 files, and the .ts files they internally reference
+* proxy .m3u8 files, and the video segments (.ts files) they internally reference
 * to all proxied files:
   * add permissive CORS response headers
 * to .m3u8:
@@ -12,6 +12,7 @@
 
 * inject custom HTTP headers in all outbound proxied requests
 * prefetch video segments (.ts files)
+* use a hook function to conditionally decide which video segments to prefetch
 * use a hook function to conditionally redirect URLs in the playlist (before they're modified to pass through the proxy)
 
 #### Benefits:
@@ -139,11 +140,16 @@ hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req
   * hook function signatures:
     * `"redirect": (url) => new_url`
       * conditionally redirect the URLs encountered in .m3u8 files __before__ they are modified to pass through the proxy
+    * `"prefetch": (url) => boolean`
+      * conditionally decide whether to prefetch video segments on a per-URL basis
+      * return value must be a strict boolean type (ie: `true` or `false`)
+      * otherwise, the default behavior supersedes
+        - to only prefetch .ts files
 * _--prefetch_ is a flag to enable the prefetch and caching of video segments
   * when .m3u8 files are downloaded and modified inflight, all of the URLs in the playlist are known
-  * at this time, it is possible to prefetch the .ts files
-  * when the .ts files are requested at a later time, the data is already cached (in memory) and can be returned immediately
-* _--max-segments_ is the maximum number of .ts files (ie: video segments) to hold in the cache
+  * at this time, it is possible to prefetch the video segments (.ts files)
+  * when the video segments (.ts files) are requested at a later time, the data is already cached (in memory) and can be returned immediately
+* _--max-segments_ is the maximum number of video segments (.ts files) to hold in the cache
   * this option is only meaningful when _--prefetch_ is enabled
   * when the cache grows larger than this size, the oldest data is removed to make room to store new data
   * when this option is not specified:
@@ -157,7 +163,7 @@ hlsd [--help] [--version] [--tls] [--host <ip_address>] [--port <number>] [--req
         * makes the log output easiest to read
       * cons:
         * in the wild, I've encountered video servers that assign each .ts file a unique filename that always terminate with the same static sequence number
-          * this is a really weird edge case, but this option provides an easy workaround
+          * this is a strange edge case, but this option provides an easy workaround
   * `1`:
     * full filename of .ts file
   * `2`:

@@ -158,8 +158,20 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
       // aggregate prefetch URLs into an array while iterating.
       // after the loop is complete, check the count.
       // if it exceeds the size of the cache, remove overflow elements from the beginning.
-      if (cache_segments && (ts_regexs["file_ext"].test(file_ext))) {
-        prefetch_urls.push(matching_url)
+      if (cache_segments) {
+        let do_prefetch = ts_regexs["file_ext"].test(file_ext)
+
+        if (hooks && (hooks instanceof Object) && hooks.prefetch && (typeof hooks.prefetch === 'function')) {
+          const override_prefetch = hooks.prefetch(matching_url)
+
+          if ((typeof override_prefetch === 'boolean') && (override_prefetch !== do_prefetch)) {
+            debug(3, 'prefetch override:', (override_prefetch ? 'allow' : 'deny'), matching_url)
+            do_prefetch = override_prefetch
+          }
+        }
+
+        if (do_prefetch)
+          prefetch_urls.push(matching_url)
       }
 
       let ts_file_ext    = get_ts_file_ext(file_name, file_ext)
