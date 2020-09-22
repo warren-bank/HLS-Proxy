@@ -277,7 +277,7 @@ module.exports = function({should_prefetch_url, debug, debug_level, request, get
       const cache_summary = {}
       for (let m3u8_url in cache) {
         const ts = get_ts(m3u8_url)
-        cache_summary[m3u8_url] = ts.map(segment => segment.key)
+        cache_summary[m3u8_url] = ts.map(segment => get_publickey_from_url(segment.key))
       }
       debug(3, 'cache (keys):', JSON.stringify(cache_summary))
     }, 5000)
