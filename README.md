@@ -147,6 +147,29 @@ options:
       * return value must be a strict boolean type (ie: `true` or `false`)
       * otherwise, the default behavior supersedes
         - to only prefetch .ts files
+    * `"prefetch_segments": (prefetch_urls, max_segments, is_vod, seg_duration, perform_prefetch) => new_prefetch_urls`
+      * conditionally filter the list of video segment URLs that are pending prefetch, when more than _--max-segments_ are contained in an HLS manifest
+      * inputs:
+        * `prefetch_urls`
+          * array of string video segment URLs
+        * `max_segments`
+          * integer that denotes the max length of the return value
+        * `is_vod`
+          * boolean that indicates whether the HLS manifest is for video-on-demand
+            * if true:
+              * the video is not a live stream
+              * the HLS manifest is complete and contains URLs for every video segment that would be needed to play the entire stream from start to finish
+        * `seg_duration`
+          * integer that represents the duration (ms) of each video segment in the HLS manifest
+        * `perform_prefetch`
+          * function that accepts an array of string video segment URLs, and immediately begins to prefetch all corresponding segments
+      * return value:
+        * array of string video segment URLs that is a subset of `prefetch_urls`
+          * can be emtpy (ex: when using `perform_prefetch`)
+      * pre-conditions:
+        * the length of `prefetch_urls` is &gt; `max_segments`
+      * post-conditions:
+        * the length of the return value array is &lt;= `max_segments`
 * _--prefetch_ is a flag to enable the prefetch and caching of video segments
   * when .m3u8 files are downloaded and modified inflight, all of the URLs in the playlist are known
   * at this time, it is possible to prefetch the video segments (.ts files)

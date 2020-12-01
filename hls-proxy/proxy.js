@@ -29,7 +29,8 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
     wrap: new RegExp('/?([^\\._]+)(?:[\\._].*)?$', 'i'),
     m3u8: new RegExp('\\.m3u8(?:[\\?#]|$)', 'i'),
     ts:   new RegExp('\\.ts(?:[\\?#]|$)', 'i'),
-//  urls: new RegExp('(^|[\\s\'"])((?:https?:/)?/)?((?:[^/\\s,\'"]*?/)+)?([^/\\s,\'"]+?)(\\.[^/\\.\\s,\'"]+)?(["\'\\s]|$)', 'img'),
+    vod:  new RegExp('^(?:#EXT-X-PLAYLIST-TYPE:VOD|#EXT-X-ENDLIST)$', 'im'),
+    time: new RegExp('^#EXT-X-TARGETDURATION:(\\d+)(?:\\.\\d+)?$', 'im'),
     urls: new RegExp('(^|[\\s\'"])((?:https?:/)?/)?((?:[^\\?#,/\\s\'"]*/)+?)?([^\\?#,/\\s\'"]+?)(\\.[^\\?#,/\\.\\s\'"]+(?:[\\?#][^\\s\'"]*)?)?([\\s\'"]|$)', 'img'),
     keys: new RegExp('(^#EXT-X-KEY:[^"]*")([^"]+)(".*$)', 'img')
   }
@@ -107,7 +108,39 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
       return ts_file_ext
     }
 
-    const prefetch_urls = []
+    const is_vod       = regexs.vod.test(m3u8_content)
+    const seg_duration = (() => {
+      try {
+        const matches  = regexs.time.exec(m3u8_content)
+
+        if ((matches == null) || !Array.isArray(matches) || (matches.length < 2))
+          throw ''
+
+        let duration
+        duration = matches[1]
+        duration = parseInt(duration, 10)
+        duration = duration * 1000
+
+        return duration
+      }
+      catch(e) {
+        const def_duration = 10000  // 10 seconds in ms
+
+        return def_duration
+      }
+    })()
+
+    const perform_prefetch = (urls) => {
+      if (cache_segments) {
+        urls.forEach((matching_url, index) => {
+          prefetch_segment(m3u8_url, matching_url)
+
+          urls[index] = undefined
+        })
+      }
+    }
+
+    let prefetch_urls = []
 
     m3u8_content = m3u8_content.replace(regexs.urls, function(match, head, abs_path, rel_path, file_name, file_ext, tail) {
       if (
@@ -186,16 +219,43 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
 
     if (prefetch_urls.length) {
       if (prefetch_urls.length > max_segments) {
-        let overflow = prefetch_urls.length - max_segments
+        if (hooks && (hooks instanceof Object) && hooks.prefetch_segments && (typeof hooks.prefetch_segments === 'function')) {
+          prefetch_urls = hooks.prefetch_segments(prefetch_urls, max_segments, is_vod, seg_duration, perform_prefetch)
+        }
+        else {
+          if (!is_vod) {
+            // live stream: cache from the end
 
-        prefetch_urls.splice(0, overflow)
-        debug(3, 'prefetch (ignored):', `${overflow} URLs in m3u8 skipped to prevent cache overflow`)
+            const overflow = prefetch_urls.length - max_segments
+
+            prefetch_urls.splice(0, overflow)
+            debug(3, 'prefetch (ignored):', `${overflow} URLs in m3u8 skipped to prevent cache overflow`)
+          }
+          else {
+            // full video: cache from the beginning w/ timer to update cache at rate of playback (assuming no pausing or seeking)
+
+            const $prefetch_urls = [...prefetch_urls]
+            const batch_size     = Math.ceil(max_segments / 2)
+            const batch_time     = seg_duration * batch_size
+
+            const prefetch_next_batch = (is_cache_empty) => {
+              if ($prefetch_urls.length > batch_size) {
+                const batch_urls = $prefetch_urls.splice(0, batch_size)
+
+                perform_prefetch(batch_urls)
+                setTimeout(prefetch_next_batch, (is_cache_empty === true) ? 0 : batch_time)
+              }
+              else {
+                perform_prefetch($prefetch_urls)
+              }
+            }
+
+            prefetch_urls = []
+            prefetch_next_batch(true)
+          }
+        }
       }
-      prefetch_urls.forEach((matching_url, index) => {
-        prefetch_segment(m3u8_url, matching_url)
-
-        prefetch_urls[index] = undefined
-      })
+      perform_prefetch(prefetch_urls)
     }
 
     if (debug_level >= 3) {
