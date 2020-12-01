@@ -18,6 +18,11 @@ module.exports = function({should_prefetch_url, debug, debug_level, request, get
     return ts
   }
 
+  const has_cache = function(m3u8_url) {
+    const ts = get_ts(m3u8_url)
+    return (ts && ts.length)
+  }
+
   const clear_ts = function(m3u8_url) {
     const data = get_cache(m3u8_url)
     if (!data) return
@@ -284,6 +289,7 @@ module.exports = function({should_prefetch_url, debug, debug_level, request, get
   }
 
   return {
+    has_cache,
     prefetch_segment,
     get_segment,
     add_listener

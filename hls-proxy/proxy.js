@@ -73,9 +73,9 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
     return do_prefetch
   }
 
-  let prefetch_segment, get_segment, add_listener
+  let has_cache, prefetch_segment, get_segment, add_listener
   if (cache_segments) {(
-    {prefetch_segment, get_segment, add_listener} = require('./segment_cache')({should_prefetch_url, debug, debug_level, request, get_request_options, max_segments, cache_timeout, cache_key})
+    {has_cache, prefetch_segment, get_segment, add_listener} = require('./segment_cache')({should_prefetch_url, debug, debug_level, request, get_request_options, max_segments, cache_timeout, cache_key})
   )}
 
   const modify_m3u8_content = function(m3u8_content, m3u8_url) {
@@ -108,7 +108,7 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
       return ts_file_ext
     }
 
-    const is_vod       = regexs.vod.test(m3u8_content)
+    const is_vod       = !has_cache(m3u8_url) && regexs.vod.test(m3u8_content)
     const seg_duration = (() => {
       try {
         const matches  = regexs.time.exec(m3u8_content)
