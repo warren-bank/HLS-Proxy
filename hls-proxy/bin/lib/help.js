@@ -14,6 +14,7 @@ options:
 --useragent <header>
 --header <name=value>
 --req-options <filepath>
+--req-insecure
 --req-secure-honor-server-cipher-order
 --req-secure-ciphers <string>
 --req-secure-protocol <string>

@@ -59,6 +59,7 @@ options:
 --useragent <header>
 --header <name=value>
 --req-options <filepath>
+--req-insecure
 --req-secure-honor-server-cipher-order
 --req-secure-ciphers <string>
 --req-secure-protocol <string>
@@ -122,6 +123,11 @@ options:
           * most commonly:
             * older versions of node: `"prime256v1"`
             * newer versions of node: `"auto"`
+* _--req-insecure_ is a flag to override the following environment variable to disable certificate validation for secure __https__ requests:
+  * [`NODE_TLS_REJECT_UNAUTHORIZED`](https://nodejs.org/api/cli.html#cli_node_tls_reject_unauthorized_value)`= 0`
+    * equivalent to:
+      * `curl --insecure`
+      * `wget --no-check-certificate`
 * _--req-secure-honor-server-cipher-order_ is a flag to set the following key in the request options _Object_ to configure the context for secure __https__ requests:
   * `{honorCipherOrder: true}`
 * _--req-secure-ciphers_ is the value to assign to the following key in the request options _Object_ to configure the context for secure __https__ requests:

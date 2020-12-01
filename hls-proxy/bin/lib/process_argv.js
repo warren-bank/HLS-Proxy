@@ -17,6 +17,7 @@ try {
     "--header":                               {many: true},
 
     "--req-options":                          {file: "json"},
+    "--req-insecure":                         {bool: true},
     "--req-secure-honor-server-cipher-order": {bool: true},
     "--req-secure-ciphers":                   {},
     "--req-secure-protocol":                  {},
@@ -91,6 +92,16 @@ if (argv_vals["--origin"] || argv_vals["--referer"] || argv_vals["--useragent"] 
       }
     })
   }
+}
+
+// =============================================================================
+// references:
+// =============================================================================
+//   https://nodejs.org/api/cli.html#cli_environment_variables
+//   https://nodejs.org/api/cli.html#cli_node_tls_reject_unauthorized_value
+// =============================================================================
+if (argv_vals["--req-insecure"]) {
+  process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0
 }
 
 // =============================================================================
