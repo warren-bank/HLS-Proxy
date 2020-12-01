@@ -73,9 +73,9 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
     return do_prefetch
   }
 
-  let has_cache, prefetch_segment, get_segment, add_listener
+  let has_cache, is_expired, prefetch_segment, get_segment, add_listener
   if (cache_segments) {(
-    {has_cache, prefetch_segment, get_segment, add_listener} = require('./segment_cache')({should_prefetch_url, debug, debug_level, request, get_request_options, max_segments, cache_timeout, cache_key})
+    {has_cache, is_expired, prefetch_segment, get_segment, add_listener} = require('./segment_cache')({should_prefetch_url, debug, debug_level, request, get_request_options, max_segments, cache_timeout, cache_key})
   )}
 
   const modify_m3u8_content = function(m3u8_content, m3u8_url) {
@@ -130,10 +130,10 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
       }
     })()
 
-    const perform_prefetch = (urls) => {
+    const perform_prefetch = (urls, dont_touch_access) => {
       if (cache_segments) {
         urls.forEach((matching_url, index) => {
-          prefetch_segment(m3u8_url, matching_url)
+          prefetch_segment(m3u8_url, matching_url, dont_touch_access)
 
           urls[index] = undefined
         })
@@ -239,14 +239,20 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
             const batch_time     = seg_duration * batch_size
 
             const prefetch_next_batch = (is_cache_empty) => {
+              is_cache_empty = (is_cache_empty === true)
+
               if ($prefetch_urls.length > batch_size) {
                 const batch_urls = $prefetch_urls.splice(0, batch_size)
 
-                perform_prefetch(batch_urls)
-                setTimeout(prefetch_next_batch, (is_cache_empty === true) ? 0 : batch_time)
+                perform_prefetch(batch_urls, !is_cache_empty)
+
+                // continue to prefetch vod segments only if clients are still requesting them;
+                // expiration of the cache occurs after a period of inactivity.
+                if (!is_expired(m3u8_url))
+                  setTimeout(prefetch_next_batch, is_cache_empty ? 0 : batch_time)
               }
               else {
-                perform_prefetch($prefetch_urls)
+                perform_prefetch($prefetch_urls, !is_cache_empty)
               }
             }
 

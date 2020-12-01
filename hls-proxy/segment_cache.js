@@ -134,7 +134,7 @@ module.exports = function({should_prefetch_url, debug, debug_level, request, get
     }
   }
 
-  const prefetch_segment = function(m3u8_url, url) {
+  const prefetch_segment = function(m3u8_url, url, dont_touch_access) {
     if (! should_prefetch_url(url)) return
 
     if (cache[m3u8_url] === undefined) {
@@ -142,7 +142,9 @@ module.exports = function({should_prefetch_url, debug, debug_level, request, get
       cache[m3u8_url] = {access: 0, ts: []}
     }
 
-    touch_access(m3u8_url)
+    if (!dont_touch_access)
+      touch_access(m3u8_url)
+
     const ts = get_ts(m3u8_url)
 
     let debug_url = (debug_level >= 3) ? url : get_publickey_from_url(url)
@@ -163,7 +165,9 @@ module.exports = function({should_prefetch_url, debug, debug_level, request, get
         // asynchronous callback could occur after garbage collection; the index could've changed
         index = find_index_of_segment(m3u8_url, url)
         if (index === undefined) throw new Error('Prefetch completed after pending request was ejected from cache. Try increasing the "--max-segments" option.')
-        touch_access(m3u8_url)
+
+        if (!dont_touch_access)
+          touch_access(m3u8_url)
 
         let segment = ts[index].databuffer
         if (segment && (segment instanceof Array)) {
@@ -290,6 +294,7 @@ module.exports = function({should_prefetch_url, debug, debug_level, request, get
 
   return {
     has_cache,
+    is_expired,
     prefetch_segment,
     get_segment,
     add_listener
