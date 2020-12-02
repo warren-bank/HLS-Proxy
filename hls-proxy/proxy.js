@@ -26,13 +26,14 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
   }
 
   const regexs = {
-    wrap: new RegExp('/?([^\\._]+)(?:[\\._].*)?$', 'i'),
-    m3u8: new RegExp('\\.m3u8(?:[\\?#]|$)', 'i'),
-    ts:   new RegExp('\\.ts(?:[\\?#]|$)', 'i'),
-    vod:  new RegExp('^(?:#EXT-X-PLAYLIST-TYPE:VOD|#EXT-X-ENDLIST)$', 'im'),
-    time: new RegExp('^#EXT-X-TARGETDURATION:(\\d+)(?:\\.\\d+)?$', 'im'),
-    urls: new RegExp('(^|[\\s\'"])((?:https?:/)?/)?((?:[^\\?#,/\\s\'"]*/)+?)?([^\\?#,/\\s\'"]+?)(\\.[^\\?#,/\\.\\s\'"]+(?:[\\?#][^\\s\'"]*)?)?([\\s\'"]|$)', 'img'),
-    keys: new RegExp('(^#EXT-X-KEY:[^"]*")([^"]+)(".*$)', 'img')
+    wrap:         new RegExp('/?([^\\._]+)(?:[\\._].*)?$', 'i'),
+    m3u8:         new RegExp('\\.m3u8(?:[\\?#]|$)', 'i'),
+    ts:           new RegExp('\\.ts(?:[\\?#]|$)', 'i'),
+    ts_duration:  new RegExp('^#EXT-X-TARGETDURATION:(\\d+)(?:\\.\\d+)?$', 'im'),
+    vod:          new RegExp('^(?:#EXT-X-PLAYLIST-TYPE:VOD|#EXT-X-ENDLIST)$', 'im'),
+    vod_start_at: new RegExp('#vod_start(?:_prefetch_at)?=((?:\\d+:)?(?:\\d+:)?\\d+)$', 'i'),
+    urls:         new RegExp('(^|[\\s\'"])((?:https?:/)?/)?((?:[^\\?#,/\\s\'"]*/)+?)?([^\\?#,/\\s\'"]+?)(\\.[^\\?#,/\\.\\s\'"]+(?:[\\?#][^\\s\'"]*)?)?([\\s\'"]|$)', 'img'),
+    keys:         new RegExp('(^#EXT-X-KEY:[^"]*")([^"]+)(".*$)', 'img')
   }
 
   const add_CORS_headers = function(res) {
@@ -108,10 +109,9 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
       return ts_file_ext
     }
 
-    const is_vod       = !has_cache(m3u8_url) && regexs.vod.test(m3u8_content)
-    const seg_duration = (() => {
+    const seg_duration_ms = (() => {
       try {
-        const matches  = regexs.time.exec(m3u8_content)
+        const matches  = regexs.ts_duration.exec(m3u8_content)
 
         if ((matches == null) || !Array.isArray(matches) || (matches.length < 2))
           throw ''
@@ -119,7 +119,7 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
         let duration
         duration = matches[1]
         duration = parseInt(duration, 10)
-        duration = duration * 1000
+        duration = duration * 1000  // convert seconds to ms
 
         return duration
       }
@@ -129,6 +129,42 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
         return def_duration
       }
     })()
+
+    const parse_HHMMSS_to_seconds = (str) => {
+      const parts    = str.split(':')
+      let seconds    = 0
+      let multiplier = 1
+
+      while (parts.length > 0) {
+        seconds    += multiplier * parseInt(parts.pop(), 10)
+        multiplier *= 60
+      }
+
+      return seconds
+    }
+
+    const vod_start_at_ms = (() => {
+      try {
+        const matches  = regexs.vod_start_at.exec(m3u8_url)
+
+        if ((matches == null) || !Array.isArray(matches) || (matches.length < 2))
+          throw ''
+
+        let offset
+        offset = matches[1]
+        offset = parse_HHMMSS_to_seconds(offset)
+        offset = offset * 1000  // convert seconds to ms
+
+        return offset
+      }
+      catch(e) {
+        const def_offset = undefined
+
+        return def_offset
+      }
+    })()
+
+    const is_vod = (typeof vod_start_at_ms === 'number') || (!has_cache(m3u8_url) && regexs.vod.test(m3u8_content))
 
     const perform_prefetch = (urls, dont_touch_access) => {
       if (cache_segments) {
@@ -210,6 +246,9 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
       if (should_prefetch_url(matching_url))
         prefetch_urls.push(matching_url)
 
+      if (vod_start_at_ms && regexs.m3u8.test(matching_url))
+        matching_url += `#vod_start=${Math.floor(vod_start_at_ms/1000)}`
+
       let ts_file_ext    = get_ts_file_ext(file_name, file_ext)
       let redirected_url = `${ is_secure ? 'https' : 'http' }://${host}:${port}/${ base64_encode(matching_url) }${ts_file_ext || file_ext || ''}`
       debug(3, 'redirecting (proxied):', redirected_url)
@@ -218,9 +257,17 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
     })
 
     if (prefetch_urls.length) {
+      if (is_vod && vod_start_at_ms) {
+        // full video: prevent prefetch of URLs for skipped video segments
+
+        const skip_segment_count = Math.floor(vod_start_at_ms / seg_duration_ms)
+
+        prefetch_urls.splice(0, skip_segment_count)
+        debug(3, 'prefetch (ignored):', `${skip_segment_count} URLs in m3u8 skipped to initialize vod prefetch timer from start position obtained from HLS manifest URL #hash`)
+      }
       if (prefetch_urls.length > max_segments) {
         if (hooks && (hooks instanceof Object) && hooks.prefetch_segments && (typeof hooks.prefetch_segments === 'function')) {
-          prefetch_urls = hooks.prefetch_segments(prefetch_urls, max_segments, is_vod, seg_duration, perform_prefetch)
+          prefetch_urls = hooks.prefetch_segments(prefetch_urls, max_segments, is_vod, seg_duration_ms, perform_prefetch)
         }
         else {
           if (!is_vod) {
@@ -236,7 +283,7 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
 
             const $prefetch_urls = [...prefetch_urls]
             const batch_size     = Math.ceil(max_segments / 2)
-            const batch_time     = seg_duration * batch_size
+            const batch_time     = seg_duration_ms * batch_size
 
             const prefetch_next_batch = (is_cache_empty) => {
               is_cache_empty = (is_cache_empty === true)

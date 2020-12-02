@@ -147,7 +147,7 @@ options:
       * return value must be a strict boolean type (ie: `true` or `false`)
       * otherwise, the default behavior supersedes
         - to only prefetch .ts files
-    * `"prefetch_segments": (prefetch_urls, max_segments, is_vod, seg_duration, perform_prefetch) => new_prefetch_urls`
+    * `"prefetch_segments": (prefetch_urls, max_segments, is_vod, seg_duration_ms, perform_prefetch) => new_prefetch_urls`
       * conditionally filter the list of video segment URLs that are pending prefetch, when more than _--max-segments_ are contained in an HLS manifest
       * inputs:
         * `prefetch_urls`
@@ -159,7 +159,7 @@ options:
             * if true:
               * the video is not a live stream
               * the HLS manifest is complete and contains URLs for every video segment that would be needed to play the entire stream from start to finish
-        * `seg_duration`
+        * `seg_duration_ms`
           * integer that represents the duration (ms) of each video segment in the HLS manifest
         * `perform_prefetch`
           * function that accepts an array of string video segment URLs, and immediately begins to prefetch all corresponding segments
