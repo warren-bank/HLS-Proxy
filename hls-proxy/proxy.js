@@ -74,9 +74,9 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
     return do_prefetch
   }
 
-  let has_cache, is_expired, prefetch_segment, get_segment, add_listener
+  let has_cache, get_time_since_last_access, is_expired, prefetch_segment, get_segment, add_listener
   if (cache_segments) {(
-    {has_cache, is_expired, prefetch_segment, get_segment, add_listener} = require('./segment_cache')({should_prefetch_url, debug, debug_level, request, get_request_options, max_segments, cache_timeout, cache_key})
+    {has_cache, get_time_since_last_access, is_expired, prefetch_segment, get_segment, add_listener} = require('./segment_cache')({should_prefetch_url, debug, debug_level, request, get_request_options, max_segments, cache_timeout, cache_key})
   )}
 
   const modify_m3u8_content = function(m3u8_content, m3u8_url) {
@@ -285,18 +285,37 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
             const batch_size     = Math.ceil(max_segments / 2)
             const batch_time     = seg_duration_ms * batch_size
 
+            const is_client_paused = () => {
+              const time_since_last_access = get_time_since_last_access(m3u8_url)
+
+              let inactivity_timeout
+              inactivity_timeout = seg_duration_ms * 2
+              inactivity_timeout = Math.floor(inactivity_timeout / 1000)  // convert to seconds
+
+              return (time_since_last_access < 0)
+                ? false
+                : (time_since_last_access >= inactivity_timeout)
+            }
+
             const prefetch_next_batch = (is_cache_empty) => {
               is_cache_empty = (is_cache_empty === true)
+
+              if (!is_cache_empty && is_expired(m3u8_url)) {
+                debug(3, 'prefetch (stopped):', 'vod stream removed from cache due to inactivity longer than timeout; prefetch has stopped')
+                return
+              }
+
+              if (!is_cache_empty && is_client_paused()) {
+                debug(3, 'prefetch (skipped):', 'vod stream is paused; prefetch will continue after client playback resumes')
+                setTimeout(prefetch_next_batch, batch_time)
+                return
+              }
 
               if ($prefetch_urls.length > batch_size) {
                 const batch_urls = $prefetch_urls.splice(0, batch_size)
 
                 perform_prefetch(batch_urls, !is_cache_empty)
-
-                // continue to prefetch vod segments only if clients are still requesting them;
-                // expiration of the cache occurs after a period of inactivity.
-                if (!is_expired(m3u8_url))
-                  setTimeout(prefetch_next_batch, is_cache_empty ? 0 : batch_time)
+                setTimeout(prefetch_next_batch, is_cache_empty ? 0 : batch_time)
               }
               else {
                 perform_prefetch($prefetch_urls, !is_cache_empty)

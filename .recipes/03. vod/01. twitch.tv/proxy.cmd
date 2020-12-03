@@ -11,6 +11,9 @@ set useragent=Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML
 
 set hlsd_opts=%hlsd_opts% --origin "%origin%" --referer "%referer%" --useragent "%useragent%"
 
+rem :: allow paused vod to store its cache for up to 1 hour = (60 sec/min)(60 min/hr)
+set hlsd_opts=%hlsd_opts% --cache-timeout 3600
+
 if defined verbosity (
   set hlsd_opts=%hlsd_opts% -v "%verbosity%"
 )

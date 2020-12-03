@@ -150,7 +150,7 @@ const bootstrap_server = function(start_server) {
     hooks:          argv_vals["--hooks"],
     cache_segments: argv_vals["--prefetch"],
     max_segments:   argv_vals["--max-segments"],
-    cache_timeout:  argv_vals["--cache_timeout"],
+    cache_timeout:  argv_vals["--cache-timeout"],
     cache_key:      argv_vals["--cache-key"],
     verbosity:      argv_vals["-v"],
     acl_whitelist:  argv_vals["--acl-whitelist"]

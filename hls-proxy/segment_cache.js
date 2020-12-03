@@ -36,9 +36,18 @@ module.exports = function({should_prefetch_url, debug, debug_level, request, get
     return sec
   }
 
-  const is_expired = function(m3u8_url) {
+  const get_time_since_last_access = function(m3u8_url) {
     const data = get_cache(m3u8_url)
-    if (!data) return false
+    if (!data) return -1
+
+    const now = get_timestamp()
+    return (now - data.access)
+  }
+
+  const is_expired = function(m3u8_url) {
+    const time_since_last_access = get_time_since_last_access(m3u8_url)
+
+    if (time_since_last_access < 0) return false
 
     // special case
     if (cache_timeout === 0) return false
@@ -46,9 +55,7 @@ module.exports = function({should_prefetch_url, debug, debug_level, request, get
     // short-circuit for known result
     if (cache_timeout < 0) return true
 
-    const expiry = data.access + cache_timeout
-    const now    = get_timestamp()
-    return (expiry <= now)
+    return (time_since_last_access >= cache_timeout)
   }
 
   const touch_access = function(m3u8_url) {
@@ -294,6 +301,7 @@ module.exports = function({should_prefetch_url, debug, debug_level, request, get
 
   return {
     has_cache,
+    get_time_since_last_access,
     is_expired,
     prefetch_segment,
     get_segment,
