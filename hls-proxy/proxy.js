@@ -164,7 +164,10 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
       }
     })()
 
-    const is_vod = (typeof vod_start_at_ms === 'number') || ((cache_segments ? !has_cache(m3u8_url) : true) && regexs.vod.test(m3u8_content))
+    // only needed to filter prefetch_urls
+    const is_vod = (cache_segments)
+     ? ((typeof vod_start_at_ms === 'number') || (!has_cache(m3u8_url) && regexs.vod.test(m3u8_content)))
+     : null
 
     const perform_prefetch = (urls, dont_touch_access) => {
       if (cache_segments) {
