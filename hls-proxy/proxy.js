@@ -109,75 +109,85 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
       return ts_file_ext
     }
 
-    const seg_duration_ms = (() => {
-      try {
-        const matches  = regexs.ts_duration.exec(m3u8_content)
+    // only used with prefetch
+    const seg_duration_ms = (cache_segments)
+      ? (() => {
+          try {
+            const matches  = regexs.ts_duration.exec(m3u8_content)
 
-        if ((matches == null) || !Array.isArray(matches) || (matches.length < 2))
-          throw ''
+            if ((matches == null) || !Array.isArray(matches) || (matches.length < 2))
+              throw ''
 
-        let duration
-        duration = matches[1]
-        duration = parseInt(duration, 10)
-        duration = duration * 1000  // convert seconds to ms
+            let duration
+            duration = matches[1]
+            duration = parseInt(duration, 10)
+            duration = duration * 1000  // convert seconds to ms
 
-        return duration
-      }
-      catch(e) {
-        const def_duration = 10000  // 10 seconds in ms
+            return duration
+          }
+          catch(e) {
+            const def_duration = 10000  // 10 seconds in ms
 
-        return def_duration
-      }
-    })()
+            return def_duration
+          }
+        })()
+      : null
 
-    const parse_HHMMSS_to_seconds = (str) => {
-      const parts    = str.split(':')
-      let seconds    = 0
-      let multiplier = 1
+    // only used with prefetch
+    const parse_HHMMSS_to_seconds = (cache_segments)
+      ? (str) => {
+          const parts    = str.split(':')
+          let seconds    = 0
+          let multiplier = 1
 
-      while (parts.length > 0) {
-        seconds    += multiplier * parseInt(parts.pop(), 10)
-        multiplier *= 60
-      }
+          while (parts.length > 0) {
+            seconds    += multiplier * parseInt(parts.pop(), 10)
+            multiplier *= 60
+          }
 
-      return seconds
-    }
+          return seconds
+        }
+      : null
 
-    const vod_start_at_ms = (() => {
-      try {
-        const matches  = regexs.vod_start_at.exec(m3u8_url)
+    // only used with prefetch
+    const vod_start_at_ms = (cache_segments)
+      ? (() => {
+          try {
+            const matches  = regexs.vod_start_at.exec(m3u8_url)
 
-        if ((matches == null) || !Array.isArray(matches) || (matches.length < 2))
-          throw ''
+            if ((matches == null) || !Array.isArray(matches) || (matches.length < 2))
+              throw ''
 
-        let offset
-        offset = matches[1]
-        offset = parse_HHMMSS_to_seconds(offset)
-        offset = offset * 1000  // convert seconds to ms
+            let offset
+            offset = matches[1]
+            offset = parse_HHMMSS_to_seconds(offset)
+            offset = offset * 1000  // convert seconds to ms
 
-        return offset
-      }
-      catch(e) {
-        const def_offset = undefined
+            return offset
+          }
+          catch(e) {
+            const def_offset = null
 
-        return def_offset
-      }
-    })()
+            return def_offset
+          }
+        })()
+      : null
 
-    // only needed to filter prefetch_urls
+    // only used with prefetch
     const is_vod = (cache_segments)
-     ? ((typeof vod_start_at_ms === 'number') || (!has_cache(m3u8_url) && regexs.vod.test(m3u8_content)))
-     : null
+      ? ((typeof vod_start_at_ms === 'number') || (!has_cache(m3u8_url) && regexs.vod.test(m3u8_content)))
+      : null
 
-    const perform_prefetch = (urls, dont_touch_access) => {
-      if (cache_segments) {
-        urls.forEach((matching_url, index) => {
-          prefetch_segment(m3u8_url, matching_url, dont_touch_access)
+    // only used with prefetch
+    const perform_prefetch = (cache_segments)
+      ? (urls, dont_touch_access) => {
+          urls.forEach((matching_url, index) => {
+            prefetch_segment(m3u8_url, matching_url, dont_touch_access)
 
-          urls[index] = undefined
-        })
-      }
-    }
+            urls[index] = undefined
+          })
+        }
+      : null
 
     let prefetch_urls = []
 
