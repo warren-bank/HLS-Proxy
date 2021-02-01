@@ -55,13 +55,13 @@ if (argv_vals["--origin"] || argv_vals["--referer"] || argv_vals["--useragent"] 
   argv_vals["--req-headers"] = argv_vals["--req-headers"] || {}
 
   if (argv_vals["--origin"]) {
-    argv_vals["--req-headers"]["Origin"] = argv_vals["--origin"]
+    argv_vals["--req-headers"]["origin"] = argv_vals["--origin"]
   }
   if (argv_vals["--referer"]) {
-    argv_vals["--req-headers"]["Referer"] = argv_vals["--referer"]
+    argv_vals["--req-headers"]["referer"] = argv_vals["--referer"]
   }
   if (argv_vals["--useragent"]) {
-    argv_vals["--req-headers"]["User-Agent"] = argv_vals["--useragent"]
+    argv_vals["--req-headers"]["user-agent"] = argv_vals["--useragent"]
   }
   if (Array.isArray(argv_vals["--header"]) && argv_vals["--header"].length) {
     let split = function(str, sep) {
@@ -86,7 +86,7 @@ if (argv_vals["--origin"] || argv_vals["--referer"] || argv_vals["--useragent"] 
       let key, val
 
       if (parts.length === 2) {
-        key = parts[0]
+        key = parts[0].toLowerCase()
         val = parts[1]
         argv_vals["--req-headers"][key] = val
       }
@@ -127,6 +127,14 @@ if (argv_vals["--req-secure-honor-server-cipher-order"] || argv_vals["--req-secu
   if (argv_vals["--req-secure-curve"]) {
     argv_vals["--req-options"]["ecdhCurve"] = argv_vals["--req-secure-curve"]
   }
+}
+
+if (argv_vals["--req-options"] && argv_vals["--req-options"]["headers"]) {
+  const lc_headers = {}
+  for (let key in argv_vals["--req-options"]["headers"]) {
+    lc_headers[ key.toLowerCase() ] = argv_vals["--req-options"]["headers"][key]
+  }
+  argv_vals["--req-options"]["headers"] = lc_headers
 }
 
 if (typeof argv_vals["--max-segments"] !== 'number')

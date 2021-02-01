@@ -44,15 +44,24 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
     res.setHeader('Access-Control-Max-Age',           '86400')
   }
 
-  const get_request_options = function(url) {
-    if (!req_headers && !req_options) return url
+  const get_request_options = function(url, referer_url) {
+    if (!req_options && !req_headers && !referer_url) return url
 
-    let request_options = Object.assign(
+    const request_options = Object.assign(
       {},
       parse_url(url),
-      {headers: (req_headers || {})},
       (req_options || {})
     )
+
+    if (!req_headers && !referer_url) return request_options
+
+    request_options.headers = Object.assign(
+      {},
+      (request_options.headers || {}),
+      (req_headers || {}),
+      (referer_url ? {"referer": referer_url} : {})
+    )
+
     return request_options
   }
 
@@ -79,7 +88,7 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
     {has_cache, get_time_since_last_access, is_expired, prefetch_segment, get_segment, add_listener} = require('./segment_cache')({should_prefetch_url, debug, debug_level, request, get_request_options, max_segments, cache_timeout, cache_key})
   )}
 
-  const modify_m3u8_content = function(m3u8_content, m3u8_url) {
+  const modify_m3u8_content = function(m3u8_content, m3u8_url, referer_url) {
     const base_urls = {
       "relative": m3u8_url.replace(/[\?#].*$/, '').replace(/[^\/]+$/, ''),
       "absolute": m3u8_url.replace(/(:\/\/[^\/]+).*$/, '$1')
@@ -182,7 +191,7 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
     const perform_prefetch = (cache_segments)
       ? (urls, dont_touch_access) => {
           urls.forEach((matching_url, index) => {
-            prefetch_segment(m3u8_url, matching_url, dont_touch_access)
+            prefetch_segment(m3u8_url, matching_url, referer_url, dont_touch_access)
 
             urls[index] = undefined
           })
@@ -223,7 +232,7 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
         debug(3, 'redirecting (pre-hook):', matching_url)
 
         try {
-          let result = hooks.redirect(matching_url)
+          let result = hooks.redirect(matching_url, referer_url)
 
           if (result) {
             if (typeof result === 'string') {
@@ -233,6 +242,7 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
               if (result.matching_url) matching_url = result.matching_url
               if (result.file_name)    file_name    = result.file_name
               if (result.file_ext)     file_ext     = result.file_ext
+              if (result.referer_url)  referer_url  = result.referer_url
             }
           }
 
@@ -261,6 +271,9 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
 
       if (vod_start_at_ms && regexs.m3u8.test(matching_url))
         matching_url += `#vod_start=${Math.floor(vod_start_at_ms/1000)}`
+
+      if (referer_url)
+        matching_url += `|${referer_url}`
 
       let ts_file_ext    = get_ts_file_ext(file_name, file_ext)
       let redirected_url = `${ is_secure ? 'https' : 'http' }://${host}:${port}/${ base64_encode(matching_url) }${ts_file_ext || file_ext || ''}`
@@ -375,7 +388,19 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
 
     add_CORS_headers(res)
 
-    const url     = base64_decode( req.url.replace(regexs.wrap, '$1') ).trim()
+    const [url, referer_url] = (() => {
+      let url   = base64_decode( req.url.replace(regexs.wrap, '$1') ).trim()
+      let index = url.indexOf('|http')
+      if (index >=0) {
+        let referer_url = url.substring(index + 1)
+        url = url.substring(0, index).trim()
+        return [url, referer_url]
+      }
+      else {
+        return [url, '']
+      }
+    })()
+
     const is_m3u8 = regexs.m3u8.test(url)
 
     const send_ts = function(segment) {
@@ -396,7 +421,7 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
       }
     }
 
-    const options = get_request_options(url)
+    const options = get_request_options(url, referer_url)
     debug(1, 'proxying:', url)
     debug(3, 'm3u8:', (is_m3u8 ? 'true' : 'false'))
 
@@ -407,7 +432,7 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
       }
       else {
         res.writeHead(200, { "Content-Type": "application/x-mpegURL" })
-        res.end( modify_m3u8_content(response, url) )
+        res.end( modify_m3u8_content(response, url, referer_url) )
       }
     })
     .catch((e) => {
