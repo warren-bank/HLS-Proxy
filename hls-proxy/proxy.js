@@ -27,6 +27,7 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
 
   const regexs = {
     wrap:         new RegExp('/?([^\\._]+)(?:[\\._].*)?$', 'i'),
+    origin:       new RegExp('^(https?://[^/]+)(?:/.*)?$', 'i'),
     m3u8:         new RegExp('\\.m3u8(?:[\\?#]|$)', 'i'),
     ts:           new RegExp('\\.ts(?:[\\?#]|$)', 'i'),
     ts_duration:  new RegExp('^#EXT-X-TARGETDURATION:(\\d+)(?:\\.\\d+)?$', 'im'),
@@ -59,7 +60,7 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
       {},
       (request_options.headers || {}),
       (req_headers || {}),
-      (referer_url ? {"referer": referer_url} : {})
+      (referer_url ? {"referer": referer_url, "origin": referer_url.replace(regexs.origin, '$1')} : {})
     )
 
     return request_options
