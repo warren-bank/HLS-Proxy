@@ -11,7 +11,7 @@ const base64_decode = function(str) {
   return Buffer.from(str, 'base64').toString('binary')
 }
 
-const proxy = function({server, host, port, is_secure, req_headers, req_options, hooks, cache_segments, max_segments, cache_timeout, cache_key, debug_level, acl_whitelist}) {
+const proxy = function({server, host, is_secure, req_headers, req_options, hooks, cache_segments, max_segments, cache_timeout, cache_key, debug_level, acl_whitelist}) {
 
   const debug = function() {
     let args      = [...arguments]
@@ -277,7 +277,7 @@ const proxy = function({server, host, port, is_secure, req_headers, req_options,
         matching_url += `|${referer_url}`
 
       let ts_file_ext    = get_ts_file_ext(file_name, file_ext)
-      let redirected_url = `${ is_secure ? 'https' : 'http' }://${host}:${port}/${ base64_encode(matching_url) }${ts_file_ext || file_ext || ''}`
+      let redirected_url = `${ is_secure ? 'https' : 'http' }://${host}/${ base64_encode(matching_url) }${ts_file_ext || file_ext || ''}`
       debug(3, 'redirecting (proxied):', redirected_url)
 
       return `${head}${redirected_url}${tail}`

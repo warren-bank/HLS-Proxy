@@ -55,4 +55,52 @@ const prompt_user_to_choose_one_IP = function(cb) {
   })
 }
 
-module.exports = {IP, prompt: prompt_user_to_choose_one_IP}
+// -----------------------------------------------------------------------------
+// input:
+//  * host (if provided by cli option)
+//  * port (if provided by cli option, otherwise default value for type of server)
+// output:
+// * Promise
+// resolved value:
+// * host
+//   - type: String
+//   - format: "${IP}:${port}"
+// -----------------------------------------------------------------------------
+// notes:
+// * "--host" cli option can include an embedded port number
+//   - the embedded port number can be different from the value of "--port" (or default)
+//     * the value of "--port" (or default) is used to run the server and can be accessed on the local/private network (LAN)
+//     * the embedded port number can be used to access the server from a public network when port mapping is necessary
+// * if "--host" is defined, but does not include an embedded port number
+//   - the value of "--port" (or default) is added to "--host"
+// * if "--host" is undefined
+//   - a hostname is resolved
+//   - the value of "--port" (or default) is added to the resolved hostname
+// -----------------------------------------------------------------------------
+const prompt_and_normalize_IP = function(host, port) {
+  return new Promise((resolve, reject) => {
+    if (host) {
+      const parts = host.split(':')
+
+      if (parts.length > 1) {
+        host = parts[0]
+
+        const public_port = parseInt( parts[1], 10 )
+        if (! isNaN(public_port))
+          port = public_port
+      }
+    }
+
+    if (host) return resolve(host)
+
+    prompt_user_to_choose_one_IP((host) => resolve(host))
+  })
+  .then((host) => {
+    if (host === false)
+      host = 'localhost'
+
+    return `${host}:${port}`
+  })
+}
+
+module.exports = {IP, prompt: prompt_user_to_choose_one_IP, resolve: prompt_and_normalize_IP}
