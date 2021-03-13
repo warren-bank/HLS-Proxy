@@ -1,0 +1,4 @@
+data/client/.ssh/id_rsa
+data/client/.ssh/id_rsa.pub
+
+1. run ssh client.sh.log

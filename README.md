@@ -1,4 +1,4 @@
-### [HTTP Live Streaming Proxy](https://github.com/warren-bank/HLS-Proxy)
+### [_HLS Proxy_](https://github.com/warren-bank/HLS-Proxy) : HTTP Live Streaming Proxy
 
 #### Basic Functionality:
 
@@ -30,6 +30,58 @@
   * restricted access to encryption keys
     * often times the encrypted video segments (.ts files) are readily available, but the encryption keys are well protected
       * if the keys can be obtained from another source, then a hook function can be used to redirect only those URL requests
+
+- - - -
+
+#### URL Format:
+
+* [example Javascript]: construction of URL to _HLS Proxy_ for video stream
+  ```javascript
+    {
+      const proxy_url      = 'http://127.0.0.1:8080'
+      const video_url      = 'https://example.com/video/master.m3u8'
+      const file_extension = '.m3u8'
+
+      const hls_proxy_url  = `${proxy_url}/${ btoa(video_url) }${file_extension}`
+    }
+  ```
+* [example Javascript]: construction of URL to _HLS Proxy_ for video stream w/ "Referer" request header
+  ```javascript
+    {
+      const proxy_url      = 'http://127.0.0.1:8080'
+      const video_url      = 'https://example.com/video/master.m3u8'
+      const referer_url    = 'https://example.com/videos.html'
+      const file_extension = '.m3u8'
+
+      const hls_proxy_url  = `${proxy_url}/${ btoa(`${video_url}|${referer_url}`) }${file_extension}`
+    }
+  ```
+* [example Bash]: construction of URL to _HLS Proxy_ for video stream
+  ```bash
+    proxy_url='http://127.0.0.1:8080'
+    video_url='https://example.com/video/master.m3u8'
+    file_extension='.m3u8'
+
+    hls_proxy_url="${proxy_url}/"$(echo -n "$video_url" | base64 --wrap=0)"$file_extension"
+  ```
+* [example Bash]: construction of URL to _HLS Proxy_ for video stream w/ "Referer" request header
+  ```bash
+    proxy_url='http://127.0.0.1:8080'
+    video_url='https://example.com/video/master.m3u8'
+    referer_url='https://example.com/videos.html'
+    file_extension='.m3u8'
+
+    hls_proxy_url="${proxy_url}/"$(echo -n "${video_url}|${referer_url}" | base64 --wrap=0)"$file_extension"
+  ```
+
+##### notes:
+
+* adding a file extension to the base64 encoded video URL is optional
+  - doing so allows video clients to recognize that the URL being requested from _HLS Proxy_ is an HLS video stream
+
+##### high-level tools that automate this task:
+
+* refer to the section: [Other Projects](#other-projects)
 
 - - - -
 
@@ -304,29 +356,44 @@ npm run sudo [-- <options>]
 5. start HTTPS proxy at default host:port with escalated privilege<br>
   `npm run sudo -- --port "443" --tls`
 
-6. start HTTP proxy at specific port and send custom request headers<br>
+6. start HTTP proxy at specific port and send custom "Referer" request header for specific video stream<br>
+  ```bash
+npm start -- --port "8080"
+
+h_referer='http://XXX:80/page.html'
+
+URL='https://httpbin.org/headers'
+URL="${URL}|${h_referer}"
+URL=$(echo -n "$URL" | base64 --wrap=0)
+URL="http://127.0.0.1:8080/${URL}.json"
+# URL='http://127.0.0.1:8080/aHR0cHM6Ly9odHRwYmluLm9yZy9oZWFkZXJzfGh0dHA6Ly9YWFg6ODAvcGFnZS5odG1s.json'
+curl --silent "$URL"
+```
+
+7. start HTTP proxy at specific port and send custom request headers<br>
   ```bash
 headers_file="${TMPDIR}/headers.json"
 echo '{"Origin" : "http://XXX:80", "Referer": "http://XXX:80/page.html"}' > "$headers_file"
 npm start -- --port "8080" --req-headers "$headers_file"
 
 URL='https://httpbin.org/headers'
-URL=$(echo "$URL" | base64)
+URL=$(echo -n "$URL" | base64 --wrap=0)
 URL="http://127.0.0.1:8080/${URL}.json"
+# URL='http://127.0.0.1:8080/aHR0cHM6Ly9odHRwYmluLm9yZy9oZWFkZXJz.json'
 curl --silent "$URL"
 ```
 
-7. start HTTPS proxy at specific port and send custom request headers<br>
+8. start HTTPS proxy at specific port and send custom request headers<br>
   ```bash
 headers_file="${TMPDIR}/headers.json"
 echo '{"Origin" : "http://XXX:80", "Referer": "http://XXX:80/page.html"}' > "$headers_file"
 npm start -- --port "8081" --req-headers "$headers_file" --tls -v 1
 
-URL='https://127.0.0.1:8081/aHR0cHM6Ly9odHRwYmluLm9yZy9oZWFkZXJzCg==.json'
+URL='https://127.0.0.1:8081/aHR0cHM6Ly9odHRwYmluLm9yZy9oZWFkZXJz.json'
 curl --silent --insecure "$URL"
 ```
 
-8. start HTTPS proxy at specific port and send custom request headers<br>
+9. start HTTPS proxy at specific port and send custom request headers<br>
   ```bash
 h_origin='http://XXX:80'
 h_referer='http://XXX:80/page.html'
@@ -335,7 +402,7 @@ h_custom_1='X-Foo: 123'
 h_custom_2='X-Bar: baz'
 npm start -- --port "8081" --origin "$h_origin" --referer "$h_referer" --useragent "$h_useragent" --header "$h_custom_1" --header "$h_custom_2" --tls -v 1
 
-URL='https://127.0.0.1:8081/aHR0cHM6Ly9odHRwYmluLm9yZy9oZWFkZXJzCg==.json'
+URL='https://127.0.0.1:8081/aHR0cHM6Ly9odHRwYmluLm9yZy9oZWFkZXJz.json'
 curl --silent --insecure "$URL"
 ```
 
@@ -399,7 +466,7 @@ curl --silent --insecure "$URL"
        * [there](https://warren-bank.github.io/crx-webcast-reloaded/external_website/index.html) is a selection of several HTML5 videos players
          * each is better at some things and worse at others
          * each integrates with a different Chromecast receiver app
-       * [there](https://warren-bank.github.io/crx-webcast-reloaded/external_website/proxy.html) is a page to help redirect the intercepted video URL through a local instance of HLS-Proxy
+       * [there](https://warren-bank.github.io/crx-webcast-reloaded/external_website/proxy.html) is a page to help redirect the intercepted video URL through a local instance of _HLS Proxy_
 
 - - - -
 

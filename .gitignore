@@ -1,7 +1,7 @@
 node_modules/
 
-.recipes/.lib/temp1.txt
-.recipes/.lib/temp2.txt
+.recipes/.lib/**/temp1.txt
+.recipes/.lib/**/temp2.txt
 .recipes/**/auth/hooks.js
 .recipes/**/auth/cookies.txt
 .related/.recipes/**/auth/cookies.txt
