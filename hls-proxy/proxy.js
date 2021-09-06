@@ -390,10 +390,21 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
     add_CORS_headers(res)
 
     const [url, referer_url] = (() => {
-      let url   = base64_decode( req.url.replace(regexs.wrap, '$1') ).trim()
-      let index = url.indexOf('|http')
+      if (!regexs.wrap.test(req.url))
+        return ['', '']
+
+      let url, url_lc, index
+
+      url    = base64_decode( req.url.replace(regexs.wrap, '$1') ).trim()
+      url_lc = url.toLowerCase()
+
+      index  = url_lc.indexOf('http')
+      if (index !== 0)
+        return ['', '']
+
+      index = url_lc.indexOf('|http')
       if (index >=0) {
-        let referer_url = url.substring(index + 1)
+        const referer_url = url.substring(index + 1, url.length)
         url = url.substring(0, index).trim()
         return [url, referer_url]
       }
@@ -401,6 +412,12 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
         return [url, '']
       }
     })()
+
+    if (!url) {
+      res.writeHead(400)
+      res.end()
+      return
+    }
 
     const is_m3u8 = regexs.m3u8.test(url)
 
