@@ -30,6 +30,8 @@ try {
     "--cache-timeout":                        {num:  true},
     "--cache-key":                            {num:  true},
 
+    "--inline-keys":                          {bool: true},
+
     "-v":                                     {num:  true},
     "--acl-whitelist":                        {}
   }, true)
@@ -160,6 +162,7 @@ const bootstrap_server = function(start_server) {
     max_segments:   argv_vals["--max-segments"],
     cache_timeout:  argv_vals["--cache-timeout"],
     cache_key:      argv_vals["--cache-key"],
+    inline_keys:    argv_vals["--inline-keys"],
     verbosity:      argv_vals["-v"],
     acl_whitelist:  argv_vals["--acl-whitelist"]
   })
