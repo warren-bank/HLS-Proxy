@@ -11,7 +11,7 @@ const base64_decode = function(str) {
   return Buffer.from(str, 'base64').toString('binary')
 }
 
-const proxy = function({server, host, is_secure, req_headers, req_options, hooks, cache_segments, max_segments, cache_timeout, cache_key, debug_level, acl_whitelist}) {
+const proxy = function({server, host, is_secure, req_headers, req_options, hooks, cache_segments, max_segments, cache_timeout, cache_key, inline_keys, debug_level, acl_whitelist}) {
 
   const debug = function() {
     let args      = [...arguments]
@@ -33,7 +33,7 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
     ts_duration:  new RegExp('^#EXT-X-TARGETDURATION:(\\d+)(?:\\.\\d+)?$', 'im'),
     vod:          new RegExp('^(?:#EXT-X-PLAYLIST-TYPE:VOD|#EXT-X-ENDLIST)$', 'im'),
     vod_start_at: new RegExp('#vod_start(?:_prefetch_at)?=((?:\\d+:)?(?:\\d+:)?\\d+)$', 'i'),
-    urls:         new RegExp('(^|[\\s\'"])((?:https?:/)?/)?((?:[^\\?#,/\\s\'"]*/)+?)?([^\\?#,/\\s\'"]+?)(\\.[^\\?#,/\\.\\s\'"]+(?:[\\?#][^\\s\'"]*)?)?([\\s\'"]|$)', 'img'),
+    urls:         new RegExp('(^#EXT-X-KEY:[^"]*?|)(^|[\\s\'"])((?:https?:/)?/)?((?:[^\\?#,/\\s\'"]*/)+?)?([^\\?#,/\\s\'"]+?)(\\.[^\\?#,/\\.\\s\'"]+(?:[\\?#][^\\s\'"]*)?)?([\\s\'"]|$)', 'img'),
     keys:         new RegExp('(^#EXT-X-KEY:[^"]*")([^"]+)(".*$)', 'img')
   }
 
@@ -201,7 +201,7 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
 
     let prefetch_urls = []
 
-    m3u8_content = m3u8_content.replace(regexs.urls, function(match, head, abs_path, rel_path, file_name, file_ext, tail) {
+    m3u8_content = m3u8_content.replace(regexs.urls, function(match, key, head, abs_path, rel_path, file_name, file_ext, tail) {
       if (
         ((head === `"`) || (head === `'`) || (tail === `"`) || (tail === `'`)) &&
         (head !== tail)
@@ -215,7 +215,7 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
         )
       ) return match
 
-      debug(3, 'modify (raw):', {match, head, abs_path, rel_path, file_name, file_ext, tail})
+      debug(3, 'modify (raw):', {match, key, head, abs_path, rel_path, file_name, file_ext, tail})
 
       let matching_url
       if (!abs_path) {
@@ -259,7 +259,7 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
 
         if (!matching_url) {
           debug(3, 'redirecting (post-hook):', 'URL filtered, removed from manifest')
-          return `${head}${tail}`
+          return `${key}${head}${tail}`
         }
       }
       debug(2, 'redirecting:', matching_url)
@@ -267,8 +267,17 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
       // aggregate prefetch URLs into an array while iterating.
       // after the loop is complete, check the count.
       // if it exceeds the size of the cache, remove overflow elements from the beginning.
-      if (should_prefetch_url(matching_url))
+      if ((cache_segments && inline_keys && key.length > 0) || should_prefetch_url(matching_url))
         prefetch_urls.push(matching_url)
+
+      // In-line the key data if its present in cache
+      if (inline_keys && key.length > 0) {
+        const segment = get_segment(matching_url);
+
+        if (segment && segment.length) {
+          return `${key}${head}data:;base64,${segment.toString('base64')}${tail}`
+        }
+      }
 
       if (vod_start_at_ms && regexs.m3u8.test(matching_url))
         matching_url += `#vod_start=${Math.floor(vod_start_at_ms/1000)}`
@@ -280,7 +289,7 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
       let redirected_url = `${ is_secure ? 'https' : 'http' }://${host}/${ base64_encode(matching_url) }${ts_file_ext || file_ext || ''}`
       debug(3, 'redirecting (proxied):', redirected_url)
 
-      return `${head}${redirected_url}${tail}`
+      return `${key}${head}${redirected_url}${tail}`
     })
 
     if (prefetch_urls.length) {
