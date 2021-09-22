@@ -1,4 +1,4 @@
-module.exports = function({should_prefetch_url, debug, debug_level, request, get_request_options, max_segments, cache_timeout, cache_key}) {
+module.exports = function({debug, debug_level, request, get_request_options, max_segments, cache_timeout, cache_key}) {
 
   // maps: "m3u8_url" => {access: timestamp, ts: []}
   const cache = {}
@@ -142,8 +142,6 @@ module.exports = function({should_prefetch_url, debug, debug_level, request, get
   }
 
   const prefetch_segment = function(m3u8_url, url, referer_url, dont_touch_access) {
-    if (! should_prefetch_url(url)) return
-
     if (cache[m3u8_url] === undefined) {
       // initialize a new data structure
       cache[m3u8_url] = {access: 0, ts: []}
@@ -204,8 +202,6 @@ module.exports = function({should_prefetch_url, debug, debug_level, request, get
   }
 
   const get_segment = function(url) {
-    if (! should_prefetch_url(url)) return undefined
-
     let debug_url = (debug_level >= 3) ? url : get_publickey_from_url(url)
 
     let segment = find_segment(url)
@@ -239,8 +235,6 @@ module.exports = function({should_prefetch_url, debug, debug_level, request, get
   }
 
   const add_listener = function(url, cb) {
-    if (! should_prefetch_url(url)) return false
-
     let debug_url = (debug_level >= 3) ? url : get_publickey_from_url(url)
 
     let segment = find_segment(url)
