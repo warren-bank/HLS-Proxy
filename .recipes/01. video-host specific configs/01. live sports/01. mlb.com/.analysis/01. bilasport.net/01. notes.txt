@@ -1,0 +1,47 @@
+--------------------------------------------------------------------------------
+// http://bilasport.net/mlb.html
+// view-source:http://bilasport.net/game/houston-astros-vs-boston-red-sox-1.html
+
+if(device.type == "desktop") { // desktop
+    document.getElementById('iframegame').src = "http://bilasport.net/iframes/d/houston-astros-vs-boston-red-sox-38280.html";
+}
+
+--------------------------------------------------------------------------------
+// view-source:http://bilasport.net/iframes/d/houston-astros-vs-boston-red-sox-38280.html
+
+<iframe allow="autoplay; encrypted-media" allowfullscreen="" frameborder="0" height="100%" src="http://bilasport.net/mlb/astros.php" scrolwlping="no" width="100%"></iframe>
+
+--------------------------------------------------------------------------------
+// view-source:http://bilasport.net/mlb/astros.php
+
+<script>
+ var sou = "https://hlslive-akc-ewr1.media.mlb.com/hdnts=exp=1634497675~acl=/*~id=00u16rz1utn7oiyyt357~data=7e66eb64-5724-453a-9df7-c1708f4b192e~hmac=d2dc29547751bd2fd39a98c99922e7ac5847be97c0b8633770d0edc17a9f373c/ffbbd99f551aab7a989d31ee4d41e1a2/ls01/mlb/2021/10/16/Home_VIDEO_spa_Boston_Red_Sox_Houston_As_20211016_1634408416050/master_desktop_complete.m3u8";
+</script>
+
+<script>
+(function(open) {
+    XMLHttpRequest.prototype.open = function(method, url, async, user, pass) {
+        var rewrittenUrl = url;
+        if (url.indexOf("svcs") != -1) {
+            rewrittenUrl = url.replace("https://playback.svcs.mlb.com/", "/keys/Astros.php?");
+        }
+        open.call(this, method, rewrittenUrl, async, user, pass);
+    };
+})(XMLHttpRequest.prototype.open);
+</script>
+
+--------------------------------------------------------------------------------
+// HLS-Proxy hook function:
+
+module.exports = {redirect: function(url){ return url.replace('https://playback.svcs.mlb.com/', 'http://bilasport.net/keys/Astros.php?'); }}
+
+--------------------------------------------------------------------------------
+// HLS-Proxy querystring parameter configuration:
+
+http://webcast-reloaded.surge.sh/proxy.html
+  * URL to video:
+      https://hlslive-akc-ewr1.media.mlb.com/hdnts=exp=1634497675~acl=/*~id=00u16rz1utn7oiyyt357~data=7e66eb64-5724-453a-9df7-c1708f4b192e~hmac=d2dc29547751bd2fd39a98c99922e7ac5847be97c0b8633770d0edc17a9f373c/ffbbd99f551aab7a989d31ee4d41e1a2/ls01/mlb/2021/10/16/Home_VIDEO_spa_Boston_Red_Sox_Houston_As_20211016_1634408416050/master_desktop_complete.m3u8
+  * URL of Referer:
+      http://bilasport.net/mlb/astros.php
+
+--------------------------------------------------------------------------------

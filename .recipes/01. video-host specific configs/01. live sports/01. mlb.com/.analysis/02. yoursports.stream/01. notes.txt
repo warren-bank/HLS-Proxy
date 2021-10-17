@@ -1,0 +1,50 @@
+--------------------------------------------------------------------------------
+// http://yoursports.to/
+// view-source:http://yoursports.to/mlb?v=MTAwMzAxNjA=
+
+<iframe frameborder=no height=100% src="http://yrsprts.io/ing/mlb?v=MTAwMzAxNjA=" width=100% allowfullscreen scrolling=no id=player name=tmaplayer></iframe>
+
+--------------------------------------------------------------------------------
+// view-source:http://yrsprts.io/ing/mlb?v=MTAwMzAxNjA=
+
+<script>
+    var hd=atob('aHR0cHM6Ly9obHNsaXZlLWFrYy1ld3IxLm1lZGlhLm1sYi5jb20vaGRudHM9ZXhwPTE2MzQ0OTc2NzV+YWNsPS8qfmlkPTAwdTE2cnoxdXRuN29peXl0MzU3fmRhdGE9N2U2NmViNjQtNTcyNC00NTNhLTlkZjctYzE3MDhmNGIxOTJlfmhtYWM9ZDJkYzI5NTQ3NzUxYmQyZmQzOWE5OGM5OTkyMmU3YWM1ODQ3YmU5N2MwYjg2MzM3NzBkMGVkYzE3YTlmMzczYy9mZmJiZDk5ZjU1MWFhYjdhOTg5ZDMxZWU0ZDQxZTFhMi9sczAxL21sYi8yMDIxLzEwLzE2L0hvbWVfVklERU9fc3BhX0Jvc3Rvbl9SZWRfU294X0hvdXN0b25fQXNfMjAyMTEwMTZfMTYzNDQwODQxNjA1MC9tYXN0ZXJfZGVza3RvcF9jb21wbGV0ZS5tM3U4')
+    // https://hlslive-akc-ewr1.media.mlb.com/hdnts=exp=1634497675~acl=/*~id=00u16rz1utn7oiyyt357~data=7e66eb64-5724-453a-9df7-c1708f4b192e~hmac=d2dc29547751bd2fd39a98c99922e7ac5847be97c0b8633770d0edc17a9f373c/ffbbd99f551aab7a989d31ee4d41e1a2/ls01/mlb/2021/10/16/Home_VIDEO_spa_Boston_Red_Sox_Houston_As_20211016_1634408416050/master_desktop_complete.m3u8
+</script>
+
+<script>
+(function(open) {
+    XMLHttpRequest.prototype.open = function(method, url, async, user, pass) {
+        if (url.indexOf('/keys/') != -1) {
+            rewrittenUrl = url.replace("https://playback.svcs.mlb.com/silk/events/", "/key/mlb.php?tk=tQhngkeHBV&url=");
+        } else if (url.indexOf('m3u8') != -1 && url.indexOf('svod-fst') != -1) {
+            rewrittenUrl = url + "?" + Math.floor(Math.random() * 9999999);
+        } else {
+            rewrittenUrl = url;
+        }
+        open.call(this, method, rewrittenUrl, async, user, pass);
+    };
+})(XMLHttpRequest.prototype.open);
+</script>
+
+--------------------------------------------------------------------------------
+// HLS-Proxy hook function:
+
+module.exports = {redirect: function(url){ return url.replace('https://playback.svcs.mlb.com/silk/events/', 'http://yrsprts.io/key/mlb.php?tk=tQhngkeHBV&url='); }}
+
+--------------------------------------------------------------------------------
+// HLS-Proxy querystring parameter configuration:
+
+http://webcast-reloaded.surge.sh/proxy.html
+  * URL to video:
+      https://hlslive-akc-ewr1.media.mlb.com/hdnts=exp=1634497675~acl=/*~id=00u16rz1utn7oiyyt357~data=7e66eb64-5724-453a-9df7-c1708f4b192e~hmac=d2dc29547751bd2fd39a98c99922e7ac5847be97c0b8633770d0edc17a9f373c/ffbbd99f551aab7a989d31ee4d41e1a2/ls01/mlb/2021/10/16/Home_VIDEO_spa_Boston_Red_Sox_Houston_As_20211016_1634408416050/master_desktop_complete.m3u8
+  * URL of Referer:
+      http://yrsprts.io/ing/mlb?v=MTAwMzAxNjA=
+
+--------------------------------------------------------------------------------
+
+notes:
+* querystring parameter in redirected keyserver URL is likely to require frequent manual update:
+    tk=tQhngkeHBV
+
+--------------------------------------------------------------------------------
