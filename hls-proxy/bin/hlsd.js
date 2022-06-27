@@ -2,6 +2,8 @@
 
 const {argv_vals, bootstrap_server} = require('./lib/process_argv')
 
-const start_server = (argv_vals["--tls"]) ? require('../servers/start_https') : require('../servers/start_http')
+const start_server = ((argv_vals["--tls-cert"] && argv_vals["--tls-key"]) || argv_vals["--tls"])
+  ? require('../servers/start_https')
+  : require('../servers/start_http')
 
 bootstrap_server(start_server)

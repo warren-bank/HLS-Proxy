@@ -26,6 +26,9 @@ options:
 --cache-key <number>
 -v <number>
 --acl-whitelist <ip_address_list>
+--tls-cert <filepath>
+--tls-key <filepath>
+--tls-pass <filepath>
 `
 
 module.exports = help

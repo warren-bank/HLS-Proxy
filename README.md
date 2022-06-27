@@ -123,11 +123,20 @@ options:
 --cache-key <number>
 -v <number>
 --acl-whitelist <ip_address_list>
+--tls-cert <filepath>
+--tls-key <filepath>
+--tls-pass <filepath>
 ```
 
 #### Options:
 
 * _--tls_ is a flag to start HTTP**S** proxy, rather than HTTP
+  * used as shorthand to automatically configure the following options:
+    * _--tls-cert_
+    * _--tls-key_
+    * _--tls-pass_
+  * the values assigned to these options enable the use of a self-signed security certificate that is included in both the git repo and npm package, within the directory:
+    * [`./hls-proxy/servers/cert`](https://github.com/warren-bank/HLS-Proxy/tree/master/hls-proxy/servers/cert)
 * _--host_ must be an IP address of the server on the LAN (so Chromecast can proxy requests through it)
   * ex: `192.168.0.100`
   * used to modify URLs in .m3u8 files
@@ -275,6 +284,10 @@ options:
     * show an enhanced technical trace (useful while debugging unexpected behavior)
 * _--acl-whitelist_ restricts proxy server access to clients at IP addresses in whitelist
   * ex: `"192.168.1.100,192.168.1.101,192.168.1.102"`
+* _--tls-cert_ is the filepath to a security certificate to use for HTTPS
+* _--tls-key_ is the filepath to the private key for the _--tls-cert_ security certificate
+* _--tls-pass_ is the filepath to a text file containing the security passphrase for the _--tls-key_ private key
+  * optional, not required when the _--tls-key_ private key was created without a security passphrase
 
 #### Examples:
 
@@ -304,6 +317,9 @@ options:
 
 9. start HTTPS proxy at default host:port and enable prefetch of 10 video segments<br>
   `hlsd --tls --prefetch --max-segments 10`
+
+10. start HTTPS proxy using a non-generic security certificate<br>
+  `hlsd --tls-cert "/path/to/cert.pem" --tls-key "/path/to/key.pem" --tls-pass "/path/to/pass.phrase"`
 
 - - - -
 

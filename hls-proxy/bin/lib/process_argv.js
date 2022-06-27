@@ -29,7 +29,11 @@ const argv_flags = {
   "--cache-key":                            {num:  "int"},
 
   "-v":                                     {num:  "int"},
-  "--acl-whitelist":                        {}
+  "--acl-whitelist":                        {},
+
+  "--tls-cert":                             {file: "path-exists"},
+  "--tls-key":                              {file: "path-exists"},
+  "--tls-pass":                             {file: "path-exists"}
 }
 
 const argv_flag_aliases = {
@@ -168,7 +172,10 @@ const bootstrap_server = function(start_server) {
     cache_timeout:  argv_vals["--cache-timeout"],
     cache_key:      argv_vals["--cache-key"],
     verbosity:      argv_vals["-v"],
-    acl_whitelist:  argv_vals["--acl-whitelist"]
+    acl_whitelist:  argv_vals["--acl-whitelist"],
+    tls_cert:       argv_vals["--tls-cert"],
+    tls_key:        argv_vals["--tls-key"],
+    tls_pass:       argv_vals["--tls-pass"]
   })
 }
 
