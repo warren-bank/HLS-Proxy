@@ -13,7 +13,7 @@ set video_URL=https://e1.livecamtv.me/zmelive/przN2abEtUVWYkSDFI3y/playlist.m3u8
 set play_in_VLC=0
 
 set PATH=%~dp0..\..;%PATH%
-set recipes_home=%~dp0..\..\..\..\..
+set recipes_home=%~dp0..\..\..\..\..\..
 
 call "%recipes_home%\.lib\LAN\print_proxied_url.bat" "%video_URL%" "%port%" "%tls%"
 

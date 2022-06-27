@@ -1,42 +1,49 @@
-const grep_argv = require('./grep_argv')
+const process_argv = require('@warren-bank/node-process-argv')
 
-let argv_vals
+const argv_flags = {
+  "--help":                                 {bool: true},
+  "--version":                              {bool: true},
+
+  "--tls":                                  {bool: true},
+  "--host":                                 {},
+  "--port":                                 {num:  "int"},
+
+  "--req-headers":                          {file: "json"},
+  "--origin":                               {},
+  "--referer":                              {},
+  "--useragent":                            {},
+  "--header":                               {many: true},
+
+  "--req-options":                          {file: "json"},
+  "--req-insecure":                         {bool: true},
+  "--req-secure-honor-server-cipher-order": {bool: true},
+  "--req-secure-ciphers":                   {},
+  "--req-secure-protocol":                  {},
+  "--req-secure-curve":                     {},
+
+  "--hooks":                                {file: "module"},
+
+  "--prefetch":                             {bool: true},
+  "--max-segments":                         {num:  "int"},
+  "--cache-timeout":                        {num:  "int"},
+  "--cache-key":                            {num:  "int"},
+
+  "-v":                                     {num:  "int"},
+  "--acl-whitelist":                        {}
+}
+
+const argv_flag_aliases = {
+  "--help":                                 ["-h"]
+}
+
+let argv_vals = {}
+
 try {
-  argv_vals = grep_argv({
-    "--help":                                 {bool: true},
-    "--version":                              {bool: true},
-
-    "--tls":                                  {bool: true},
-    "--host":                                 {},
-    "--port":                                 {num:  true},
-
-    "--req-headers":                          {file: "json"},
-    "--origin":                               {},
-    "--referer":                              {},
-    "--useragent":                            {},
-    "--header":                               {many: true},
-
-    "--req-options":                          {file: "json"},
-    "--req-insecure":                         {bool: true},
-    "--req-secure-honor-server-cipher-order": {bool: true},
-    "--req-secure-ciphers":                   {},
-    "--req-secure-protocol":                  {},
-    "--req-secure-curve":                     {},
-
-    "--hooks":                                {file: "module"},
-
-    "--prefetch":                             {bool: true},
-    "--max-segments":                         {num:  true},
-    "--cache-timeout":                        {num:  true},
-    "--cache-key":                            {num:  true},
-
-    "-v":                                     {num:  true},
-    "--acl-whitelist":                        {}
-  }, true)
+  argv_vals = process_argv(argv_flags, argv_flag_aliases)
 }
 catch(e) {
   console.log('ERROR: ' + e.message)
-  process.exit(0)
+  process.exit(1)
 }
 
 if (argv_vals["--help"]) {

@@ -37,4 +37,4 @@ if "%prefetch%"=="1" (
   set hlsd_opts=%hlsd_opts% --prefetch --max-segments 20
 )
 
-call "%~dp0..\..\..\.bin\start_hlsd.bat"
+call "%~dp0..\..\..\..\.bin\start_hlsd.bat"
