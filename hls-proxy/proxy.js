@@ -191,10 +191,29 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
     // only used with prefetch
     const perform_prefetch = (cache_segments)
       ? (urls, dont_touch_access) => {
-          urls.forEach((matching_url, index) => {
-            prefetch_segment(m3u8_url, matching_url, referer_url, dont_touch_access)
+          if (!urls || !Array.isArray(urls) || !urls.length)
+            return
 
-            urls[index] = undefined
+          let promise
+
+          if (is_vod || has_cache(m3u8_url)) {
+            promise = Promise.resolve()
+          }
+          else {
+            const matching_url = urls[0]
+            urls[0] = undefined
+
+            promise = prefetch_segment(m3u8_url, matching_url, referer_url, dont_touch_access)
+          }
+
+          promise.then(() => {
+            urls.forEach((matching_url, index) => {
+              if (matching_url) {
+                prefetch_segment(m3u8_url, matching_url, referer_url, dont_touch_access)
+
+                urls[index] = undefined
+              }
+            })
           })
         }
       : null

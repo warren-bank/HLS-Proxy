@@ -142,7 +142,9 @@ module.exports = function({should_prefetch_url, debug, debug_level, request, get
   }
 
   const prefetch_segment = function(m3u8_url, url, referer_url, dont_touch_access) {
-    if (! should_prefetch_url(url)) return
+    let promise = Promise.resolve()
+
+    if (! should_prefetch_url(url)) return promise
 
     if (cache[m3u8_url] === undefined) {
       // initialize a new data structure
@@ -165,7 +167,7 @@ module.exports = function({should_prefetch_url, debug, debug_level, request, get
       ts[index] = {key: get_privatekey_from_url(url), databuffer: false}
 
       let options = get_request_options(url, referer_url)
-      request(options, '', {binary: true, stream: false})
+      promise = request(options, '', {binary: true, stream: false})
       .then(({response}) => {
         debug(1, `prefetch (complete, ${response.length} bytes):`, debug_url)
 
@@ -201,6 +203,8 @@ module.exports = function({should_prefetch_url, debug, debug_level, request, get
         if (index !== undefined) ts_garbage_collect(m3u8_url, index, 1)
       })
     }
+
+    return promise
   }
 
   const get_segment = function(url) {
