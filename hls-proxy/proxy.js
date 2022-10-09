@@ -463,13 +463,17 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
     debug(3, 'm3u8:', (is_m3u8 ? 'true' : 'false'))
 
     request(options, '', {binary: !is_m3u8, stream: !is_m3u8})
-    .then(({response}) => {
+    .then(({redirects, response}) => {
       if (!is_m3u8) {
         response.pipe(res)
       }
       else {
+        const m3u8_url = (redirects && Array.isArray(redirects) && redirects.length)
+          ? redirects[(redirects.length - 1)]
+          : url
+
         res.writeHead(200, { "Content-Type": "application/x-mpegURL" })
-        res.end( modify_m3u8_content(response, url, referer_url) )
+        res.end( modify_m3u8_content(response, m3u8_url, referer_url) )
       }
     })
     .catch((e) => {
