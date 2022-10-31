@@ -13,6 +13,10 @@ const base64_decode = function(str) {
 
 const proxy = function({server, host, is_secure, req_headers, req_options, hooks, cache_segments, max_segments, cache_timeout, cache_key, debug_level, acl_whitelist}) {
 
+  const debug_divider = (debug_level >= 4)
+    ? ('-').repeat(40)
+    : ''
+
   const debug = function() {
     let args      = [...arguments]
     let verbosity = args.shift()
@@ -93,6 +97,10 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
     const base_urls = {
       "relative": m3u8_url.replace(/[\?#].*$/, '').replace(/[^\/]+$/, ''),
       "absolute": m3u8_url.replace(/(:\/\/[^\/]+).*$/, '$1')
+    }
+
+    if (debug_level >= 4) {
+      debug(4, 'proxied response (original m3u8):', `\n${debug_divider}\n${m3u8_content}\n${debug_divider}`)
     }
 
     if (debug_level >= 2) {
@@ -383,6 +391,10 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
       })
     }
 
+    if (debug_level >= 4) {
+      debug(4, 'proxied response (modified m3u8):', `\n${debug_divider}\n${m3u8_content}\n${debug_divider}`)
+    }
+
     return m3u8_content
   }
 
@@ -464,6 +476,8 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
 
     request(options, '', {binary: !is_m3u8, stream: !is_m3u8})
     .then(({redirects, response}) => {
+      debug(2, 'proxied response:', {status_code: response.statusCode, headers: response.headers, redirects})
+
       if (!is_m3u8) {
         response.pipe(res)
       }
@@ -473,7 +487,7 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
           : url
 
         res.writeHead(200, { "Content-Type": "application/x-mpegURL" })
-        res.end( modify_m3u8_content(response, m3u8_url, referer_url) )
+        res.end( modify_m3u8_content(response.toString().trim(), m3u8_url, referer_url) )
       }
     })
     .catch((e) => {

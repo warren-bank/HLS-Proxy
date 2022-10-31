@@ -282,6 +282,8 @@ options:
     * show technical details
   * `3`:
     * show an enhanced technical trace (useful while debugging unexpected behavior)
+  * `4`:
+    * show the content of .m3u8 files (both before and after URLs are modified)
 * _--acl-whitelist_ restricts proxy server access to clients at IP addresses in whitelist
   * ex: `"192.168.1.100,192.168.1.101,192.168.1.102"`
 * _--tls-cert_ is the filepath to a security certificate to use for HTTPS
