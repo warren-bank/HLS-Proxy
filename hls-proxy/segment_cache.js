@@ -168,8 +168,9 @@ module.exports = function({should_prefetch_url, debug, debug_level, request, get
 
       let options = get_request_options(url, referer_url)
       promise = request(options, '', {binary: true, stream: false})
-      .then(({response}) => {
+      .then(({redirects, response}) => {
         debug(1, `prefetch (complete, ${response.length} bytes):`, debug_url)
+        debug(2, 'prefetch response:', {status_code: response.statusCode, headers: response.headers, redirects})
 
         // asynchronous callback could occur after garbage collection; the index could've changed
         index = find_index_of_segment(m3u8_url, url)
