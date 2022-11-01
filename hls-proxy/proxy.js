@@ -37,8 +37,8 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
     ts_duration:  new RegExp('^#EXT-X-TARGETDURATION:(\\d+)(?:\\.\\d+)?$', 'im'),
     vod:          new RegExp('^(?:#EXT-X-PLAYLIST-TYPE:VOD|#EXT-X-ENDLIST)$', 'im'),
     vod_start_at: new RegExp('#vod_start(?:_prefetch_at)?=((?:\\d+:)?(?:\\d+:)?\\d+)$', 'i'),
-    urls:         new RegExp('(^|[\\s\'"])((?:https?:/)?/)?((?:[^\\?#,/\\s\'"]*/)+?)?([^\\?#,/\\s\'"]+?)(\\.[^\\?#,/\\.\\s\'"]+(?:[\\?#][^\\s\'"]*)?)?([\\s\'"]|$)', 'img'),
-    keys:         new RegExp('(^#EXT-X-KEY:[^"]*")([^"]+)(".*$)', 'img')
+    urls:         new RegExp('(^|(?<!(?:KEYFORMAT=))[\\s\'"])((?:https?:/)?/)?((?:[^\\?#,/\\s\'"]*/)+?)?([^\\?#,/\\s\'"]+?)(\\.[^\\?#,/\\.\\s\'"]+(?:[\\?#][^\\s\'"]*)?)?([\\s\'"]|$)', 'img'),
+    keys:         new RegExp('(^#EXT-X-KEY:(?:.+,)?URI=")([^"]+)(".*$)', 'img')
   }
 
   const add_CORS_headers = function(res) {
