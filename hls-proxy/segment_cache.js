@@ -166,7 +166,7 @@ module.exports = function({should_prefetch_url, debug, debug_level, request, get
       index = ts.length
       ts[index] = {key: get_privatekey_from_url(url), databuffer: false}
 
-      let options = get_request_options(url, referer_url)
+      let options = get_request_options(url, /* is_m3u8= */ false, referer_url)
       promise = request(options, '', {binary: true, stream: false})
       .then(({redirects, response}) => {
         debug(1, `prefetch (complete, ${response.length} bytes):`, debug_url)

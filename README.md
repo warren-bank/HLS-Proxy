@@ -154,7 +154,7 @@ options:
     * HTTP proxy binds to: `80`
     * HTTPS proxy binds to: `443`
 * _--req-headers_ is the filepath to a JSON data _Object_ containing key:value pairs
-  * each _key_ is the name of an HTTP header to send in in every outbound request
+  * each _key_ is the name of an HTTP header to send in every outbound request
 * _--origin_ is the value of the corresponding HTTP request header
 * _--referer_ is the value of the corresponding HTTP request header
 * _--useragent_ is the value of the corresponding HTTP request header
@@ -201,6 +201,20 @@ options:
   * each _key_ is the name of a hook function
   * each _value_ is the implementation of the corresponding _Function_
   * hook function signatures:
+    * `"add_request_options": (url, is_m3u8) => request_options`
+      * conditionally add HTTP request options
+      * inputs:
+        * `url`
+          * string URL
+        * `is_m3u8`
+          * boolean that indicates whether `url` will request an HLS manifest
+      * return value:
+        * _Object_ having attributes that are combined with _--req-options_ and used to send the outbound request to `url`
+    * `"add_request_headers": (url, is_m3u8) => request_headers`
+      * conditionally add HTTP request headers
+      * return value:
+        * _Object_ containing key:value pairs that are combined with _--req-headers_
+          * each _key_ is the name of an HTTP header to send in the outbound request to `url`
     * `"redirect": (url) => new_url`
       * conditionally redirect the URLs encountered in .m3u8 files __before__ they are modified to pass through the proxy
     * `"prefetch": (url) => boolean`

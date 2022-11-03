@@ -49,21 +49,30 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
     res.setHeader('Access-Control-Max-Age',           '86400')
   }
 
-  const get_request_options = function(url, referer_url) {
-    if (!req_options && !req_headers && !referer_url) return url
+  const get_request_options = function(url, is_m3u8, referer_url) {
+    const additional_req_options = (hooks && (hooks instanceof Object) && hooks.add_request_options && (typeof hooks.add_request_options === 'function'))
+      ? hooks.add_request_options(url, is_m3u8)
+      : null
+
+    const additional_req_headers = (hooks && (hooks instanceof Object) && hooks.add_request_headers && (typeof hooks.add_request_headers === 'function'))
+      ? hooks.add_request_headers(url, is_m3u8)
+      : null
+
+    if (!req_options && !additional_req_options && !req_headers && !additional_req_headers && !referer_url) return url
 
     const request_options = Object.assign(
       {},
       parse_url(url),
-      (req_options || {})
+      (req_options            || {}),
+      (additional_req_options || {})
     )
-
-    if (!req_headers && !referer_url) return request_options
 
     request_options.headers = Object.assign(
       {},
-      (request_options.headers || {}),
-      (req_headers || {}),
+      ((           req_options &&            req_options.headers) ?            req_options.headers : {}),
+      ((additional_req_options && additional_req_options.headers) ? additional_req_options.headers : {}),
+      (req_headers             || {}),
+      (additional_req_headers  || {}),
       (referer_url ? {"referer": referer_url, "origin": referer_url.replace(regexs.origin, '$1')} : {})
     )
 
@@ -470,7 +479,7 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
       }
     }
 
-    const options = get_request_options(url, referer_url)
+    const options = get_request_options(url, is_m3u8, referer_url)
     debug(1, 'proxying:', url)
     debug(3, 'm3u8:', (is_m3u8 ? 'true' : 'false'))
 
