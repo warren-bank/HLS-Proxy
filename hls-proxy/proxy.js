@@ -103,6 +103,10 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
   )}
 
   const modify_m3u8_content = function(m3u8_content, m3u8_url, referer_url) {
+    if (hooks && (hooks instanceof Object) && hooks.modify_m3u8_content && (typeof hooks.modify_m3u8_content === 'function')) {
+      m3u8_content = hooks.modify_m3u8_content(m3u8_content, m3u8_url) || m3u8_content
+    }
+
     const base_urls = {
       "relative": m3u8_url.replace(/[\?#].*$/, '').replace(/[^\/]+$/, ''),
       "absolute": m3u8_url.replace(/(:\/\/[^\/]+).*$/, '$1')

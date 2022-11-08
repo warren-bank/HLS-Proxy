@@ -215,6 +215,8 @@ options:
       * return value:
         * _Object_ containing key:value pairs that are combined with _--req-headers_
           * each _key_ is the name of an HTTP header to send in the outbound request to `url`
+    * `"modify_m3u8_content": (m3u8_content, m3u8_url) => new_m3u8_content`
+      * conditionally modify the content of .m3u8 files __before__ they are parsed to extract URLs
     * `"redirect": (url) => new_url`
       * conditionally redirect the URLs encountered in .m3u8 files __before__ they are modified to pass through the proxy
     * `"prefetch": (url) => boolean`
