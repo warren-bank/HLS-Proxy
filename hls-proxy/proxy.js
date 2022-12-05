@@ -31,7 +31,7 @@ const get_middleware = function({is_secure, host, req_headers, req_options, hook
   }
 
   const regexs = {
-    wrap:         new RegExp('/?([^\\._]+)(?:[\\._].*)?$', 'i'),
+    wrap:         new RegExp('^(.*)/([^\\._/\\?#]+)(?:[\\._][^/\\?#]*)?(?:[\\?#].*)?$', 'i'),
     origin:       new RegExp('^(https?://[^/]+)(?:/.*)?$', 'i'),
     m3u8:         new RegExp('\\.m3u8(?:[\\?#]|$)', 'i'),
     ts:           new RegExp('\\.ts(?:[\\?#]|$)', 'i'),
@@ -103,7 +103,7 @@ const get_middleware = function({is_secure, host, req_headers, req_options, hook
     {has_cache, get_time_since_last_access, is_expired, prefetch_segment, get_segment, add_listener} = require('./segment_cache')({should_prefetch_url, debug, debug_level, request, get_request_options, max_segments, cache_timeout, cache_key})
   )}
 
-  const modify_m3u8_content = function(m3u8_content, m3u8_url, referer_url, host_req_header) {
+  const modify_m3u8_content = function(m3u8_content, m3u8_url, referer_url, redirected_base_url) {
     if (hooks && (hooks instanceof Object) && hooks.modify_m3u8_content && (typeof hooks.modify_m3u8_content === 'function')) {
       m3u8_content = hooks.modify_m3u8_content(m3u8_content, m3u8_url) || m3u8_content
     }
@@ -318,7 +318,7 @@ const get_middleware = function({is_secure, host, req_headers, req_options, hook
         matching_url += `|${referer_url}`
 
       let ts_file_ext    = get_ts_file_ext(file_name, file_ext)
-      let redirected_url = `${ is_secure ? 'https' : 'http' }://${host || host_req_header}/${ base64_encode(matching_url) }${ts_file_ext || file_ext || ''}`
+      let redirected_url = `${redirected_base_url}/${ base64_encode(matching_url) }${ts_file_ext || file_ext || ''}`
       debug(3, 'redirecting (proxied):', redirected_url)
 
       return `${head}${redirected_url}${tail}`
@@ -440,7 +440,7 @@ const get_middleware = function({is_secure, host, req_headers, req_options, hook
 
       let url, url_lc, index
 
-      url    = base64_decode( req.url.replace(regexs.wrap, '$1') ).trim()
+      url    = base64_decode( req.url.replace(regexs.wrap, '$2') ).trim()
       url_lc = url.toLowerCase()
 
       index  = url_lc.indexOf('http')
@@ -500,8 +500,10 @@ const get_middleware = function({is_secure, host, req_headers, req_options, hook
           ? redirects[(redirects.length - 1)]
           : url
 
+        const redirected_base_url = `${ is_secure ? 'https' : 'http' }://${host || req.headers.host}${req.url.replace(regexs.wrap, '$1')}`
+
         res.writeHead(200, { "Content-Type": "application/x-mpegURL" })
-        res.end( modify_m3u8_content(response.toString().trim(), m3u8_url, referer_url, req.headers.host) )
+        res.end( modify_m3u8_content(response.toString().trim(), m3u8_url, referer_url, redirected_base_url) )
       }
     })
     .catch((e) => {

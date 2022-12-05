@@ -1,0 +1,24 @@
+<html>
+<head>
+  <script>
+  const redirect_to_video_player = (video_url) => {
+    const base_url   = 'http://webcast-reloaded.surge.sh/4-clappr/index.html'
+    const player_url = `${base_url}?override=true#/watch/${ btoa(video_url) }`
+
+    window.location = player_url
+  }
+
+  {
+    const proxy_url      = 'http://127.0.0.1:8080/proxy'
+    const video_url      = 'https://www.cbsnews.com/common/video/cbsn_header_prod.m3u8'
+    const file_extension = '.m3u8'
+
+    const hls_proxy_url  = `${proxy_url}/${ btoa(video_url) }${file_extension}`
+
+    redirect_to_video_player(hls_proxy_url)
+  }
+  </script>
+</head>
+<body>
+</body>
+</html>
