@@ -1,4 +1,14 @@
-module.exports = function({should_prefetch_url, debug, debug_level, request, get_request_options, max_segments, cache_timeout, cache_key}) {
+const request = require('@warren-bank/node-request').request
+const utils   = require('./utils')
+
+module.exports = function(params) {
+  const {cache_segments, max_segments, cache_timeout, cache_key, debug_level} = params
+
+  if (!cache_segments) return {}
+
+  const debug               = utils.debug.bind(null, params)
+  const get_request_options = utils.get_request_options.bind(null, params)
+  const should_prefetch_url = utils.should_prefetch_url.bind(null, params)
 
   // maps: "m3u8_url" => {access: timestamp, ts: []}
   const cache = {}
