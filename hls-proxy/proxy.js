@@ -8,7 +8,8 @@ const regexs = {
 }
 
 const get_middleware = function(params) {
-  const {is_secure, host, cache_segments, acl_whitelist} = params
+  const {is_secure, host, cache_segments} = params
+  let {acl_whitelist} = params
 
   const segment_cache = require('./segment_cache')(params)
   const {get_segment, add_listener} = segment_cache
