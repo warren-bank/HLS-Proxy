@@ -160,23 +160,4 @@ if (typeof argv_vals["--cache-key"] !== 'number')
 if (typeof argv_vals["-v"] !== 'number')
   argv_vals["-v"] = 0
 
-const bootstrap_server = function(start_server) {
-  start_server({
-    host:           argv_vals["--host"],
-    port:           argv_vals["--port"],
-    req_headers:    argv_vals["--req-headers"],
-    req_options:    argv_vals["--req-options"],
-    hooks:          argv_vals["--hooks"],
-    cache_segments: argv_vals["--prefetch"],
-    max_segments:   argv_vals["--max-segments"],
-    cache_timeout:  argv_vals["--cache-timeout"],
-    cache_key:      argv_vals["--cache-key"],
-    verbosity:      argv_vals["-v"],
-    acl_whitelist:  argv_vals["--acl-whitelist"],
-    tls_cert:       argv_vals["--tls-cert"],
-    tls_key:        argv_vals["--tls-key"],
-    tls_pass:       argv_vals["--tls-pass"]
-  })
-}
-
-module.exports = {argv_vals, bootstrap_server}
+module.exports = argv_vals

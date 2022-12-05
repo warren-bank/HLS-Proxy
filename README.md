@@ -137,19 +137,15 @@ options:
     * _--tls-pass_
   * the values assigned to these options enable the use of a self-signed security certificate that is included in both the git repo and npm package, within the directory:
     * [`./hls-proxy/servers/cert`](https://github.com/warren-bank/HLS-Proxy/tree/master/hls-proxy/servers/cert)
-* _--host_ must be an IP address of the server on the LAN (so Chromecast can proxy requests through it)
-  * ex: `192.168.0.100`
+* _--host_ is an IP or hostname with an optional port number that can be resolved and is reachable by clients
+  * ex: `192.168.0.100:8080`
   * used to modify URLs in .m3u8 files
+  * when this option is specified without a port number:
+    * the value of the _--port_ option is appended
   * when this option is not specified:
-    * the list of available network addresses is determined
-    * if there are none, 'localhost' is used silently
-    * if there is only a single address on the LAN, it is used silently
-    * if there are multiple addresses:
-      * they are listed
-      * a prompt asks the user to choose (the numeric index) of one
+    * the value of the ["Host"](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Host) HTTP request header is used
 * _--port_ is the port number that the server listens on
   * ex: `8080`
-  * used to modify URLs in .m3u8 files
   * when this option is not specified:
     * HTTP proxy binds to: `80`
     * HTTPS proxy binds to: `443`

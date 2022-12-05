@@ -11,7 +11,8 @@ const base64_decode = function(str) {
   return Buffer.from(str, 'base64').toString('binary')
 }
 
-const proxy = function({server, host, is_secure, req_headers, req_options, hooks, cache_segments, max_segments, cache_timeout, cache_key, debug_level, acl_whitelist}) {
+const get_middleware = function({is_secure, host, req_headers, req_options, hooks, cache_segments, max_segments, cache_timeout, cache_key, debug_level, acl_whitelist}) {
+  const middleware = {}
 
   const debug_divider = (debug_level >= 4)
     ? ('-').repeat(40)
@@ -102,7 +103,7 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
     {has_cache, get_time_since_last_access, is_expired, prefetch_segment, get_segment, add_listener} = require('./segment_cache')({should_prefetch_url, debug, debug_level, request, get_request_options, max_segments, cache_timeout, cache_key})
   )}
 
-  const modify_m3u8_content = function(m3u8_content, m3u8_url, referer_url) {
+  const modify_m3u8_content = function(m3u8_content, m3u8_url, referer_url, host_req_header) {
     if (hooks && (hooks instanceof Object) && hooks.modify_m3u8_content && (typeof hooks.modify_m3u8_content === 'function')) {
       m3u8_content = hooks.modify_m3u8_content(m3u8_content, m3u8_url) || m3u8_content
     }
@@ -317,7 +318,7 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
         matching_url += `|${referer_url}`
 
       let ts_file_ext    = get_ts_file_ext(file_name, file_ext)
-      let redirected_url = `${ is_secure ? 'https' : 'http' }://${host}/${ base64_encode(matching_url) }${ts_file_ext || file_ext || ''}`
+      let redirected_url = `${ is_secure ? 'https' : 'http' }://${host || host_req_header}/${ base64_encode(matching_url) }${ts_file_ext || file_ext || ''}`
       debug(3, 'redirecting (proxied):', redirected_url)
 
       return `${head}${redirected_url}${tail}`
@@ -415,7 +416,7 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
   if (acl_whitelist) {
     acl_whitelist = acl_whitelist.trim().toLowerCase().split(/\s*,\s*/g)
 
-    server.on('connection', (socket) => {
+    middleware.connection = (socket) => {
       if (socket && socket.remoteAddress) {
         let remoteIP = socket.remoteAddress.toLowerCase().replace(/^::?ffff:/, '')
 
@@ -424,11 +425,11 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
           debug(2, socket.remoteFamily, 'connection blocked by ACL whitelist:', remoteIP)
         }
       }
-    })
+    }
   }
 
   // Create an HTTP tunneling proxy
-  server.on('request', (req, res) => {
+  middleware.request = (req, res) => {
     debug(3, 'proxying (raw):', req.url)
 
     add_CORS_headers(res)
@@ -500,7 +501,7 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
           : url
 
         res.writeHead(200, { "Content-Type": "application/x-mpegURL" })
-        res.end( modify_m3u8_content(response.toString().trim(), m3u8_url, referer_url) )
+        res.end( modify_m3u8_content(response.toString().trim(), m3u8_url, referer_url, req.headers.host) )
       }
     })
     .catch((e) => {
@@ -508,7 +509,9 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
       res.writeHead(500)
       res.end()
     })
-  })
+  }
+
+  return middleware
 }
 
-module.exports = proxy
+module.exports = get_middleware
