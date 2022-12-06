@@ -54,14 +54,14 @@ const get_middleware = function(params) {
     }
 
     if (cache_segments && !is_m3u8) {
-      let segment = get_segment(url)   // Buffer (cached segment data), false (prefetch is pending: add callback), undefined (no prefetch is pending)
+      let segment = get_segment(url, url_type)  // Buffer (cached segment data), false (prefetch is pending: add callback), undefined (no prefetch is pending)
 
-      if (segment && segment.length) { // Buffer (cached segment data)
+      if (segment && segment.length) {          // Buffer (cached segment data)
         send_cache_segment(segment)
         return
       }
-      else if (segment === false) {    // false (prefetch is pending: add callback)
-        add_listener(url, send_cache_segment)
+      else if (segment === false) {             // false (prefetch is pending: add callback)
+        add_listener(url, url_type, send_cache_segment)
         return
       }
     }

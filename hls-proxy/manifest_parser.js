@@ -2,29 +2,254 @@ const {URL} = require('@warren-bank/url')
 const utils = require('./utils')
 
 const regexs = {
-  m3u8:         new RegExp('\\.m3u8(?:[\\?#]|$)', 'i'),
-  ts_duration:  new RegExp('^#EXT-X-TARGETDURATION:(\\d+)(?:\\.\\d+)?$', 'im'),
-  vod:          new RegExp('^(?:#EXT-X-PLAYLIST-TYPE:VOD|#EXT-X-ENDLIST)$', 'im'),
-  vod_start_at: new RegExp('#vod_start(?:_prefetch_at)?=((?:\\d+:)?(?:\\d+:)?\\d+)$', 'i'),
-  urls:         new RegExp('(^|(?<!(?:KEYFORMAT=))[\\s\'"])((?:https?:/)?/)?((?:[^\\?#/\\s\'"]*/)+?)?([^\\?#,/\\s\'"]+?)(\\.[^\\?#,/\\.\\s\'"]+(?:[\\?#][^\\s\'"]*)?)?([\\s\'"]|$)', 'img'),
-  keys:         new RegExp('(^#EXT-X-KEY:(?:.+,)?URI=")([^"]+)(".*$)', 'img')
+  m3u8_line_separator: /\s*[\r\n]+\s*/,
+  m3u8_line_landmark:  /^(#[^:]+:)/,
+  m3u8_line_url:       /URI=["']([^"']+)["']/id,
+
+  vod_start_at:        new RegExp('#vod_start(?:_prefetch_at)?=((?:\\d+:)?(?:\\d+:)?\\d+)$', 'i'),
+  vod:                 new RegExp('^(?:#EXT-X-PLAYLIST-TYPE:VOD|#EXT-X-ENDLIST)$', 'im'),
+  ts_duration:         new RegExp('^#EXT-X-TARGETDURATION:(\\d+)(?:\\.\\d+)?$', 'im')
 }
 
-const ts_regexs = {
-  "file_ext": /^\.ts/i,
-  "sequence_number": /[^\d](\d+)$/i
+const url_location_landmarks = {
+  m3u8: {
+    same_line: [
+      '#EXT-X-MEDIA:',
+      '#EXT-X-I-FRAME-STREAM-INF:',
+      '#EXT-X-RENDITION-REPORT:',
+      '#EXT-X-DATERANGE:',
+      '#EXT-X-CONTENT-STEERING:'
+    ],
+    next_line: [
+      '#EXT-X-STREAM-INF:'
+    ]
+  },
+  ts: {
+    same_line: [
+      '#EXT-X-PART:',
+      '#EXT-X-PRELOAD-HINT:'
+    ],
+    next_line: [
+      '#EXTINF:'
+    ]
+  },
+  json: {
+    same_line: [
+      '#EXT-X-SESSION-DATA:'
+    ],
+    next_line: []
+  },
+  key: {
+    same_line: [
+      '#EXT-X-KEY:'
+    ],
+    next_line: []
+  },
+  other: {
+    same_line: [],
+    next_line: []
+  }
 }
 
-const get_ts_file_ext = function(file_name, file_ext) {
-  let ts_file_ext, matches
+// returns: {
+//   embedded_urls: [{line_index, url_indices, url_type, original_match_url, resolved_match_url, redirected_url, unencoded_url, encoded_url, referer_url}],
+//   prefetch_urls: [],
+//   modified_m3u8: ''
+// }
+const parse_manifest = function(m3u8_content, m3u8_url, referer_url, hooks, debug, vod_start_at_ms, redirected_base_url, should_prefetch_url) {
+  const m3u8_lines = m3u8_content.split(regexs.m3u8_line_separator)
+  m3u8_content = null
 
-  if (ts_regexs["file_ext"].test(file_ext)) {
-    matches = ts_regexs["sequence_number"].exec(file_name)
-    if (matches && matches.length) {
-      ts_file_ext = `_${matches[1]}${file_ext}`
+  const embedded_urls = extract_embedded_urls(m3u8_lines, m3u8_url, referer_url)
+  const prefetch_urls = []
+
+  if (embedded_urls && Array.isArray(embedded_urls) && embedded_urls.length) {
+    embedded_urls.forEach(embedded_url => {
+      redirect_embedded_url(embedded_url, hooks, m3u8_url, debug)
+      finalize_embedded_url(embedded_url, vod_start_at_ms, debug)
+      encode_embedded_url(embedded_url, redirected_base_url, debug)
+      get_prefetch_url(embedded_url, should_prefetch_url, prefetch_urls)
+      modify_m3u8_line(embedded_url, m3u8_lines)
+    })
+  }
+
+  return {
+    embedded_urls,
+    prefetch_urls,
+    modified_m3u8: m3u8_lines.filter(line => !!line).join("\n")
+  }
+}
+
+const extract_embedded_urls = function(m3u8_lines, m3u8_url, referer_url) {
+  const embedded_urls = []
+
+  let m3u8_line, has_next_m3u8_line, next_m3u8_line, matches, matching_landmark, matching_url
+
+  for (let i=0; i < m3u8_lines.length; i++) {
+    m3u8_line          = m3u8_lines[i]
+    has_next_m3u8_line = ((i+1) < m3u8_lines.length)
+
+    matches = regexs.m3u8_line_landmark.exec(m3u8_line)
+    if (!matches) continue
+    matching_landmark = matches[1]
+
+    matches = regexs.m3u8_line_url.exec(m3u8_line)
+    matching_url = matches
+      ? matches[1]
+      : null
+
+    for (let url_type in url_location_landmarks) {
+      if (matching_url && (url_location_landmarks[url_type]['same_line'].indexOf(matching_landmark) >= 0)) {
+        embedded_urls.push({
+          line_index:         i,
+          url_indices:        matches.indices[1],
+          url_type:           url_type,
+          original_match_url: matching_url,
+          resolved_match_url: (new URL(matching_url, m3u8_url)).href,
+          redirected_url:     null,
+          referer_url:        referer_url,
+          encoded_url:        null
+        })
+        break
+      }
+      if (has_next_m3u8_line && (url_location_landmarks[url_type]['next_line'].indexOf(matching_landmark) >= 0)) {
+        next_m3u8_line = m3u8_lines[i+1].trim()
+
+        if (next_m3u8_line && (next_m3u8_line[0] !== '#')) {
+          i++
+
+          embedded_urls.push({
+            line_index:         i,
+            url_indices:        null,
+            url_type:           url_type,
+            original_match_url: next_m3u8_line,
+            resolved_match_url: (new URL(next_m3u8_line, m3u8_url)).href,
+            redirected_url:     null,
+            referer_url:        referer_url,
+            encoded_url:        null
+          })
+        }
+        break
+      }
     }
   }
-  return ts_file_ext
+
+  return embedded_urls
+}
+
+const redirect_embedded_url = function(embedded_url, hooks, m3u8_url, debug) {
+  if (hooks && (hooks instanceof Object) && hooks.redirect && (typeof hooks.redirect === 'function')) {
+    let url, url_type, referer_url, result
+
+    url         = embedded_url.resolved_match_url
+    url_type    = null
+    referer_url = null
+
+    debug(3, 'redirecting (pre-hook):', url)
+
+    try {
+      result = hooks.redirect(url, embedded_url.referer_url)
+
+      if (result) {
+        if (typeof result === 'string') {
+          url         = result
+        }
+        else if (result instanceof Object) {
+          url         = result.url
+          url_type    = result.url_type
+          referer_url = result.referer_url
+        }
+      }
+
+      if (typeof url !== 'string') throw new Error('bad return value')
+
+      url = url.trim()
+
+      if (url.length && (url.toLowerCase().indexOf('http') !== 0))
+        url = (new URL(url, m3u8_url)).href
+    }
+    catch(e) {
+      url = ''
+    }
+
+    if (url) {
+      embedded_url.redirected_url = url
+
+      if (typeof url_type === 'string') {
+        url_type = url_type.toLowerCase().trim()
+
+        if (url_type.length)
+          embedded_url.url_type = url_type
+      }
+
+      if (typeof referer_url === 'string') {
+        referer_url = referer_url.trim()
+
+        if (referer_url.length && (referer_url.toLowerCase().indexOf('http') === 0))
+          embedded_url.referer_url = referer_url
+      }
+
+      debug(3, 'redirecting (post-hook):', url)
+    }
+    else {
+      embedded_url.redirected_url = ''
+
+      debug(3, 'redirecting (post-hook):', 'URL filtered, removed from manifest')
+    }
+  }
+}
+
+const finalize_embedded_url = function(embedded_url, vod_start_at_ms, debug) {
+  if (embedded_url.redirected_url === '') {
+    embedded_url.unencoded_url = ''
+  }
+  else {
+    const url = embedded_url.redirected_url || embedded_url.resolved_match_url
+
+    if (embedded_url.url_type)
+      debug(3, 'url type:', embedded_url.url_type)
+
+    debug(2, 'redirecting:', url)
+
+    if (vod_start_at_ms && (embedded_url.url_type === 'm3u8'))
+      url += `#vod_start=${Math.floor(vod_start_at_ms/1000)}`
+
+    if (embedded_url.referer_url)
+      url += `|${embedded_url.referer_url}`
+
+    embedded_url.unencoded_url = url
+  }
+}
+
+const encode_embedded_url = function(embedded_url, redirected_base_url, debug) {
+  embedded_url.encoded_url = (embedded_url.unencoded_url)
+    ? `${redirected_base_url}/${ utils.base64_encode(embedded_url.unencoded_url) }.${embedded_url.url_type || 'other'}`
+    : ''
+
+  if (embedded_url.encoded_url)
+    debug(3, 'redirecting (proxied):', embedded_url.encoded_url)
+}
+
+const get_prefetch_url = function(embedded_url, should_prefetch_url, prefetch_urls = []) {
+  if (embedded_url.redirected_url !== '') {
+    const url = embedded_url.redirected_url || embedded_url.resolved_match_url
+
+    if (should_prefetch_url(url, embedded_url.url_type))
+      prefetch_urls.push(url)
+  }
+}
+
+const modify_m3u8_line = function(embedded_url, m3u8_lines) {
+  const {line_index, url_indices, encoded_url} = embedded_url
+
+  if (url_indices && Array.isArray(url_indices) && (url_indices.length === 2)) {
+    const m3u8_line = m3u8_lines[line_index]
+
+    m3u8_lines[line_index] = m3u8_line.substring(0, url_indices[0]) + encoded_url + m3u8_line.substring(url_indices[1])
+  }
+  else {
+    m3u8_lines[line_index] = encoded_url
+  }
 }
 
 const get_seg_duration_ms = function(m3u8_content) {
@@ -94,24 +319,12 @@ const modify_m3u8_content = function(params, segment_cache, m3u8_content, m3u8_u
     m3u8_content = hooks.modify_m3u8_content(m3u8_content, m3u8_url) || m3u8_content
   }
 
-  const base_urls = {
-    "relative": m3u8_url.replace(/[\?#].*$/, '').replace(/[^\/]+$/, ''),
-    "absolute": m3u8_url.replace(/(:\/\/[^\/]+).*$/, '$1')
-  }
-
   const debug_divider = (debug_level >= 4)
     ? ('-').repeat(40)
     : ''
 
   if (debug_level >= 4) {
     debug(4, 'proxied response (original m3u8):', `\n${debug_divider}\n${m3u8_content}\n${debug_divider}`)
-  }
-
-  if (debug_level >= 2) {
-    m3u8_content = m3u8_content.replace(regexs.keys, function(match, head, key_url, tail) {
-      debug(2, 'key:', key_url)
-      return match
-    })
   }
 
   // only used with prefetch
@@ -159,89 +372,12 @@ const modify_m3u8_content = function(params, segment_cache, m3u8_content, m3u8_u
       }
     : null
 
-  let prefetch_urls = []
-
-  m3u8_content = m3u8_content.replace(regexs.urls, function(match, head, abs_path, rel_path, file_name, file_ext, tail) {
-    if (
-      ((head === `"`) || (head === `'`) || (tail === `"`) || (tail === `'`)) &&
-      (head !== tail)
-    ) return match
-
-    if (
-      !abs_path && (
-           (!file_ext)
-        || ( rel_path && ( rel_path.indexOf('#EXT') === 0))
-        || (!rel_path && (file_name.indexOf('#EXT') === 0))
-      )
-    ) return match
-
-    debug(3, 'modify (raw):', {match, head, abs_path, rel_path, file_name, file_ext, tail})
-
-    let matching_url
-    if (!abs_path) {
-      matching_url = `${base_urls.relative}${rel_path || ''}${file_name}${file_ext || ''}`
-    }
-    else if (abs_path[0] === '/') {
-      matching_url = `${base_urls.absolute}${abs_path}${rel_path || ''}${file_name}${file_ext || ''}`
-    }
-    else {
-      matching_url = `${abs_path}${rel_path || ''}${file_name}${file_ext || ''}`
-    }
-    matching_url = matching_url.trim()
-
-    if (hooks && (hooks instanceof Object) && hooks.redirect && (typeof hooks.redirect === 'function')) {
-      debug(3, 'redirecting (pre-hook):', matching_url)
-
-      try {
-        let result = hooks.redirect(matching_url, referer_url)
-
-        if (result) {
-          if (typeof result === 'string') {
-            matching_url = result
-          }
-          else if (result instanceof Object) {
-            if (result.matching_url) matching_url = result.matching_url
-            if (result.file_name)    file_name    = result.file_name
-            if (result.file_ext)     file_ext     = result.file_ext
-            if (result.referer_url)  referer_url  = result.referer_url
-          }
-        }
-
-        if (typeof matching_url !== 'string') throw new Error('bad return value')
-
-        if (matching_url.length && matching_url.toLowerCase().indexOf('http') !== 0) {
-          matching_url = ( (matching_url[0] === '/') ? base_urls.absolute : base_urls.relative ) + matching_url
-        }
-      }
-      catch(e) {
-        matching_url = ''
-      }
-
-      if (!matching_url) {
-        debug(3, 'redirecting (post-hook):', 'URL filtered, removed from manifest')
-        return `${head}${tail}`
-      }
-    }
-    debug(2, 'redirecting:', matching_url)
-
-    // aggregate prefetch URLs into an array while iterating.
-    // after the loop is complete, check the count.
-    // if it exceeds the size of the cache, remove overflow elements from the beginning.
-    if (should_prefetch_url(matching_url))
-      prefetch_urls.push(matching_url)
-
-    if (vod_start_at_ms && regexs.m3u8.test(matching_url))
-      matching_url += `#vod_start=${Math.floor(vod_start_at_ms/1000)}`
-
-    if (referer_url)
-      matching_url += `|${referer_url}`
-
-    let ts_file_ext    = get_ts_file_ext(file_name, file_ext)
-    let redirected_url = `${redirected_base_url}/${ utils.base64_encode(matching_url) }${ts_file_ext || file_ext || ''}`
-    debug(3, 'redirecting (proxied):', redirected_url)
-
-    return `${head}${redirected_url}${tail}`
-  })
+  let prefetch_urls
+  {
+    const parsed_manifest = parse_manifest(m3u8_content, m3u8_url, referer_url, hooks, debug, vod_start_at_ms, redirected_base_url, should_prefetch_url)
+    prefetch_urls = parsed_manifest.prefetch_urls
+    m3u8_content  = parsed_manifest.modified_m3u8
+  }
 
   if (prefetch_urls.length) {
     if (is_vod && vod_start_at_ms) {
@@ -315,13 +451,6 @@ const modify_m3u8_content = function(params, segment_cache, m3u8_content, m3u8_u
       }
     }
     perform_prefetch(prefetch_urls)
-  }
-
-  if (debug_level >= 3) {
-    m3u8_content = m3u8_content.replace(regexs.keys, function(match, head, key_url, tail) {
-      debug(3, 'key (proxied):', key_url)
-      return match
-    })
   }
 
   if (debug_level >= 4) {

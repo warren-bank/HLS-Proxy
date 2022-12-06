@@ -128,7 +128,7 @@ const get_request_options = function(params, url, is_m3u8, referer_url) {
 const should_prefetch_url = function(params, url, url_type) {
   const {hooks, cache_segments} = params
 
-  let do_prefetch = !!cache_segments
+  let do_prefetch = !!url && !!cache_segments
 
   if (do_prefetch) {
     do_prefetch = (url_type === 'ts') || (url_type === 'key')

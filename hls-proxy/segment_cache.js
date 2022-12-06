@@ -154,8 +154,6 @@ module.exports = function(params) {
   const prefetch_segment = function(m3u8_url, url, referer_url, dont_touch_access) {
     let promise = Promise.resolve()
 
-    if (! should_prefetch_url(url)) return promise
-
     if (cache[m3u8_url] === undefined) {
       // initialize a new data structure
       cache[m3u8_url] = {access: 0, ts: []}
@@ -218,8 +216,8 @@ module.exports = function(params) {
     return promise
   }
 
-  const get_segment = function(url) {
-    if (! should_prefetch_url(url)) return undefined
+  const get_segment = function(url, url_type) {
+    if (! should_prefetch_url(url, url_type)) return undefined
 
     let debug_url = (debug_level >= 3) ? url : get_publickey_from_url(url)
 
@@ -253,8 +251,8 @@ module.exports = function(params) {
     return segment
   }
 
-  const add_listener = function(url, cb) {
-    if (! should_prefetch_url(url)) return false
+  const add_listener = function(url, url_type, cb) {
+    if (! should_prefetch_url(url, url_type)) return false
 
     let debug_url = (debug_level >= 3) ? url : get_publickey_from_url(url)
 
