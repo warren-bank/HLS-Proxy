@@ -23,8 +23,10 @@ const parse_req_url = function(params, req) {
   const matches = regexs.req_url.exec(req.url)
 
   if (matches) {
-    result.redirected_base_url = `${ is_secure ? 'https' : 'http' }://${host || req.headers.host}${matches[1]}`
-    result.url_type            = matches[3].toLowerCase().trim()
+    result.redirected_base_url = `${ is_secure ? 'https' : 'http' }://${host || req.headers.host}${matches[1] || ''}`
+
+    if (matches[3])
+      result.url_type = matches[3].toLowerCase().trim()
 
     let url, url_lc, index
 
