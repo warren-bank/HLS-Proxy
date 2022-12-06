@@ -1,0 +1,52 @@
+--------------------------------------------------------------------------------
+
+https://datatracker.ietf.org/doc/html/rfc8216
+  stable spec
+
+manifest URLs:
+==============
+#EXT-X-MEDIA: ... URI="${URL}"
+#EXT-X-I-FRAME-STREAM-INF: ... URI="${URL}"
+#EXT-X-STREAM-INF: ... \n${URL}
+
+segment URLs:
+=============
+#EXTINF: ...\n${URL}
+
+encryption key URLs:
+====================
+#EXT-X-KEY: ... URI="${URL}"
+
+other URLs:
+===========
+#EXT-X-SESSION-DATA: ... URI="${URL}"
+
+--------------------------------------------------------------------------------
+
+https://datatracker.ietf.org/doc/html/draft-pantos-hls-rfc8216bis
+  draft spec
+
+manifest URLs:
+==============
+#EXT-X-MEDIA: ... URI="${URL}"
+#EXT-X-I-FRAME-STREAM-INF: ... URI="${URL}"
+#EXT-X-RENDITION-REPORT: ... URI="${URL}"
+#EXT-X-DATERANGE: ... X-ASSET-URI="${URL}"
+#EXT-X-CONTENT-STEERING: ... SERVER-URI="${URL}"
+#EXT-X-STREAM-INF: ... \n${URL}
+
+segment URLs:
+=============
+#EXT-X-PART: ... URI="${URL}"
+#EXT-X-PRELOAD-HINT: ... URI="${URL}"
+#EXTINF: ...\n${URL}
+
+encryption key URLs:
+====================
+#EXT-X-KEY: ... URI="${URL}"
+
+other URLs:
+===========
+#EXT-X-SESSION-DATA: ... URI="${URL}"
+
+--------------------------------------------------------------------------------

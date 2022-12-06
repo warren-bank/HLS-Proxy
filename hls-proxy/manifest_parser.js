@@ -1,3 +1,4 @@
+const {URL} = require('@warren-bank/url')
 const utils = require('./utils')
 
 const regexs = {

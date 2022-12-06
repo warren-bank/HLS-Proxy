@@ -2,19 +2,15 @@ const request = require('@warren-bank/node-request').request
 const parser  = require('./manifest_parser')
 const utils   = require('./utils')
 
-const regexs = {
-  wrap: new RegExp('^(.*)/([^\\._/\\?#]+)(?:[\\._][^/\\?#]*)?(?:[\\?#].*)?$', 'i'),
-  m3u8: new RegExp('\\.m3u8(?:[\\?#]|$)', 'i')
-}
-
 const get_middleware = function(params) {
-  const {is_secure, host, cache_segments} = params
-  let {acl_whitelist} = params
+  const {cache_segments} = params
+  let   {acl_whitelist}  = params
 
   const segment_cache = require('./segment_cache')(params)
   const {get_segment, add_listener} = segment_cache
 
   const debug               = utils.debug.bind(null, params)
+  const parse_req_url       = utils.parse_req_url.bind(null, params)
   const get_request_options = utils.get_request_options.bind(null, params)
   const modify_m3u8_content = parser.modify_m3u8_content.bind(null, params, segment_cache)
 
@@ -42,29 +38,7 @@ const get_middleware = function(params) {
 
     utils.add_CORS_headers(res)
 
-    const [url, referer_url] = (() => {
-      if (!regexs.wrap.test(req.url))
-        return ['', '']
-
-      let url, url_lc, index
-
-      url    = utils.base64_decode( req.url.replace(regexs.wrap, '$2') ).trim()
-      url_lc = url.toLowerCase()
-
-      index  = url_lc.indexOf('http')
-      if (index !== 0)
-        return ['', '']
-
-      index = url_lc.indexOf('|http')
-      if (index >=0) {
-        const referer_url = url.substring(index + 1, url.length)
-        url = url.substring(0, index).trim()
-        return [url, referer_url]
-      }
-      else {
-        return [url, '']
-      }
-    })()
+    const {redirected_base_url, url_type, url, referer_url} = parse_req_url(req)
 
     if (!url) {
       res.writeHead(400)
@@ -72,10 +46,10 @@ const get_middleware = function(params) {
       return
     }
 
-    const is_m3u8 = regexs.m3u8.test(url)
+    const is_m3u8 = (url_type === 'm3u8')
 
-    const send_ts = function(segment) {
-      res.writeHead(200, { "Content-Type": "video/MP2T" })
+    const send_cache_segment = function(segment) {
+      res.writeHead(200, { "Content-Type": utils.get_content_type(url_type) })
       res.end(segment)
     }
 
@@ -83,11 +57,11 @@ const get_middleware = function(params) {
       let segment = get_segment(url)   // Buffer (cached segment data), false (prefetch is pending: add callback), undefined (no prefetch is pending)
 
       if (segment && segment.length) { // Buffer (cached segment data)
-        send_ts(segment)
+        send_cache_segment(segment)
         return
       }
       else if (segment === false) {    // false (prefetch is pending: add callback)
-        add_listener(url, send_ts)
+        add_listener(url, send_cache_segment)
         return
       }
     }
@@ -107,8 +81,6 @@ const get_middleware = function(params) {
         const m3u8_url = (redirects && Array.isArray(redirects) && redirects.length)
           ? redirects[(redirects.length - 1)]
           : url
-
-        const redirected_base_url = `${ is_secure ? 'https' : 'http' }://${host || req.headers.host}${req.url.replace(regexs.wrap, '$1')}`
 
         res.writeHead(200, { "Content-Type": "application/x-mpegURL" })
         res.end( modify_m3u8_content(response.toString().trim(), m3u8_url, referer_url, redirected_base_url) )
