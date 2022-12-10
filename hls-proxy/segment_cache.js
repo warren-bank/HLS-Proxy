@@ -1,4 +1,5 @@
 const request = require('@warren-bank/node-request').request
+const cookies = require('./cookies')
 const utils   = require('./utils')
 
 module.exports = function(params) {
@@ -175,7 +176,7 @@ module.exports = function(params) {
       ts[index] = {key: get_privatekey_from_url(url), databuffer: false}
 
       let options = get_request_options(url, /* is_m3u8= */ false, referer_url)
-      promise = request(options, '', {binary: true, stream: false})
+      promise = request(options, '', {binary: true, stream: false, cookieJar: cookies.getCookieJar()})
       .then(({redirects, response}) => {
         debug(1, `prefetch (complete, ${response.length} bytes):`, debug_url)
         debug(2, 'prefetch response:', {status_code: response.statusCode, headers: response.headers, redirects})

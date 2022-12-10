@@ -76,8 +76,15 @@
 
 ##### notes:
 
-* adding a file extension to the base64 encoded video URL is optional
-  - doing so allows video clients to recognize that the URL being requested from _HLS Proxy_ is an HLS video stream
+* adding a file extension to the base64 encoded video URL is highly recommended
+  - the following file extension values have important significance to indicate the type of file being requested:
+    * `.m3u8`<br>HLS manifest
+    * `.ts`<br>media segment
+    * `.key`<br>encryption key
+    * `.json`<br>JSON data
+  - though currently,
+    * `.m3u8`<br>is the only file extension that receives special treatment
+    * all other file types (including those without any file extension) are piped directly to the HTTP response
 
 ##### high-level tools that automate this task:
 
@@ -243,6 +250,43 @@ options:
         * the length of `prefetch_urls` is &gt; `max_segments`
       * post-conditions:
         * the length of the return value array is &lt;= `max_segments`
+    * `"request_intervals": (add_request_interval) => {}`
+      * enables the use of a cookie jar for all outbound HTTP requests
+      * adds any number of timers that each execute at individually specified intervals
+      * when each timer executes, it is passed an HTTP request client that is preconfigured to:
+        - include the request headers that are specified by other relevant options
+        - utilize the same cookie jar as all other outbound HTTP requests
+          * this allows the implementation of custom logic that may be required by one or more video hosts to periodically refresh or update session cookies
+      * an example would better illustrate usage:
+        ```javascript
+          module.exports = {
+            request_intervals: (add_request_interval) => {
+
+              add_request_interval(
+                0, // run timer once at startup to initialize cookies
+                (request) => {
+                  request('https://example.com/login', {username: 'me', password: '12345'})
+                }
+              )
+
+              add_request_interval(
+                (1000 * 60 * 5), // run timer at 5 minute interval to refresh cookies
+                (request) => {
+                  request('https://example.com/heart-beat')
+                }
+              )
+
+            }
+          }
+        ```
+      * more advanced configuration of the call to the HTTP request client is possible
+        - the 1st parameter is required, and must be a _URL_ string
+        - the 2nd parameter is optional, and can contain POST data
+        - the 3rd parameter is optional, and can be used for more advanced configuration options
+      * usage of this HTTP request client is documented [here](https://github.com/warren-bank/node-request#api)
+        - specifically, pay careful attention to the signatures for:
+          * the latter two input parameters
+          * the attributes of the Object that is resolved by the Promise in the return value (if the content of the response is needed)
 * _--prefetch_ is a flag to enable the prefetch and caching of video segments
   * when .m3u8 files are downloaded and modified inflight, all of the URLs in the playlist are known
   * at this time, it is possible to prefetch the video segments (.ts files)

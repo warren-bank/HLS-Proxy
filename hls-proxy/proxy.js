@@ -1,5 +1,7 @@
 const request = require('@warren-bank/node-request').request
+const cookies = require('./cookies')
 const parser  = require('./manifest_parser')
+const timers  = require('./timers')
 const utils   = require('./utils')
 
 const get_middleware = function(params) {
@@ -70,7 +72,7 @@ const get_middleware = function(params) {
     debug(1, 'proxying:', url)
     debug(3, 'm3u8:', (is_m3u8 ? 'true' : 'false'))
 
-    request(options, '', {binary: !is_m3u8, stream: !is_m3u8})
+    request(options, '', {binary: !is_m3u8, stream: !is_m3u8, cookieJar: cookies.getCookieJar()})
     .then(({redirects, response}) => {
       debug(2, 'proxied response:', {status_code: response.statusCode, headers: response.headers, redirects})
 
@@ -92,6 +94,8 @@ const get_middleware = function(params) {
       res.end()
     })
   }
+
+  timers.initialize_timers(params)
 
   return middleware
 }
