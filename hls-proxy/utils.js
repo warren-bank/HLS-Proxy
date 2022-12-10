@@ -38,9 +38,9 @@ const parse_req_url = function(params, req) {
       index = url_lc.indexOf('|http')
 
       if (index > 0) {
-        url = url.substring(0, index).trim()
-
         result.referer_url = url.substring(index + 1, url.length)
+
+        url = url.substring(0, index).trim()
       }
       result.url = url
     }
