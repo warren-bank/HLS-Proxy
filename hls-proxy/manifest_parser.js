@@ -2,13 +2,10 @@ const {URL} = require('@warren-bank/url')
 const utils = require('./utils')
 
 const regexs = {
+  vod_start_at:        /#vod_start(?:_prefetch_at)?=((?:\d+:)?(?:\d+:)?\d+)$/i,
   m3u8_line_separator: /\s*[\r\n]+\s*/,
-  m3u8_line_landmark:  /^(#[^:]+:)/,
-  m3u8_line_url:       /URI=["']([^"']+)["']/id,
-
-  vod_start_at:        new RegExp('#vod_start(?:_prefetch_at)?=((?:\\d+:)?(?:\\d+:)?\\d+)$', 'i'),
-  vod:                 new RegExp('^(?:#EXT-X-PLAYLIST-TYPE:VOD|#EXT-X-ENDLIST)$', 'im'),
-  ts_duration:         new RegExp('^#EXT-X-TARGETDURATION:(\\d+)(?:\\.\\d+)?$', 'im')
+  m3u8_line_landmark:  /^(#[^:]+[:]?)/,
+  m3u8_line_url:       /URI=["']([^"']+)["']/id
 }
 
 const url_location_landmarks = {
@@ -51,16 +48,82 @@ const url_location_landmarks = {
   }
 }
 
+const meta_data_location_landmarks = {
+  is_vod: {
+    same_line: [
+      '#EXT-X-PLAYLIST-TYPE:',
+      '#EXT-X-ENDLIST'
+    ],
+    resolve_value: {
+      '#EXT-X-PLAYLIST-TYPE:': (m3u8_line, landmark) => {
+        const value = m3u8_line.substring(landmark.length, landmark.length + 3)
+        return (value.toUpperCase() === 'VOD')
+      },
+      '#EXT-X-ENDLIST': () => true
+    }
+  },
+  seg_duration_ms: {
+    same_line: [
+      '#EXT-X-TARGETDURATION:'
+    ],
+    resolve_value: {
+      '#EXT-X-TARGETDURATION:': (m3u8_line, landmark) => {
+        m3u8_line = m3u8_line.substring(landmark.length)
+        const value = parseInt(m3u8_line, 10)
+        return isNaN(value)
+          ? null
+          : (value * 1000)  // convert seconds to ms
+      }
+    }
+  }
+}
+
+const get_vod_start_at_ms = function(m3u8_url) {
+ try {
+   const matches  = regexs.vod_start_at.exec(m3u8_url)
+
+   if ((matches == null) || !Array.isArray(matches) || (matches.length < 2))
+     throw ''
+
+   let offset
+   offset = matches[1]
+   offset = parse_HHMMSS_to_seconds(offset)
+   offset = offset * 1000  // convert seconds to ms
+
+   return offset
+ }
+ catch(e) {
+   const def_offset = null
+
+   return def_offset
+ }
+}
+
+const parse_HHMMSS_to_seconds = function(str) {
+  const parts    = str.split(':')
+  let seconds    = 0
+  let multiplier = 1
+
+  while (parts.length > 0) {
+    seconds    += multiplier * parseInt(parts.pop(), 10)
+    multiplier *= 60
+  }
+
+  return seconds
+}
+
 // returns: {
+//   meta_data:     {is_vod, seg_duration_ms},
 //   embedded_urls: [{line_index, url_indices, url_type, original_match_url, resolved_match_url, redirected_url, unencoded_url, encoded_url, referer_url}],
 //   prefetch_urls: [],
 //   modified_m3u8: ''
 // }
-const parse_manifest = function(m3u8_content, m3u8_url, referer_url, hooks, debug, vod_start_at_ms, redirected_base_url, should_prefetch_url) {
+const parse_manifest = function(m3u8_content, m3u8_url, referer_url, hooks, cache_segments, debug, vod_start_at_ms, redirected_base_url, should_prefetch_url) {
   const m3u8_lines = m3u8_content.split(regexs.m3u8_line_separator)
   m3u8_content = null
 
-  const embedded_urls = extract_embedded_urls(m3u8_lines, m3u8_url, referer_url)
+  const meta_data     = {}
+  const embedded_urls = extract_embedded_urls(m3u8_lines, m3u8_url, referer_url, (cache_segments ? meta_data : null))
   const prefetch_urls = []
 
   if (embedded_urls && Array.isArray(embedded_urls) && embedded_urls.length) {
@@ -74,13 +137,14 @@ const parse_manifest = function(m3u8_content, m3u8_url, referer_url, hooks, debu
   }
 
   return {
+    meta_data,
     embedded_urls,
     prefetch_urls,
     modified_m3u8: m3u8_lines.filter(line => !!line).join("\n")
   }
 }
 
-const extract_embedded_urls = function(m3u8_lines, m3u8_url, referer_url) {
+const extract_embedded_urls = function(m3u8_lines, m3u8_url, referer_url, meta_data) {
   const embedded_urls = []
 
   let m3u8_line, has_next_m3u8_line, next_m3u8_line, matches, matching_landmark, matching_url
@@ -97,6 +161,9 @@ const extract_embedded_urls = function(m3u8_lines, m3u8_url, referer_url) {
     matching_url = matches
       ? matches[1]
       : null
+
+    if (meta_data !== null)
+      extract_meta_data(meta_data, m3u8_line, matching_landmark)
 
     for (let url_type in url_location_landmarks) {
       if (matching_url && (url_location_landmarks[url_type]['same_line'].indexOf(matching_landmark) >= 0)) {
@@ -135,6 +202,20 @@ const extract_embedded_urls = function(m3u8_lines, m3u8_url, referer_url) {
   }
 
   return embedded_urls
+}
+
+const extract_meta_data = function(meta_data, m3u8_line, matching_landmark) {
+  for (let meta_data_key in meta_data_location_landmarks) {
+    if (meta_data_location_landmarks[meta_data_key]['same_line'].indexOf(matching_landmark) >= 0) {
+      const func = meta_data_location_landmarks[meta_data_key]['resolve_value'][matching_landmark]
+      if (typeof func === 'function') {
+        const meta_data_value = func(m3u8_line, matching_landmark)
+        if ((meta_data_value !== undefined) && (meta_data_value !== null)) {
+          meta_data[meta_data_key] = meta_data_value
+        }
+      }
+    }
+  }
 }
 
 const redirect_embedded_url = function(embedded_url, hooks, m3u8_url, debug) {
@@ -252,61 +333,6 @@ const modify_m3u8_line = function(embedded_url, m3u8_lines) {
   }
 }
 
-const get_seg_duration_ms = function(m3u8_content) {
-  try {
-    const matches  = regexs.ts_duration.exec(m3u8_content)
-
-    if ((matches == null) || !Array.isArray(matches) || (matches.length < 2))
-      throw ''
-
-    let duration
-    duration = matches[1]
-    duration = parseInt(duration, 10)
-    duration = duration * 1000  // convert seconds to ms
-
-    return duration
-  }
-  catch(e) {
-    const def_duration = 10000  // 10 seconds in ms
-
-    return def_duration
-  }
-}
-
-const parse_HHMMSS_to_seconds = function(str) {
-  const parts    = str.split(':')
-  let seconds    = 0
-  let multiplier = 1
-
-  while (parts.length > 0) {
-    seconds    += multiplier * parseInt(parts.pop(), 10)
-    multiplier *= 60
-  }
-
-  return seconds
-}
-
-const get_vod_start_at_ms = function(m3u8_url) {
- try {
-   const matches  = regexs.vod_start_at.exec(m3u8_url)
-
-   if ((matches == null) || !Array.isArray(matches) || (matches.length < 2))
-     throw ''
-
-   let offset
-   offset = matches[1]
-   offset = parse_HHMMSS_to_seconds(offset)
-   offset = offset * 1000  // convert seconds to ms
-
-   return offset
- }
- catch(e) {
-   const def_offset = null
-
-   return def_offset
- }
-}
-
 const modify_m3u8_content = function(params, segment_cache, m3u8_content, m3u8_url, referer_url, redirected_base_url) {
   const {hooks, cache_segments, max_segments, debug_level} = params
 
@@ -327,19 +353,11 @@ const modify_m3u8_content = function(params, segment_cache, m3u8_content, m3u8_u
     debug(4, 'proxied response (original m3u8):', `\n${debug_divider}\n${m3u8_content}\n${debug_divider}`)
   }
 
-  // only used with prefetch
-  const seg_duration_ms = (cache_segments)
-    ? get_seg_duration_ms(m3u8_content)
-    : null
+  let is_vod, seg_duration_ms, prefetch_urls
 
   // only used with prefetch
   const vod_start_at_ms = (cache_segments)
     ? get_vod_start_at_ms(m3u8_url)
-    : null
-
-  // only used with prefetch
-  const is_vod = (cache_segments)
-    ? ((typeof vod_start_at_ms === 'number') || (!has_cache(m3u8_url) && regexs.vod.test(m3u8_content)))
     : null
 
   // only used with prefetch
@@ -372,11 +390,16 @@ const modify_m3u8_content = function(params, segment_cache, m3u8_content, m3u8_u
       }
     : null
 
-  let prefetch_urls
   {
-    const parsed_manifest = parse_manifest(m3u8_content, m3u8_url, referer_url, hooks, debug, vod_start_at_ms, redirected_base_url, should_prefetch_url)
-    prefetch_urls = parsed_manifest.prefetch_urls
-    m3u8_content  = parsed_manifest.modified_m3u8
+    const parsed_manifest = parse_manifest(m3u8_content, m3u8_url, referer_url, hooks, cache_segments, debug, vod_start_at_ms, redirected_base_url, should_prefetch_url)
+    is_vod          = !!parsed_manifest.meta_data.is_vod                  // default: false => hls live stream
+    seg_duration_ms = parsed_manifest.meta_data.seg_duration_ms || 10000  // default: 10 seconds in ms
+    prefetch_urls   = parsed_manifest.prefetch_urls
+    m3u8_content    = parsed_manifest.modified_m3u8
+
+    if (debug_level >= 4) {
+      debug(4, 'parsed manifest:', `\n${debug_divider}\n${JSON.stringify(parsed_manifest, null, 2)}\n${debug_divider}`)
+    }
   }
 
   if (prefetch_urls.length) {
