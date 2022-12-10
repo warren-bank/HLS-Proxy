@@ -11,6 +11,7 @@ manifest URLs:
 
 segment URLs:
 =============
+#EXT-X-MAP: ... URI="${URL}"
 #EXTINF: ...\n${URL}
 
 encryption key URLs:
@@ -37,6 +38,7 @@ manifest URLs:
 
 segment URLs:
 =============
+#EXT-X-MAP: ... URI="${URL}"
 #EXT-X-PART: ... URI="${URL}"
 #EXT-X-PRELOAD-HINT: ... URI="${URL}"
 #EXTINF: ...\n${URL}

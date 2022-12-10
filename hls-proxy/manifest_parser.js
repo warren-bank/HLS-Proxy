@@ -23,6 +23,7 @@ const url_location_landmarks = {
   },
   ts: {
     same_line: [
+      '#EXT-X-MAP:',
       '#EXT-X-PART:',
       '#EXT-X-PRELOAD-HINT:'
     ],
