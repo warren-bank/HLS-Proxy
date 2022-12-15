@@ -1,7 +1,7 @@
 const parse_url = require('@warren-bank/url').parse
 
 const regexs = {
-  req_url: new RegExp('^(.*?)/([a-zA-Z0-9\\+/=]+)(?:[\\._]([^/\\?#]*))?(?:[\\?#].*)?$'),
+  req_url: new RegExp('^(.*?)/([a-zA-Z0-9\\+/=%]+)(?:[\\._]([^/\\?#]*))?(?:[\\?#].*)?$'),
   origin:  new RegExp('^(https?://[^/]+)(?:/.*)?$', 'i')
 }
 
@@ -30,7 +30,7 @@ const parse_req_url = function(params, req) {
 
     let url, url_lc, index
 
-    url    = base64_decode( matches[2] ).trim()
+    url    = base64_decode( decodeURIComponent( matches[2] ) ).trim()
     url_lc = url.toLowerCase()
     index  = url_lc.indexOf('http')
 

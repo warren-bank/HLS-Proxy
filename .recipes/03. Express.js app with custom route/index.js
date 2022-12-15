@@ -17,7 +17,16 @@ const middleware = require('../../hls-proxy/proxy')({
   acl_whitelist:  null
 })
 
-app.get('/proxy/*', middleware.request)
+// =================
+// hacky workaround:
+// =================
+//   Append a character to the end of the custom route that isn't included in the set of characters encoded by base64 (ex: '_').
+//   This will prevent the route from mistakenly being included in the base64 encoded URL.
+//   Unfortunately, the version of base64 encoding used by Javascript includes the '/' character.
+// =================
+//   See: https://en.wikipedia.org/wiki/Base64#Variants_summary_table
+// =================
+app.get('/proxy_/*', middleware.request)
 
 app.listen(port, function () {
   console.log(`Express.js HTTP server is listening on port: ${port}`)
