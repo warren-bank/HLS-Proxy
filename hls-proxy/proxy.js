@@ -3,7 +3,7 @@ const parser  = require('./manifest_parser')
 const utils   = require('./utils')
 
 const regexs = {
-  wrap: new RegExp('^(.*)/([^\\._/\\?#]+)(?:[\\._][^/\\?#]*)?(?:[\\?#].*)?$', 'i'),
+  wrap: new RegExp('^(.*?)/([a-zA-Z0-9\\+/=%]+)(?:[\\._][^/\\?#]*)?(?:[\\?#].*)?$'),
   m3u8: new RegExp('\\.m3u8(?:[\\?#]|$)', 'i')
 }
 
@@ -48,7 +48,7 @@ const get_middleware = function(params) {
 
       let url, url_lc, index
 
-      url    = utils.base64_decode( req.url.replace(regexs.wrap, '$2') ).trim()
+      url    = utils.base64_decode( decodeURIComponent( req.url.replace(regexs.wrap, '$2') ) ).trim()
       url_lc = url.toLowerCase()
 
       index  = url_lc.indexOf('http')
