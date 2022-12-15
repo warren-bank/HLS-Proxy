@@ -25,6 +25,8 @@ const proxy = function({server, host, is_secure, req_headers, req_options, hooks
     if (append_LF) args.push("\n")
 
     if (debug_level >= verbosity) {
+      args = args.map(arg => (typeof arg === 'string') ? arg : JSON.stringify(arg, null, 2))
+
       console.log.apply(console.log, args)
     }
   }
