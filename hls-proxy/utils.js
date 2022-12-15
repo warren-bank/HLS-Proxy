@@ -79,7 +79,7 @@ const add_CORS_headers = function(res) {
 }
 
 const debug = function() {
-  const args      = [...arguments]
+  let args        = [...arguments]
   const params    = args.shift()
   const verbosity = args.shift()
   const append_LF = true
@@ -89,6 +89,8 @@ const debug = function() {
   if (append_LF) args.push("\n")
 
   if (debug_level >= verbosity) {
+    args = args.map(arg => (typeof arg === 'string') ? arg : JSON.stringify(arg, null, 2))
+
     console.log.apply(console.log, args)
   }
 }
