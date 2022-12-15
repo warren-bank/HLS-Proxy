@@ -1,7 +1,7 @@
 const parse_url = require('@warren-bank/url').parse
 
 const regexs = {
-  req_url: new RegExp('^(.*)/([^\\._/\\?#]+)(?:[\\._]([^/\\?#]*))?(?:[\\?#].*)?$', 'i'),
+  req_url: new RegExp('^(.*?)/([a-zA-Z0-9\\+/=]+)(?:[\\._]([^/\\?#]*))?(?:[\\?#].*)?$'),
   origin:  new RegExp('^(https?://[^/]+)(?:/.*)?$', 'i')
 }
 

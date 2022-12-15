@@ -286,7 +286,7 @@ const finalize_embedded_url = function(embedded_url, vod_start_at_ms, debug) {
     embedded_url.unencoded_url = ''
   }
   else {
-    const url = embedded_url.redirected_url || embedded_url.resolved_match_url
+    let url = embedded_url.redirected_url || embedded_url.resolved_match_url
 
     if (embedded_url.url_type)
       debug(3, 'url type:', embedded_url.url_type)
