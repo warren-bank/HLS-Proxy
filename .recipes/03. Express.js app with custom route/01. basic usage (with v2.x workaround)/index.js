@@ -3,7 +3,7 @@ const app = express()
 
 const port = 8080
 
-const middleware = require('../../hls-proxy/proxy')({
+const middleware = require('../../../hls-proxy/proxy')({
   is_secure:      false,
   host:           null,
   req_headers:    null,

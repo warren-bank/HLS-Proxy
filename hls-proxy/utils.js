@@ -1,4 +1,5 @@
 const parse_url = require('@warren-bank/url').parse
+const expressjs = require('./expressjs_utils')
 
 const regexs = {
   req_url: new RegExp('^(.*?)/([a-zA-Z0-9\\+/=%]+)(?:[\\._]([^/\\?#]*))?(?:[\\?#].*)?$'),
@@ -20,10 +21,10 @@ const parse_req_url = function(params, req) {
 
   const result = {redirected_base_url: '', url_type: '', url: '', referer_url: ''}
 
-  const matches = regexs.req_url.exec(req.url)
+  const matches = regexs.req_url.exec( expressjs.get_proxy_req_url(req) )
 
   if (matches) {
-    result.redirected_base_url = `${ is_secure ? 'https' : 'http' }://${host || req.headers.host}${matches[1] || ''}`
+    result.redirected_base_url = `${ is_secure ? 'https' : 'http' }://${host || req.headers.host}${expressjs.get_base_req_url(req) || matches[1] || ''}`
 
     if (matches[3])
       result.url_type = matches[3].toLowerCase().trim()
