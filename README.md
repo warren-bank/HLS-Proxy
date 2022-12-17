@@ -600,7 +600,8 @@ curl --silent --insecure "$URL"
     * internal `proxy` module exports an Object containing event listeners to process requests that can be either:
       - added to an instance of [`http.Server`](https://nodejs.org/api/http.html#class-httpserver)
       - added to an [`Express.js`](https://github.com/expressjs/express) application as middleware to handle a custom route
-        * important limitation: since `/` is a valid character in a base64 encoded URL, the path for a custom route needs to end with a character that is not allowed in base64 encoding (ex: `'/proxy_/*'`)
+        * important requirement: the path for a custom route needs to include exactly one unnamed [parameter](https://expressjs.com/en/guide/routing.html#route-parameters) that matches the base64 encoded URL and (optionally) a file extension (ex: `'/proxy/*'`)
+        * the use of nested routers is supported
   - system requirements:
     * Node.js v16.0.0 and higher
       - required features: [`Proxy` constructor](https://node.green/#ES2015-built-ins-Proxy-constructor-requires-new), [`Proxy` 'apply' handler](https://node.green/#ES2015-built-ins-Proxy--apply--handler), [`Reflect.apply`](https://node.green/#ES2015-built-ins-Reflect-Reflect-apply), [`RegExp` 'd' flag](https://node.green/#ES2022-features-RegExp-Match-Indices---hasIndices-----d--flag-)
