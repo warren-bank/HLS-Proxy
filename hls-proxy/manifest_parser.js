@@ -16,9 +16,6 @@ const url_location_landmarks = {
       '#EXT-X-RENDITION-REPORT:',
       '#EXT-X-DATERANGE:',
       '#EXT-X-CONTENT-STEERING:'
-    ],
-    next_line: [
-      '#EXT-X-STREAM-INF:'
     ]
   },
   ts: {
@@ -26,26 +23,20 @@ const url_location_landmarks = {
       '#EXT-X-MAP:',
       '#EXT-X-PART:',
       '#EXT-X-PRELOAD-HINT:'
-    ],
-    next_line: [
-      '#EXTINF:'
     ]
   },
   json: {
     same_line: [
       '#EXT-X-SESSION-DATA:'
-    ],
-    next_line: []
+    ]
   },
   key: {
     same_line: [
       '#EXT-X-KEY:'
-    ],
-    next_line: []
+    ]
   },
   other: {
-    same_line: [],
-    next_line: []
+    same_line: []
   }
 }
 
@@ -148,62 +139,81 @@ const parse_manifest = function(m3u8_content, m3u8_url, referer_url, hooks, cach
 const extract_embedded_urls = function(m3u8_lines, m3u8_url, referer_url, meta_data) {
   const embedded_urls = []
 
-  let m3u8_line, has_next_m3u8_line, next_m3u8_line, matches, matching_landmark, matching_url
+  // one of: ['master','media']
+  // determined by the detection of either: ['#EXT-X-STREAM-INF','#EXTINF'], respectively
+  // until the type is determined, URI lines are ignored (as per the HLS spec)
+  let manifest_type = null
+
+  let m3u8_line, matches, matching_landmark, matching_url
 
   for (let i=0; i < m3u8_lines.length; i++) {
-    m3u8_line          = m3u8_lines[i]
-    has_next_m3u8_line = ((i+1) < m3u8_lines.length)
+    m3u8_line = m3u8_lines[i]
 
-    matches = regexs.m3u8_line_landmark.exec(m3u8_line)
-    if (!matches) continue
-    matching_landmark = matches[1]
+    if (is_m3u8_line_a_blank(m3u8_line) || is_m3u8_line_a_comment(m3u8_line))
+      continue
 
-    matches = regexs.m3u8_line_url.exec(m3u8_line)
-    matching_url = matches
-      ? matches[1]
-      : null
+    if (is_m3u8_line_a_tag(m3u8_line)) {
+      matches = regexs.m3u8_line_landmark.exec(m3u8_line)
+      if (!matches) continue
+      matching_landmark = matches[1]
 
-    if (meta_data !== null)
-      extract_meta_data(meta_data, m3u8_line, matching_landmark)
-
-    for (let url_type in url_location_landmarks) {
-      if (matching_url && (url_location_landmarks[url_type]['same_line'].indexOf(matching_landmark) >= 0)) {
-        embedded_urls.push({
-          line_index:         i,
-          url_indices:        matches.indices[1],
-          url_type:           url_type,
-          original_match_url: matching_url,
-          resolved_match_url: (new URL(matching_url, m3u8_url)).href,
-          redirected_url:     null,
-          referer_url:        referer_url,
-          encoded_url:        null
-        })
-        break
+      if (manifest_type === null) {
+        if (matching_landmark === '#EXT-X-STREAM-INF:')
+          manifest_type = 'master'
+        else if (matching_landmark === '#EXTINF:')
+          manifest_type = 'media'
       }
-      if (has_next_m3u8_line && (url_location_landmarks[url_type]['next_line'].indexOf(matching_landmark) >= 0)) {
-        next_m3u8_line = m3u8_lines[i+1].trim()
 
-        if (next_m3u8_line && (next_m3u8_line[0] !== '#')) {
-          i++
+      if (meta_data !== null)
+        extract_meta_data(meta_data, m3u8_line, matching_landmark)
 
+      matches = regexs.m3u8_line_url.exec(m3u8_line)
+      if (!matches) continue
+      matching_url = matches[1]
+
+      for (let url_type in url_location_landmarks) {
+        if (url_location_landmarks[url_type]['same_line'].indexOf(matching_landmark) >= 0) {
           embedded_urls.push({
             line_index:         i,
-            url_indices:        null,
+            url_indices:        matches.indices[1],
             url_type:           url_type,
-            original_match_url: next_m3u8_line,
-            resolved_match_url: (new URL(next_m3u8_line, m3u8_url)).href,
+            original_match_url: matching_url,
+            resolved_match_url: (new URL(matching_url, m3u8_url)).href,
             redirected_url:     null,
             referer_url:        referer_url,
             encoded_url:        null
           })
+          break
         }
-        break
       }
+    }
+    else {
+      // line is a URI
+      if (manifest_type === null) continue
+
+      const url_type = (manifest_type === 'master') ? 'm3u8' : 'ts'
+
+      embedded_urls.push({
+        line_index:         i,
+        url_indices:        null,
+        url_type:           url_type,
+        original_match_url: m3u8_line,
+        resolved_match_url: (new URL(m3u8_line, m3u8_url)).href,
+        redirected_url:     null,
+        referer_url:        referer_url,
+        encoded_url:        null
+      })
     }
   }
 
   return embedded_urls
 }
+
+const is_m3u8_line_a_blank = (line) => (!line || !line.trim())
+
+const is_m3u8_line_a_comment = (line) => ((line.indexOf('#') === 0) && !is_m3u8_line_a_tag(line))
+
+const is_m3u8_line_a_tag = (line) => (line.indexOf('#EXT') === 0)
 
 const extract_meta_data = function(meta_data, m3u8_line, matching_landmark) {
   for (let meta_data_key in meta_data_location_landmarks) {

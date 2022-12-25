@@ -1,0 +1,103 @@
+--------------------------------------------------------------------------------
+
+issue:
+======
+https://github.com/warren-bank/HLS-Proxy/issues/25
+
+summary:
+========
+
+* previously:
+    ./01. location of embedded URLs.txt
+  it was assumed that:
+  - the URL for a child manifest immediately follows a line containing the tag:
+      #EXT-X-STREAM-INF:
+  - the URL for a media segment immediately follows a line containing the tag:
+      #EXTINF:
+
+* the previous assumptions govern how the manifest parser extracts URLs
+  in HLS Proxy, versions:
+  - v3.0.0 through v3.2.4 (the most recent release)
+
+* this user has observed a manifest that violate these assumptions
+  - the URL for a media segment does not immediately follow the given tag
+  - there are one (or more) unrelated tags in-between the given tag and the URL
+  - ex:
+      #EXTINF:6.0000,
+      #EXT-X-PROGRAM-DATE-TIME:2022-12-22T05:58:45.714499+00:00
+      https://some.site.com/abc/xyz/1671688725.ts
+
+--------------------------------------------------------------------------------
+
+referring back to the spec:
+===========================
+
+https://datatracker.ietf.org/doc/html/rfc8216#section-4.1
+
+* Each line is a URI, is blank, or starts with the character '#'.
+  Blank lines are ignored.
+  Whitespace MUST NOT be present, except for elements in which it is explicitly specified.
+
+* Lines that start with the character '#' are either comments or tags.
+  Tags begin with #EXT. They are case sensitive.
+  All other lines that begin with '#' are comments and SHOULD be ignored.
+
+* A URI line identifies a Media Segment or a Playlist file.
+  Each Media Segment is specified by a URI and the tags that apply to it.
+
+* A Playlist is a Media Playlist if all URI lines in the Playlist identify Media Segments.
+  A Playlist is a Master Playlist if all URI lines in the Playlist identify Media Playlists.
+  A Playlist MUST be either a Media Playlist or a Master Playlist; all other Playlists are invalid.
+
+https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.4.2
+
+* The URI line that follows the EXT-X-STREAM-INF tag specifies a Media Playlist.
+  Its format is:
+    #EXT-X-STREAM-INF:<attribute-list>
+    <URI>
+
+https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.2.1
+
+* The EXTINF tag specifies the duration of a Media Segment.
+  It applies only to the next Media Segment.
+  This tag is REQUIRED for each Media Segment.
+
+--------------------------------------------------------------------------------
+
+observations:
+=============
+
+* the spec does NOT require that the URI line for a Media Segment
+  "immediately" follow the EXTINF tag
+
+--------------------------------------------------------------------------------
+
+methodology for next iteration of v3.x manifest parser:
+=======================================================
+
+* the following are features of the manifest structure,
+  which are required by the spec:
+  - #EXT-X-STREAM-INF tag:
+    * indicates that the manifest is a Master Playlist
+    * must occur before any URI lines
+    * all URI lines in manifest identify Media Playlists
+      - ie: child manifests (m3u8)
+  - #EXTINF tag:
+    * indicates that the manifest is a Media Playlist
+    * must occur before any URI lines
+    * all URI lines in manifest identify Media Segments
+      - ie: media segments (ts)
+
+* methodology for parser:
+  - determine type of playlist by looking for the first occurance
+    in a manifest of either tag: #EXT-X-STREAM-INF or #EXTINF
+  - once the type of playlist is determined,
+    all URI lines in the manifest must be of a single type
+   * #EXT-X-STREAM-INF
+     - determines: Master Playlist
+     - URI lines:  child manifests (m3u8)
+   * #EXTINF
+     - determines: Media Playlist
+     - URI lines:  media segments (ts)
+
+--------------------------------------------------------------------------------
