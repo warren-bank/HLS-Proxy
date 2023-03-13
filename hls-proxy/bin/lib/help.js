@@ -6,7 +6,7 @@ options:
 --help
 --version
 --tls
---host <ip_address>
+--host <host>
 --port <number>
 --req-headers <filepath>
 --origin <header>
@@ -26,6 +26,7 @@ options:
 --cache-key <number>
 -v <number>
 --acl-whitelist <ip_address_list>
+--http-proxy <http[s]://[user:pass@]hostname:port>
 --tls-cert <filepath>
 --tls-key <filepath>
 --tls-pass <filepath>

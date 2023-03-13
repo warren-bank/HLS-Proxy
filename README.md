@@ -110,7 +110,7 @@ options:
 --help
 --version
 --tls
---host <ip_address>
+--host <host>
 --port <number>
 --req-headers <filepath>
 --origin <header>
@@ -130,6 +130,7 @@ options:
 --cache-key <number>
 -v <number>
 --acl-whitelist <ip_address_list>
+--http-proxy <http[s]://[user:pass@]hostname:port>
 --tls-cert <filepath>
 --tls-key <filepath>
 --tls-pass <filepath>
@@ -342,6 +343,9 @@ options:
     * show the content of .m3u8 files (both before and after URLs are modified)
 * _--acl-whitelist_ restricts proxy server access to clients at IP addresses in whitelist
   * ex: `"192.168.1.100,192.168.1.101,192.168.1.102"`
+* --http-proxy enables all outbound HTTP and HTTPS requests from HLS-Proxy to be tunnelled through an additional external web proxy server
+  * SOCKS proxies are not supported
+  * ex: `http://myusername:mypassword@myproxy.example.com:1234`
 * _--tls-cert_ is the filepath to a security certificate to use for HTTPS
 * _--tls-key_ is the filepath to the private key for the _--tls-cert_ security certificate
 * _--tls-pass_ is the filepath to a text file containing the security passphrase for the _--tls-key_ private key

@@ -4,6 +4,8 @@ node_modules/
 .recipes/.lib/**/temp2.txt
 .recipes/**/auth/hooks.js
 .recipes/**/auth/cookies.txt
+.recipes/**/private.bat
+.recipes/**/private.log
 .recipes/**/node_modules/
 .related/.recipes/**/auth/cookies.txt
 .related/.recipes/**/*.mp4

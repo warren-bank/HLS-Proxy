@@ -97,7 +97,7 @@ const debug = function() {
 }
 
 const get_request_options = function(params, url, is_m3u8, referer_url) {
-  const {req_headers, req_options, hooks} = params
+  const {req_headers, req_options, hooks, http_proxy} = params
 
   const additional_req_options = (hooks && (hooks instanceof Object) && hooks.add_request_options && (typeof hooks.add_request_options === 'function'))
     ? hooks.add_request_options(url, is_m3u8)
@@ -107,7 +107,7 @@ const get_request_options = function(params, url, is_m3u8, referer_url) {
     ? hooks.add_request_headers(url, is_m3u8)
     : null
 
-  if (!req_options && !additional_req_options && !req_headers && !additional_req_headers && !referer_url) return url
+  if (!req_options && !http_proxy && !additional_req_options && !req_headers && !additional_req_headers && !referer_url) return url
 
   const request_options = Object.assign(
     {},
@@ -124,6 +124,13 @@ const get_request_options = function(params, url, is_m3u8, referer_url) {
     (additional_req_headers  || {}),
     (referer_url ? {"referer": referer_url, "origin": referer_url.replace(regexs.origin, '$1')} : {})
   )
+
+  // normalize
+  if (request_options.protocol)
+    request_options.protocol = request_options.protocol.toLowerCase()
+
+  if (!request_options.agent && http_proxy && request_options.protocol && http_proxy[request_options.protocol])
+    request_options.agent = http_proxy[request_options.protocol]
 
   return request_options
 }

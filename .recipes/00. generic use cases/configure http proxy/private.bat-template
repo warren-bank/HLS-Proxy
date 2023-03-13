@@ -1,0 +1,3 @@
+@echo off
+
+set http_proxy="http://myusername:mypassword@myproxy.example.com:1234"

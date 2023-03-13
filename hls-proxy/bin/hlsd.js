@@ -42,7 +42,8 @@ const middleware = require('../proxy')({
   cache_timeout:  argv_vals["--cache-timeout"],
   cache_key:      argv_vals["--cache-key"],
   debug_level:    argv_vals["-v"],
-  acl_whitelist:  argv_vals["--acl-whitelist"]
+  acl_whitelist:  argv_vals["--acl-whitelist"],
+  http_proxy:     argv_vals["--http-proxy"]
 })
 
 if (middleware.connection)

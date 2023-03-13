@@ -1,5 +1,7 @@
 const process_argv = require('@warren-bank/node-process-argv')
 
+const {HttpProxyAgent, HttpsProxyAgent} = require('hpagent')
+
 const argv_flags = {
   "--help":                                 {bool: true},
   "--version":                              {bool: true},
@@ -30,6 +32,7 @@ const argv_flags = {
 
   "-v":                                     {num:  "int"},
   "--acl-whitelist":                        {},
+  "--http-proxy":                           {},
 
   "--tls-cert":                             {file: "path-exists"},
   "--tls-key":                              {file: "path-exists"},
@@ -37,7 +40,8 @@ const argv_flags = {
 }
 
 const argv_flag_aliases = {
-  "--help":                                 ["-h"]
+  "--help":                                 ["-h"],
+  "--http-proxy":                           ["--https-proxy", "--proxy"]
 }
 
 let argv_vals = {}
@@ -159,5 +163,20 @@ if (typeof argv_vals["--cache-key"] !== 'number')
 
 if (typeof argv_vals["-v"] !== 'number')
   argv_vals["-v"] = 0
+
+if (argv_vals["--http-proxy"]) {
+  const proxy_options = {
+    keepAlive:      true,
+    keepAliveMsecs: 1000,
+    maxSockets:     256,
+    maxFreeSockets: 256,
+    proxy:          argv_vals["--http-proxy"]
+  }
+
+  argv_vals["--http-proxy"] = {
+    "http:":  new HttpProxyAgent( proxy_options),
+    "https:": new HttpsProxyAgent(proxy_options)
+  }
+}
 
 module.exports = argv_vals
