@@ -121,10 +121,12 @@ const parse_manifest = function(m3u8_content, m3u8_url, referer_url, hooks, cach
   if (embedded_urls && Array.isArray(embedded_urls) && embedded_urls.length) {
     embedded_urls.forEach(embedded_url => {
       redirect_embedded_url(embedded_url, hooks, m3u8_url, debug)
-      finalize_embedded_url(embedded_url, vod_start_at_ms, debug)
-      encode_embedded_url(embedded_url, redirected_base_url, debug)
-      get_prefetch_url(embedded_url, should_prefetch_url, prefetch_urls)
-      modify_m3u8_line(embedded_url, m3u8_lines)
+      if (validate_embedded_url(embedded_url)) {
+        finalize_embedded_url(embedded_url, vod_start_at_ms, debug)
+        encode_embedded_url(embedded_url, redirected_base_url, debug)
+        get_prefetch_url(embedded_url, should_prefetch_url, prefetch_urls)
+        modify_m3u8_line(embedded_url, m3u8_lines)
+      }
     })
   }
 
@@ -288,6 +290,21 @@ const redirect_embedded_url = function(embedded_url, hooks, m3u8_url, debug) {
 
       debug(3, 'redirecting (post-hook):', 'URL filtered, removed from manifest')
     }
+  }
+}
+
+const validate_embedded_url = function(embedded_url) {
+  if (embedded_url.redirected_url === '') {
+    return true
+  }
+  else {
+    const url = new URL(
+      embedded_url.redirected_url || embedded_url.resolved_match_url
+    )
+
+    const supported_protocols = ['http:','https:']
+
+    return (url.protocol && (supported_protocols.indexOf(url.protocol.toLowerCase()) >= 0))
   }
 }
 
