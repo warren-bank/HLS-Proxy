@@ -128,6 +128,8 @@ options:
 --max-segments <number>
 --cache-timeout <number>
 --cache-key <number>
+--cache-storage <adapter>
+--cache-storage-fs-dirpath <dirpath>
 -v <number>
 --acl-whitelist <ip_address_list>
 --http-proxy <http[s]://[user:pass@]hostname:port>
@@ -328,6 +330,15 @@ options:
     * full filename of .ts file
   * `2`:
     * full URL of .ts file
+* _--cache-storage_ selects a storage adapter that is used to hold the cache of prefetched video segments
+  * this option is only meaningful when _--prefetch_ is enabled
+  * `memory` (default):
+    * uses RAM
+  * `filesystem`:
+    * each video segment is written to a new file within a specified directory
+    * filenames are random and unique
+* _--cache-storage-fs-dirpath_ specifies the directory in which to save video segments when using a filesystem-based cache storage adapter
+  * this option is only meaningful when _--prefetch_ is enabled and _--cache-storage_ is `filesystem`
 * _-v_ sets logging verbosity level:
   * `-1`:
     * silent

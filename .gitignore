@@ -6,6 +6,7 @@ node_modules/
 .recipes/**/auth/cookies.txt
 .recipes/**/private.bat
 .recipes/**/private.log
+.recipes/**/cache_storage/
 .recipes/**/node_modules/
 .related/.recipes/**/auth/cookies.txt
 .related/.recipes/**/*.mp4

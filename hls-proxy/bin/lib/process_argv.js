@@ -29,6 +29,8 @@ const argv_flags = {
   "--max-segments":                         {num:  "int"},
   "--cache-timeout":                        {num:  "int"},
   "--cache-key":                            {num:  "int"},
+  "--cache-storage":                        {enum: ["memory", "filesystem"]},
+  "--cache-storage-fs-dirpath":             {file: "path-exists"},
 
   "-v":                                     {num:  "int"},
   "--acl-whitelist":                        {},

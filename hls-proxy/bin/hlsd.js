@@ -32,18 +32,20 @@ const server = (use_tls)
     })
 
 const middleware = require('../proxy')({
-  is_secure:      use_tls,
-  host:           normalize_host(argv_vals["--host"], argv_vals["--port"]),
-  req_headers:    argv_vals["--req-headers"],
-  req_options:    argv_vals["--req-options"],
-  hooks:          argv_vals["--hooks"],
-  cache_segments: argv_vals["--prefetch"],
-  max_segments:   argv_vals["--max-segments"],
-  cache_timeout:  argv_vals["--cache-timeout"],
-  cache_key:      argv_vals["--cache-key"],
-  debug_level:    argv_vals["-v"],
-  acl_whitelist:  argv_vals["--acl-whitelist"],
-  http_proxy:     argv_vals["--http-proxy"]
+  is_secure:                            use_tls,
+  host:                                 normalize_host(argv_vals["--host"], argv_vals["--port"]),
+  req_headers:                          argv_vals["--req-headers"],
+  req_options:                          argv_vals["--req-options"],
+  hooks:                                argv_vals["--hooks"],
+  cache_segments:                       argv_vals["--prefetch"],
+  max_segments:                         argv_vals["--max-segments"],
+  cache_timeout:                        argv_vals["--cache-timeout"],
+  cache_key:                            argv_vals["--cache-key"],
+  cache_storage:                        argv_vals["--cache-storage"],
+  cache_storage_fs_dirpath:             argv_vals["--cache-storage-fs-dirpath"],
+  debug_level:                          argv_vals["-v"],
+  acl_whitelist:                        argv_vals["--acl-whitelist"],
+  http_proxy:                           argv_vals["--http-proxy"]
 })
 
 if (middleware.connection)

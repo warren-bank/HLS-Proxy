@@ -24,6 +24,8 @@ options:
 --max-segments <number>
 --cache-timeout <number>
 --cache-key <number>
+--cache-storage <adapter>
+--cache-storage-fs-dirpath <dirpath>
 -v <number>
 --acl-whitelist <ip_address_list>
 --http-proxy <http[s]://[user:pass@]hostname:port>
