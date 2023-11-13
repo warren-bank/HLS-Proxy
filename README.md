@@ -147,11 +147,15 @@ options:
     * _--tls-pass_
   * the values assigned to these options enable the use of a self-signed security certificate that is included in both the git repo and npm package, within the directory:
     * [`./hls-proxy/servers/cert`](https://github.com/warren-bank/HLS-Proxy/tree/master/hls-proxy/servers/cert)
+  * when all of these option are properly specified:
+    * the `https:` protocol is used by all URLs in modified HLS manifests
 * _--host_ is an IP or hostname with an optional port number that can be resolved and is reachable by clients
   * ex: `192.168.0.100:8080`
   * used to modify URLs in .m3u8 files
   * when this option is specified without a port number:
     * the value of the _--port_ option is appended
+  * when this option is specified and the port number is `443`:
+    * the `https:` protocol is used by all URLs in modified HLS manifests
   * when this option is not specified:
     * the value of the ["Host"](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Host) HTTP request header is used
 * _--port_ is the port number that the server listens on
