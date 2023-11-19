@@ -32,6 +32,8 @@ options:
 --tls-cert <filepath>
 --tls-key <filepath>
 --tls-pass <filepath>
+--manifest-extension <ext>
+--segment-extension <ext>
 `
 
 module.exports = help

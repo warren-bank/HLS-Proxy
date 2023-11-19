@@ -17,7 +17,7 @@ const base64_decode = function(str) {
 }
 
 const parse_req_url = function(params, req) {
-  const {is_secure, host} = params
+  const {is_secure, host, manifest_extension, segment_extension} = params
 
   const result = {redirected_base_url: '', url_type: '', url: '', referer_url: ''}
 
@@ -26,8 +26,15 @@ const parse_req_url = function(params, req) {
   if (matches) {
     result.redirected_base_url = `${ (is_secure || (host && host.endsWith(':443'))) ? 'https' : 'http' }://${host || req.headers.host}${expressjs.get_base_req_url(req) || matches[1] || ''}`
 
-    if (matches[3])
+    if (matches[3]) {
       result.url_type = matches[3].toLowerCase().trim()
+
+      if (manifest_extension && (result.url_type === manifest_extension))
+        result.url_type = 'm3u8'
+
+      if (segment_extension && (result.url_type === segment_extension))
+        result.url_type = 'ts'
+    }
 
     let url, url_lc, index
 

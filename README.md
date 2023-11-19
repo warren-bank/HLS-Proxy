@@ -136,6 +136,8 @@ options:
 --tls-cert <filepath>
 --tls-key <filepath>
 --tls-pass <filepath>
+--manifest-extension <ext>
+--segment-extension <ext>
 ```
 
 #### Options:
@@ -365,6 +367,10 @@ options:
 * _--tls-key_ is the filepath to the private key for the _--tls-cert_ security certificate
 * _--tls-pass_ is the filepath to a text file containing the security passphrase for the _--tls-key_ private key
   * optional, not required when the _--tls-key_ private key was created without a security passphrase
+* _--manifest-extension_ is the file extension associated with HLS manifests
+  * default value: `m3u8`
+* _--segment-extension_ is the file extension associated with media segments
+  * default value: `ts`
 
 #### Examples:
 

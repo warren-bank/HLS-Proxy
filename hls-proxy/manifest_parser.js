@@ -110,7 +110,7 @@ const parse_HHMMSS_to_seconds = function(str) {
 //   prefetch_urls: [],
 //   modified_m3u8: ''
 // }
-const parse_manifest = function(m3u8_content, m3u8_url, referer_url, hooks, cache_segments, debug, vod_start_at_ms, redirected_base_url, should_prefetch_url) {
+const parse_manifest = function(m3u8_content, m3u8_url, referer_url, hooks, cache_segments, debug, vod_start_at_ms, redirected_base_url, should_prefetch_url, manifest_extension, segment_extension) {
   const m3u8_lines = m3u8_content.split(regexs.m3u8_line_separator)
   m3u8_content = null
 
@@ -123,7 +123,7 @@ const parse_manifest = function(m3u8_content, m3u8_url, referer_url, hooks, cach
       redirect_embedded_url(embedded_url, hooks, m3u8_url, debug)
       if (validate_embedded_url(embedded_url)) {
         finalize_embedded_url(embedded_url, vod_start_at_ms, debug)
-        encode_embedded_url(embedded_url, redirected_base_url, debug)
+        encode_embedded_url(embedded_url, redirected_base_url, debug, manifest_extension, segment_extension)
         get_prefetch_url(embedded_url, should_prefetch_url, prefetch_urls)
         modify_m3u8_line(embedded_url, m3u8_lines)
       }
@@ -330,13 +330,23 @@ const finalize_embedded_url = function(embedded_url, vod_start_at_ms, debug) {
   }
 }
 
-const encode_embedded_url = function(embedded_url, redirected_base_url, debug) {
-  embedded_url.encoded_url = (embedded_url.unencoded_url)
-    ? `${redirected_base_url}/${ utils.base64_encode(embedded_url.unencoded_url) }.${embedded_url.url_type || 'other'}`
-    : ''
+const encode_embedded_url = function(embedded_url, redirected_base_url, debug, manifest_extension, segment_extension) {
+  if (embedded_url.unencoded_url) {
+    let file_extension = embedded_url.url_type
+    if (file_extension) {
+      if (manifest_extension && (file_extension === 'm3u8'))
+        file_extension = manifest_extension
+      if (segment_extension && (file_extension === 'ts'))
+        file_extension = segment_extension
+    }
 
-  if (embedded_url.encoded_url)
+    embedded_url.encoded_url = `${redirected_base_url}/${ utils.base64_encode(embedded_url.unencoded_url) }.${file_extension || 'other'}`
+
     debug(3, 'redirecting (proxied):', embedded_url.encoded_url)
+  }
+  else {
+    embedded_url.encoded_url = ''
+  }
 }
 
 const get_prefetch_url = function(embedded_url, should_prefetch_url, prefetch_urls = []) {
@@ -362,7 +372,7 @@ const modify_m3u8_line = function(embedded_url, m3u8_lines) {
 }
 
 const modify_m3u8_content = function(params, segment_cache, m3u8_content, m3u8_url, referer_url, redirected_base_url) {
-  const {hooks, cache_segments, max_segments, debug_level} = params
+  const {hooks, cache_segments, max_segments, debug_level, manifest_extension, segment_extension} = params
 
   const {has_cache, get_time_since_last_access, is_expired, prefetch_segment} = segment_cache
 
@@ -419,7 +429,7 @@ const modify_m3u8_content = function(params, segment_cache, m3u8_content, m3u8_u
     : null
 
   {
-    const parsed_manifest = parse_manifest(m3u8_content, m3u8_url, referer_url, hooks, cache_segments, debug, vod_start_at_ms, redirected_base_url, should_prefetch_url)
+    const parsed_manifest = parse_manifest(m3u8_content, m3u8_url, referer_url, hooks, cache_segments, debug, vod_start_at_ms, redirected_base_url, should_prefetch_url, manifest_extension, segment_extension)
     is_vod          = !!parsed_manifest.meta_data.is_vod                  // default: false => hls live stream
     seg_duration_ms = parsed_manifest.meta_data.seg_duration_ms || 10000  // default: 10 seconds in ms
     prefetch_urls   = parsed_manifest.prefetch_urls

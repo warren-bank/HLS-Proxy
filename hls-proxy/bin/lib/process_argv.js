@@ -38,7 +38,10 @@ const argv_flags = {
 
   "--tls-cert":                             {file: "path-exists"},
   "--tls-key":                              {file: "path-exists"},
-  "--tls-pass":                             {file: "path-exists"}
+  "--tls-pass":                             {file: "path-exists"},
+
+  "--manifest-extension":                   {},
+  "--segment-extension":                    {}
 }
 
 const argv_flag_aliases = {
