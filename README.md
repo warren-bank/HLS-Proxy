@@ -231,6 +231,8 @@ options:
       * conditionally modify the content of .m3u8 files __before__ they are parsed to extract URLs
     * `"redirect": (url) => new_url`
       * conditionally redirect the URLs encountered in .m3u8 files __before__ they are modified to pass through the proxy
+    * `"rewrite": (url) => new_url`
+      * conditionally rewrite the URLs requested by clients __before__ they are proxied
     * `"prefetch": (url) => boolean`
       * conditionally decide whether to prefetch video segments on a per-URL basis
       * return value must be a strict boolean type (ie: `true` or `false`)

@@ -17,7 +17,7 @@ const base64_decode = function(str) {
 }
 
 const parse_req_url = function(params, req) {
-  const {is_secure, host, manifest_extension, segment_extension} = params
+  const {is_secure, host, manifest_extension, segment_extension, hooks} = params
 
   const result = {redirected_base_url: '', url_type: '', url: '', referer_url: ''}
 
@@ -38,7 +38,11 @@ const parse_req_url = function(params, req) {
 
     let url, url_lc, index
 
-    url    = base64_decode( decodeURIComponent( matches[2] ) ).trim()
+    url = base64_decode( decodeURIComponent( matches[2] ) ).trim()
+
+    if (hooks && (hooks instanceof Object) && hooks.rewrite && (typeof hooks.rewrite === 'function'))
+      url = hooks.rewrite(url)
+
     url_lc = url.toLowerCase()
     index  = url_lc.indexOf('http')
 
