@@ -38,11 +38,7 @@ const parse_req_url = function(params, req) {
 
     let url, url_lc, index
 
-    url = base64_decode( decodeURIComponent( matches[2] ) ).trim()
-
-    if (hooks && (hooks instanceof Object) && hooks.rewrite && (typeof hooks.rewrite === 'function'))
-      url = hooks.rewrite(url)
-
+    url    = base64_decode( decodeURIComponent( matches[2] ) ).trim()
     url_lc = url.toLowerCase()
     index  = url_lc.indexOf('http')
 
@@ -54,6 +50,10 @@ const parse_req_url = function(params, req) {
 
         url = url.substring(0, index).trim()
       }
+
+      if (hooks && (hooks instanceof Object) && hooks.rewrite && (typeof hooks.rewrite === 'function'))
+        url = hooks.rewrite(url)
+
       result.url = url
     }
   }
