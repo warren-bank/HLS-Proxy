@@ -13,6 +13,7 @@ const url_location_landmarks = {
     same_line: [
       '#EXT-X-MEDIA:',
       '#EXT-X-I-FRAME-STREAM-INF:',
+      '#EXT-X-IMAGE-STREAM-INF:',
       '#EXT-X-RENDITION-REPORT:',
       '#EXT-X-DATERANGE:',
       '#EXT-X-CONTENT-STEERING:'
