@@ -13,7 +13,8 @@
 * inject custom HTTP headers in all outbound proxied requests
 * prefetch video segments (.ts files)
 * use a hook function to conditionally decide which video segments to prefetch
-* use a hook function to conditionally redirect URLs in the playlist (before they're modified to pass through the proxy)
+* use a hook function to conditionally redirect URLs in the playlist (_before_ and/or _after_ they're modified to pass through the proxy)
+* use a hook function to conditionally rewrite URLs after they're received by the proxy
 
 #### Benefits:
 
@@ -231,6 +232,8 @@ options:
       * conditionally modify the content of .m3u8 files __before__ they are parsed to extract URLs
     * `"redirect": (url) => new_url`
       * conditionally redirect the URLs encountered in .m3u8 files __before__ they are modified to pass through the proxy
+    * `"redirect_final": (url) => new_url`
+      * conditionally redirect the URLs encountered in .m3u8 files __after__ they are modified to pass through the proxy
     * `"rewrite": (url) => new_url`
       * conditionally rewrite the URLs requested by clients __before__ they are proxied
     * `"prefetch": (url) => boolean`

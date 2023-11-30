@@ -123,7 +123,7 @@ const parse_manifest = function(m3u8_content, m3u8_url, referer_url, hooks, cach
       redirect_embedded_url(embedded_url, hooks, m3u8_url, debug)
       if (validate_embedded_url(embedded_url)) {
         finalize_embedded_url(embedded_url, vod_start_at_ms, debug)
-        encode_embedded_url(embedded_url, redirected_base_url, debug, manifest_extension, segment_extension)
+        encode_embedded_url(embedded_url, hooks, redirected_base_url, debug, manifest_extension, segment_extension)
         get_prefetch_url(embedded_url, should_prefetch_url, prefetch_urls)
         modify_m3u8_line(embedded_url, m3u8_lines)
       }
@@ -330,7 +330,7 @@ const finalize_embedded_url = function(embedded_url, vod_start_at_ms, debug) {
   }
 }
 
-const encode_embedded_url = function(embedded_url, redirected_base_url, debug, manifest_extension, segment_extension) {
+const encode_embedded_url = function(embedded_url, hooks, redirected_base_url, debug, manifest_extension, segment_extension) {
   if (embedded_url.unencoded_url) {
     let file_extension = embedded_url.url_type
     if (file_extension) {
@@ -343,6 +343,12 @@ const encode_embedded_url = function(embedded_url, redirected_base_url, debug, m
     embedded_url.encoded_url = `${redirected_base_url}/${ utils.base64_encode(embedded_url.unencoded_url) }.${file_extension || 'other'}`
 
     debug(3, 'redirecting (proxied):', embedded_url.encoded_url)
+
+    if (hooks && (hooks instanceof Object) && hooks.redirect_final && (typeof hooks.redirect_final === 'function')) {
+      embedded_url.encoded_url = hooks.redirect_final(embedded_url.encoded_url)
+
+      debug(3, 'redirecting (proxied, post-hook):', embedded_url.encoded_url)
+    }
   }
   else {
     embedded_url.encoded_url = ''
