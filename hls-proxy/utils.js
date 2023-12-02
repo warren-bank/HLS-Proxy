@@ -61,8 +61,21 @@ const parse_req_url = function(params, req) {
   return result
 }
 
-const get_content_type = function(url_type) {
+const get_content_type = function(data) {
   let content_type
+
+  if (!content_type && data && (typeof data === 'object') && data['content-type'])
+    content_type = data['content-type']
+
+  if (!content_type && data && (typeof data === 'string'))
+    content_type = get_content_type_from_url_type(data)
+
+  return content_type
+}
+
+const get_content_type_from_url_type = function(url_type) {
+  let content_type
+
   switch(url_type) {
     case 'm3u8':
       content_type = 'application/x-mpegurl'

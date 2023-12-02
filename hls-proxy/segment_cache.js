@@ -89,8 +89,9 @@ module.exports = function(params) {
       if (segment.has)
         cache_storage_adapter.remove(segment.state)
 
-      segment.has = false
-      segment.cb  = []
+      segment.has  = false
+      segment.cb   = []
+      segment.type = null
     }
 
     ts.splice(start, count)
@@ -140,7 +141,7 @@ module.exports = function(params) {
     let i, segment
 
     for (i=(ts.length - 1); i>=0; i--) {
-      segment = ts[i]  // {key, has, cb, state}
+      segment = ts[i]  // {key, has, cb, type, state}
       if (segment && (segment.key === key)) {
         index = i
         break
@@ -181,7 +182,7 @@ module.exports = function(params) {
 
       // placeholder to prevent multiple download requests
       index = ts.length
-      ts[index] = {key: get_privatekey_from_url(url), has: false, cb: [], state: {}}
+      ts[index] = {key: get_privatekey_from_url(url), has: false, cb: [], type: null, state: {}}
 
       let options = get_request_options(url, /* is_m3u8= */ false, referer_url)
       promise = request(options, '', {binary: true, stream: false, cookieJar: cookies.getCookieJar()})
@@ -197,11 +198,12 @@ module.exports = function(params) {
           touch_access(m3u8_url)
 
         const segment = ts[index]
-        segment.has = true
+        segment.has  = true
+        segment.type = utils.get_content_type(response.headers)
         cache_storage_adapter.set(segment.state, response)
         if (segment.cb.length) {
           segment.cb.forEach((cb) => {
-            cb(response)
+            cb(response, segment.type)
 
             debug(1, 'cache (callback complete):', debug_url)
           })
@@ -228,10 +230,12 @@ module.exports = function(params) {
   }
 
   const get_segment = async function(url, url_type) {
-    if (! should_prefetch_url(url, url_type)) return undefined
+    if (! should_prefetch_url(url, url_type))
+      return {segment: null, type: null}
 
     let debug_url = (debug_level >= 3) ? url : get_publickey_from_url(url)
     let segment   = find_segment(url)
+    let type      = null
 
     if (segment !== undefined) {
       const {m3u8_url, index} = segment
@@ -243,6 +247,7 @@ module.exports = function(params) {
       if (segment.has) {
         debug(1, 'cache (hit):', debug_url)
 
+        type    = segment.type
         segment = await cache_storage_adapter.get(segment.state)
 
         // cleanup: remove all previous segments
@@ -262,11 +267,13 @@ module.exports = function(params) {
     }
     else {
       debug(1, 'cache (miss):', debug_url)
+
+      segment = null
     }
-    return segment
+    return {segment, type}
   }
 
-  const add_listener = function(url, url_type, cb) {
+  const add_listener = async function(url, url_type, cb) {
     if (! should_prefetch_url(url, url_type)) return false
 
     let debug_url = (debug_level >= 3) ? url : get_publickey_from_url(url)
@@ -280,7 +287,10 @@ module.exports = function(params) {
       segment = ts[index]
 
       if (segment.has) {
-        cb(segment)
+        const type = segment.type
+        segment    = await cache_storage_adapter.get(segment.state)
+
+        cb(segment, type)
 
         debug(1, 'cache (callback complete):', debug_url)        
       }

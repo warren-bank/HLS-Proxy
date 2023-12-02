@@ -50,19 +50,22 @@ const get_middleware = function(params) {
 
     const is_m3u8 = (url_type === 'm3u8')
 
-    const send_cache_segment = function(segment) {
-      res.writeHead(200, { "Content-Type": utils.get_content_type(url_type) })
+    const send_cache_segment = function(segment, type) {
+      if (!type)
+        type = utils.get_content_type(url_type)
+
+      res.writeHead(200, {"Content-Type": type})
       res.end(segment)
     }
 
     if (cache_segments && !is_m3u8) {
-      let segment = await get_segment(url, url_type)  // Buffer (cached segment data), false (prefetch is pending: add callback), undefined (no prefetch is pending)
+      let {segment, type} = await get_segment(url, url_type)  // possible datatypes of segment value: Buffer (cached segment data), false (prefetch is pending: add callback), null (no prefetch is pending)
 
-      if (segment && segment.length) {                // Buffer (cached segment data)
-        send_cache_segment(segment)
+      if (segment && segment.length) {                        // Buffer (cached segment data)
+        send_cache_segment(segment, type)
         return
       }
-      else if (segment === false) {                   // false (prefetch is pending: add callback)
+      else if (segment === false) {                           // false (prefetch is pending: add callback)
         add_listener(url, url_type, send_cache_segment)
         return
       }
