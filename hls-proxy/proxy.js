@@ -54,7 +54,7 @@ const get_middleware = function(params) {
       if (!type)
         type = utils.get_content_type(url_type)
 
-      res.writeHead(200, {"Content-Type": type})
+      res.writeHead(200, {"content-type": type, "content-length": segment.length})
       res.end(segment)
     }
 
@@ -80,6 +80,17 @@ const get_middleware = function(params) {
       debug(2, 'proxied response:', {status_code: response.statusCode, headers: response.headers, redirects})
 
       if (!is_m3u8) {
+        if (response.headers) {
+          const headers = {}
+          for (let header of ['content-type', 'content-length']) {
+            if (response.headers[header])
+              headers[header] = response.headers[header]
+          }
+          res.writeHead(200, headers)
+        }
+        else {
+          res.writeHead(200)
+        }
         response.pipe(res)
       }
       else {
@@ -87,7 +98,7 @@ const get_middleware = function(params) {
           ? redirects[(redirects.length - 1)]
           : url
 
-        res.writeHead(200, { "Content-Type": "application/x-mpegURL" })
+        res.writeHead(200, { "content-type": "application/x-mpegURL" })
         res.end( modify_m3u8_content(response.toString().trim(), m3u8_url, referer_url, redirected_base_url) )
       }
     })
