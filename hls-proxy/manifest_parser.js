@@ -1,11 +1,12 @@
-const {URL} = require('@warren-bank/url')
-const utils = require('./utils')
+const {URL}          = require('@warren-bank/url')
+const regexp_indices = require('./regexp_indices')
+const utils          = require('./utils')
 
 const regexs = {
   vod_start_at:        /#vod_start(?:_prefetch_at)?=((?:\d+:)?(?:\d+:)?\d+)$/i,
   m3u8_line_separator: /\s*[\r\n]+\s*/,
   m3u8_line_landmark:  /^(#[^:]+[:]?)/,
-  m3u8_line_url:       /URI=["']([^"']+)["']/id
+  m3u8_line_url:       regexp_indices.updateRegExp(/URI=["']([^"']+)["']/i)
 }
 
 const url_location_landmarks = {
@@ -170,7 +171,7 @@ const extract_embedded_urls = function(m3u8_lines, m3u8_url, referer_url, meta_d
       if (meta_data !== null)
         extract_meta_data(meta_data, m3u8_line, matching_landmark)
 
-      matches = regexs.m3u8_line_url.exec(m3u8_line)
+      matches = regexp_indices.exec(regexs.m3u8_line_url, m3u8_line)
       if (!matches) continue
       matching_url = matches[1]
 

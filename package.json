@@ -1,7 +1,7 @@
 {
   "name": "@warren-bank/hls-proxy",
   "description": "Node.js server to proxy HLS video streams",
-  "version":     "3.4.8",
+  "version":     "3.5.0",
   "scripts": {
     "start":     "node hls-proxy/bin/hlsd.js",
     "sudo": "sudo node hls-proxy/bin/hlsd.js"
@@ -14,6 +14,7 @@
     "@warren-bank/node-request": "^2.0.12",
     "@warren-bank/url": "^3.1.2",
     "hpagent": "^1.2.0",
+    "regexp-match-indices": "^1.0.2",
     "tough-cookie": "^3.0.1"
   },
   "license": "GPL-2.0",

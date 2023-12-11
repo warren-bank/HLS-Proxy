@@ -612,8 +612,8 @@ curl --silent --insecure "$URL"
   - system requirements:
     * Node.js version: v8.6.0 (and higher)
       - transitive [dependency](https://github.com/warren-bank/HLS-Proxy/blob/v1.0.1/package.json#L13-L14) requirements:
-        * v8.06.00+: [`@warren-bank/node-process-argv`](https://github.com/warren-bank/node-process-argv#requirements)
-        * v8.06.00+: [`@warren-bank/node-request`](https://github.com/warren-bank/node-request#requirements)
+        * v08.06.00+: [`@warren-bank/node-process-argv`](https://github.com/warren-bank/node-process-argv#requirements)
+        * v08.06.00+: [`@warren-bank/node-request`](https://github.com/warren-bank/node-request#requirements)
 * `v2.x`
   - commit history is in branch: [`v02`](https://github.com/warren-bank/HLS-Proxy/commits/v02)
   - summary:
@@ -625,8 +625,8 @@ curl --silent --insecure "$URL"
   - system requirements:
     * Node.js version: v8.6.0 (and higher)
       - transitive [dependency](https://github.com/warren-bank/HLS-Proxy/blob/v2.0.3/package.json#L13-L14) requirements:
-        * v8.06.00+: [`@warren-bank/node-process-argv`](https://github.com/warren-bank/node-process-argv#requirements)
-        * v8.06.00+: [`@warren-bank/node-request`](https://github.com/warren-bank/node-request#requirements)
+        * v08.06.00+: [`@warren-bank/node-process-argv`](https://github.com/warren-bank/node-process-argv#requirements)
+        * v08.06.00+: [`@warren-bank/node-request`](https://github.com/warren-bank/node-request#requirements)
 * `v3.x`
   - commit history is in branch: [`v03`](https://github.com/warren-bank/HLS-Proxy/commits/v03)
   - summary:
@@ -637,12 +637,11 @@ curl --silent --insecure "$URL"
         * important requirement: the path for a custom route needs to include exactly one unnamed [parameter](https://expressjs.com/en/guide/routing.html#route-parameters) that matches the base64 encoded URL and (optionally) a file extension (ex: `'/proxy/*'`)
         * the use of nested routers is supported
   - system requirements:
-    * Node.js version: v16.0.0 (and higher)
-      - transitive [dependency](https://github.com/warren-bank/HLS-Proxy/blob/v3.4.0/package.json#L13-L14) requirements:
-        * v8.06.00+: [`@warren-bank/node-process-argv`](https://github.com/warren-bank/node-process-argv#requirements)
-        * v8.06.00+: [`@warren-bank/node-request`](https://github.com/warren-bank/node-request#requirements)
-      - [ES6 support](http://node.green/)
-        * v16.00.00+: [`RegExp` 'd' flag](https://node.green/#ES2022-features-RegExp-Match-Indices---hasIndices-----d--flag-)
+    * Node.js version: v12.0.0 (and higher)
+      - transitive [dependency](https://github.com/warren-bank/HLS-Proxy/blob/v3.5.0/package.json#L13-L15) requirements:
+        * v08.06.00+: [`@warren-bank/node-process-argv`](https://github.com/warren-bank/node-process-argv#requirements)
+        * v08.06.00+: [`@warren-bank/node-request`](https://github.com/warren-bank/node-request#requirements)
+        * v12.00.00+: [`@warren-bank/url`](https://github.com/warren-bank/js-url#requirements)
 
 - - - -
 
