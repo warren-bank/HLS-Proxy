@@ -1,5 +1,5 @@
-const parse_url = require('@warren-bank/url').parse
 const expressjs = require('./expressjs_utils')
+const parse_url = require('./url').parse
 
 const regexs = {
   req_url: new RegExp('^(.*?)/([a-zA-Z0-9\\+/=%]+)(?:[\\._]([^/\\?#]*))?(?:[\\?#].*)?$'),

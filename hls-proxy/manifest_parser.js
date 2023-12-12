@@ -1,5 +1,5 @@
-const {URL}          = require('@warren-bank/url')
 const regexp_indices = require('./regexp_indices')
+const {URL}          = require('./url')
 const utils          = require('./utils')
 
 const regexs = {
