@@ -6,7 +6,7 @@ const utils   = require('./utils')
 
 const get_middleware = function(params) {
   const {cache_segments} = params
-  let   {acl_whitelist}  = params
+  let   {acl_ip}         = params
 
   const segment_cache = require('./segment_cache')(params)
   const {get_segment, add_listener} = segment_cache
@@ -19,16 +19,16 @@ const get_middleware = function(params) {
   const middleware = {}
 
   // Access Control
-  if (acl_whitelist) {
-    acl_whitelist = acl_whitelist.trim().toLowerCase().split(/\s*,\s*/g)
+  if (acl_ip) {
+    acl_ip = acl_ip.trim().toLowerCase().split(/\s*,\s*/g)
 
     middleware.connection = (socket) => {
       if (socket && socket.remoteAddress) {
-        let remoteIP = socket.remoteAddress.toLowerCase().replace(/^::?ffff:/, '')
+        const remote_ip = socket.remoteAddress.toLowerCase().replace(/^::?ffff:/, '')
 
-        if (acl_whitelist.indexOf(remoteIP) === -1) {
+        if (acl_ip.indexOf(remote_ip) === -1) {
           socket.destroy()
-          debug(2, socket.remoteFamily, 'connection blocked by ACL whitelist:', remoteIP)
+          debug(2, socket.remoteFamily, 'connection blocked by ACL IP whitelist:', remote_ip)
         }
       }
     }

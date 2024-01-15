@@ -4,17 +4,22 @@ const app = express()
 const port = 8080
 
 const middleware = require('../../../hls-proxy/proxy')({
-  is_secure:      false,
-  host:           null,
-  req_headers:    null,
-  req_options:    null,
-  hooks:          null,
-  cache_segments: true,
-  max_segments:   20,
-  cache_timeout:  60,
-  cache_key:      0,
-  debug_level:    3,
-  acl_whitelist:  null
+  is_secure:                false,
+  host:                     null,
+  req_headers:              null,
+  req_options:              null,
+  hooks:                    null,
+  cache_segments:           true,
+  max_segments:             20,
+  cache_timeout:            60,
+  cache_key:                0,
+  cache_storage:            null,
+  cache_storage_fs_dirpath: null,
+  debug_level:              3,
+  acl_ip:                   null,
+  http_proxy:               null,
+  manifest_extension:       null,
+  segment_extension:        null
 })
 
 // =================

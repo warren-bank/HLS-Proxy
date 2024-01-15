@@ -33,7 +33,7 @@ const argv_flags = {
   "--cache-storage-fs-dirpath":             {file: "path-exists"},
 
   "-v":                                     {num:  "int"},
-  "--acl-whitelist":                        {},
+  "--acl-ip":                               {},
   "--http-proxy":                           {},
 
   "--tls-cert":                             {file: "path-exists"},
@@ -46,6 +46,7 @@ const argv_flags = {
 
 const argv_flag_aliases = {
   "--help":                                 ["-h"],
+  "--acl-ip":                               ["--acl-whitelist"],
   "--http-proxy":                           ["--https-proxy", "--proxy"]
 }
 

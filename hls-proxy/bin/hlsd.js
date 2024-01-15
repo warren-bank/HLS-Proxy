@@ -44,7 +44,7 @@ const middleware = require('../proxy')({
   cache_storage:                        argv_vals["--cache-storage"],
   cache_storage_fs_dirpath:             argv_vals["--cache-storage-fs-dirpath"],
   debug_level:                          argv_vals["-v"],
-  acl_whitelist:                        argv_vals["--acl-whitelist"],
+  acl_ip:                               argv_vals["--acl-ip"],
   http_proxy:                           argv_vals["--http-proxy"],
   manifest_extension:                   argv_vals["--manifest-extension"],
   segment_extension:                    argv_vals["--segment-extension"]
