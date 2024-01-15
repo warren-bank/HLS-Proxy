@@ -38,6 +38,7 @@ const middleware = require('../../../hls-proxy/proxy')({
   cache_storage_fs_dirpath: null,
   debug_level:              (logger_only ? -1 : 3),
   acl_ip:                   null,
+  acl_pass:                 null,
   http_proxy:               null,
   manifest_extension:       null,
   segment_extension:        null

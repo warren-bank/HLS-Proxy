@@ -34,6 +34,7 @@ const argv_flags = {
 
   "-v":                                     {num:  "int"},
   "--acl-ip":                               {},
+  "--acl-pass":                             {},
   "--http-proxy":                           {},
 
   "--tls-cert":                             {file: "path-exists"},
@@ -169,6 +170,14 @@ if (typeof argv_vals["--cache-key"] !== 'number')
 
 if (typeof argv_vals["-v"] !== 'number')
   argv_vals["-v"] = 0
+
+if (argv_vals["--acl-ip"]) {
+  argv_vals["--acl-ip"] = argv_vals["--acl-ip"].trim().toLowerCase().split(/\s*,\s*/g)
+}
+
+if (argv_vals["--acl-pass"]) {
+  argv_vals["--acl-pass"] = argv_vals["--acl-pass"].trim().split(/\s*,\s*/g)
+}
 
 if (argv_vals["--http-proxy"]) {
   const proxy_options = {

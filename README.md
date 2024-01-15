@@ -133,6 +133,7 @@ options:
 --cache-storage-fs-dirpath <dirpath>
 -v <number>
 --acl-ip <ip_address_list>
+--acl-pass <password_list>
 --http-proxy <http[s]://[user:pass@]hostname:port>
 --tls-cert <filepath>
 --tls-key <filepath>
@@ -365,6 +366,8 @@ options:
     * show the content of .m3u8 files (both before and after URLs are modified)
 * _--acl-ip_ restricts proxy server access to clients at IP addresses in whitelist
   * ex: `"192.168.1.100,192.168.1.101,192.168.1.102"`
+* _--acl-pass_ restricts proxy server access to requests that include a `password` querystring parameter having a value in whitelist
+  * ex: `"1111,2222,3333,4444,5555"`
 * --http-proxy enables all outbound HTTP and HTTPS requests from HLS-Proxy to be tunnelled through an additional external web proxy server
   * SOCKS proxies are not supported
   * ex: `http://myusername:mypassword@myproxy.example.com:1234`

@@ -28,6 +28,7 @@ options:
 --cache-storage-fs-dirpath <dirpath>
 -v <number>
 --acl-ip <ip_address_list>
+--acl-pass <password_list>
 --http-proxy <http[s]://[user:pass@]hostname:port>
 --tls-cert <filepath>
 --tls-key <filepath>

@@ -1,8 +1,9 @@
-const request = require('@warren-bank/node-request').request
-const cookies = require('./cookies')
-const parser  = require('./manifest_parser')
-const timers  = require('./timers')
-const utils   = require('./utils')
+const request  = require('@warren-bank/node-request').request
+const acl_pass = require('./acl_pass')
+const cookies  = require('./cookies')
+const parser   = require('./manifest_parser')
+const timers   = require('./timers')
+const utils    = require('./utils')
 
 const get_middleware = function(params) {
   const {cache_segments} = params
@@ -11,6 +12,7 @@ const get_middleware = function(params) {
   const segment_cache = require('./segment_cache')(params)
   const {get_segment, add_listener} = segment_cache
 
+  const is_acl_pass_allowed = acl_pass.is_allowed.bind(null, params)
   const debug               = utils.debug.bind(null, params)
   const parse_req_url       = utils.parse_req_url.bind(null, params)
   const get_request_options = utils.get_request_options.bind(null, params)
@@ -19,9 +21,7 @@ const get_middleware = function(params) {
   const middleware = {}
 
   // Access Control
-  if (acl_ip) {
-    acl_ip = acl_ip.trim().toLowerCase().split(/\s*,\s*/g)
-
+  if (acl_ip && Array.isArray(acl_ip) && acl_ip.length) {
     middleware.connection = (socket) => {
       if (socket && socket.remoteAddress) {
         const remote_ip = socket.remoteAddress.toLowerCase().replace(/^::?ffff:/, '')
@@ -36,6 +36,13 @@ const get_middleware = function(params) {
 
   // Create an HTTP tunneling proxy
   middleware.request = async (req, res) => {
+    if (!is_acl_pass_allowed(req)) {
+      res.writeHead(401)
+      res.end()
+      debug(2, 'request blocked by ACL password whitelist:', req.url)
+      return
+    }
+
     debug(3, 'proxying (raw):', req.url)
 
     utils.add_CORS_headers(res)
@@ -48,7 +55,8 @@ const get_middleware = function(params) {
       return
     }
 
-    const is_m3u8 = (url_type === 'm3u8')
+    const qs_password = acl_pass.get_encoded_qs_password(req)
+    const is_m3u8     = (url_type === 'm3u8')
 
     const send_cache_segment = function(segment, type) {
       if (!type)
@@ -99,7 +107,7 @@ const get_middleware = function(params) {
           : url
 
         res.writeHead(200, { "content-type": "application/x-mpegURL" })
-        res.end( modify_m3u8_content(response.toString().trim(), m3u8_url, referer_url, redirected_base_url) )
+        res.end( modify_m3u8_content(response.toString().trim(), m3u8_url, referer_url, redirected_base_url, qs_password) )
       }
     })
     .catch((e) => {
