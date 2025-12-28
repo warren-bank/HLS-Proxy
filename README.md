@@ -57,6 +57,19 @@
       const hls_proxy_url  = `${proxy_url}/${ btoa(`${video_url}|${referer_url}`) }${file_extension}`
     }
   ```
+* [example Javascript]: construction of URL to _HLS Proxy_ for video stream w/ "Referer" and additional request headers
+  ```javascript
+    {
+      const proxy_url      = 'http://127.0.0.1:8080'
+      const video_url      = 'https://example.com/video/master.m3u8'
+      const referer_url    = 'https://example.com/videos.html'
+      const file_extension = '.m3u8'
+      const headers        = {"Cookie": "foo=bar"}
+
+      const querystring    = `?headers=${ encodeURIComponent( btoa( JSON.stringify(headers) ) ) }`
+      const hls_proxy_url  = `${proxy_url}/${ btoa(`${video_url}|${referer_url}`) }${file_extension}${querystring}`
+    }
+  ```
 * [example Bash]: construction of URL to _HLS Proxy_ for video stream
   ```bash
     proxy_url='http://127.0.0.1:8080'
@@ -73,6 +86,17 @@
     file_extension='.m3u8'
 
     hls_proxy_url="${proxy_url}/"$(echo -n "${video_url}|${referer_url}" | base64 --wrap=0)"$file_extension"
+  ```
+* [example Bash]: construction of URL to _HLS Proxy_ for video stream w/ "Referer" and additional request headers
+  ```bash
+    proxy_url='http://127.0.0.1:8080'
+    video_url='https://example.com/video/master.m3u8'
+    referer_url='https://example.com/videos.html'
+    file_extension='.m3u8'
+    headers_json='{"Cookie": "foo=bar"}'
+
+    querystring='?headers='$(echo -n "$headers_json" | base64 --wrap=0)
+    hls_proxy_url="${proxy_url}/"$(echo -n "${video_url}|${referer_url}" | base64 --wrap=0)"${file_extension}${querystring}"
   ```
 
 ##### notes:

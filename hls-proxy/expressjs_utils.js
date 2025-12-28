@@ -1,3 +1,5 @@
+const {URL} = require('./url')
+
 const get_full_req_url = function(req) {
   return req.originalUrl || req.url
 }
@@ -6,11 +8,27 @@ const has_req_param = function(req, key) {
   return (req.params && (typeof req.params === 'object') && req.params[key])
 }
 
+const has_req_query = function(req, key) {
+  return (req.query && (typeof req.query === 'object') && req.query[key])
+}
+
 const get_proxy_req_url = function(req) {
   const key = "0"
   return has_req_param(req, key)
     ? `/${req.params[key]}`
     : req.url
+}
+
+const get_proxy_req_query = function(req, key) {
+  if (has_req_param(req, key))
+    return req.params[key]
+
+  if (has_req_query(req, key))
+    return req.query[key]
+
+  const url = new URL(req.url)
+  const qs  = url.searchParams
+  return qs.get(key)
 }
 
 const get_base_req_url = function(req) {
@@ -28,5 +46,6 @@ const get_base_req_url = function(req) {
 module.exports = {
   get_full_req_url,
   get_proxy_req_url,
+  get_proxy_req_query,
   get_base_req_url
 }

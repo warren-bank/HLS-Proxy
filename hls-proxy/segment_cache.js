@@ -161,7 +161,7 @@ module.exports = function(params) {
     }
   }
 
-  const prefetch_segment = function(m3u8_url, url, referer_url, inbound_req_headers, dont_touch_access) {
+  const prefetch_segment = function(m3u8_url, url, referer_url, querystring_req_headers, inbound_req_headers, dont_touch_access) {
     let promise = Promise.resolve()
 
     if (cache[m3u8_url] === undefined) {
@@ -184,7 +184,7 @@ module.exports = function(params) {
       index = ts.length
       ts[index] = {key: get_privatekey_from_url(url), has: false, cb: [], type: null, state: {}}
 
-      let options = get_request_options(url, /* is_m3u8= */ false, referer_url, inbound_req_headers)
+      let options = get_request_options(url, /* is_m3u8= */ false, referer_url, querystring_req_headers, inbound_req_headers)
       promise = request(options, '', {binary: true, stream: false, cookieJar: cookies.getCookieJar()})
       .then(({redirects, response}) => {
         debug(1, `prefetch (complete, ${response.length} bytes):`, debug_url)

@@ -112,12 +112,13 @@ const parse_HHMMSS_to_seconds = function(str) {
 //   prefetch_urls: [],
 //   modified_m3u8: ''
 // }
-const parse_manifest = function(m3u8_content, m3u8_url, referer_url, hooks, cache_segments, debug, vod_start_at_ms, redirected_base_url, should_prefetch_url, manifest_extension, segment_extension, qs_password) {
+const parse_manifest = function(m3u8_content, m3u8_url, referer_url, querystring_req_headers, hooks, cache_segments, debug, vod_start_at_ms, redirected_base_url, should_prefetch_url, manifest_extension, segment_extension, qs_password) {
   const m3u8_lines = m3u8_content.split(regexs.m3u8_line_separator)
   m3u8_content = null
 
   const meta_data     = {}
   const embedded_urls = extract_embedded_urls(m3u8_lines, m3u8_url, referer_url, (cache_segments ? meta_data : null))
+  const qs_headers    = !!querystring_req_headers ? utils.base64_encode(JSON.stringify(querystring_req_headers)) : null
   const prefetch_urls = []
 
   if (embedded_urls && Array.isArray(embedded_urls) && embedded_urls.length) {
@@ -125,7 +126,7 @@ const parse_manifest = function(m3u8_content, m3u8_url, referer_url, hooks, cach
       redirect_embedded_url(embedded_url, hooks, m3u8_url, debug)
       if (validate_embedded_url(embedded_url)) {
         finalize_embedded_url(embedded_url, vod_start_at_ms, debug)
-        encode_embedded_url(embedded_url, hooks, redirected_base_url, debug, manifest_extension, segment_extension, qs_password)
+        encode_embedded_url(embedded_url, hooks, redirected_base_url, debug, manifest_extension, segment_extension, qs_headers, qs_password)
         get_prefetch_url(embedded_url, should_prefetch_url, prefetch_urls)
         modify_m3u8_line(embedded_url, m3u8_lines)
       }
@@ -332,7 +333,7 @@ const finalize_embedded_url = function(embedded_url, vod_start_at_ms, debug) {
   }
 }
 
-const encode_embedded_url = function(embedded_url, hooks, redirected_base_url, debug, manifest_extension, segment_extension, qs_password) {
+const encode_embedded_url = function(embedded_url, hooks, redirected_base_url, debug, manifest_extension, segment_extension, qs_headers, qs_password) {
   if (embedded_url.unencoded_url) {
     let file_extension = embedded_url.url_type
     if (file_extension) {
@@ -344,15 +345,24 @@ const encode_embedded_url = function(embedded_url, hooks, redirected_base_url, d
 
     embedded_url.encoded_url = `${redirected_base_url}/${ utils.base64_encode(embedded_url.unencoded_url) }.${file_extension || 'other'}`
 
-    if (qs_password)
-      embedded_url.encoded_url += `?password=${qs_password}`
-
     debug(3, 'redirecting (proxied):', embedded_url.encoded_url)
 
     if (hooks && (hooks instanceof Object) && hooks.redirect_final && (typeof hooks.redirect_final === 'function')) {
       embedded_url.encoded_url = hooks.redirect_final(embedded_url.encoded_url)
 
       debug(3, 'redirecting (proxied, post-hook):', embedded_url.encoded_url)
+    }
+
+    let qs_pairs = []
+    if (qs_headers)
+      qs_pairs.push(['headers', qs_headers])
+    if (qs_password)
+      qs_pairs.push(['password', qs_password])
+    if (qs_pairs.length) {
+      qs_pairs = qs_pairs.map(pair => `${pair[0]}=${encodeURIComponent(pair[1])}`)
+
+      embedded_url.encoded_url += '?' + qs_pairs.join('&')
+      debug(3, 'redirecting (proxied, with querystring):', embedded_url.encoded_url)
     }
   }
   else {
@@ -382,7 +392,7 @@ const modify_m3u8_line = function(embedded_url, m3u8_lines) {
   }
 }
 
-const modify_m3u8_content = function(params, segment_cache, m3u8_content, m3u8_url, referer_url, inbound_req_headers, redirected_base_url, qs_password) {
+const modify_m3u8_content = function(params, segment_cache, m3u8_content, m3u8_url, referer_url, querystring_req_headers, inbound_req_headers, redirected_base_url, qs_password) {
   const {hooks, cache_segments, max_segments, debug_level, manifest_extension, segment_extension} = params
 
   const {has_cache, get_time_since_last_access, is_expired, prefetch_segment} = segment_cache
@@ -424,13 +434,13 @@ const modify_m3u8_content = function(params, segment_cache, m3u8_content, m3u8_u
           const matching_url = urls[0]
           urls[0] = undefined
 
-          promise = prefetch_segment(m3u8_url, matching_url, referer_url, inbound_req_headers, dont_touch_access)
+          promise = prefetch_segment(m3u8_url, matching_url, referer_url, querystring_req_headers, inbound_req_headers, dont_touch_access)
         }
 
         promise.then(() => {
           urls.forEach((matching_url, index) => {
             if (matching_url) {
-              prefetch_segment(m3u8_url, matching_url, referer_url, inbound_req_headers, dont_touch_access)
+              prefetch_segment(m3u8_url, matching_url, referer_url, querystring_req_headers, inbound_req_headers, dont_touch_access)
 
               urls[index] = undefined
             }
@@ -440,7 +450,7 @@ const modify_m3u8_content = function(params, segment_cache, m3u8_content, m3u8_u
     : null
 
   {
-    const parsed_manifest = parse_manifest(m3u8_content, m3u8_url, referer_url, hooks, cache_segments, debug, vod_start_at_ms, redirected_base_url, should_prefetch_url, manifest_extension, segment_extension, qs_password)
+    const parsed_manifest = parse_manifest(m3u8_content, m3u8_url, referer_url, querystring_req_headers, hooks, cache_segments, debug, vod_start_at_ms, redirected_base_url, should_prefetch_url, manifest_extension, segment_extension, qs_password)
     is_vod          = !!parsed_manifest.meta_data.is_vod                  // default: false => hls live stream
     seg_duration_ms = parsed_manifest.meta_data.seg_duration_ms || 10000  // default: 10 seconds in ms
     prefetch_urls   = parsed_manifest.prefetch_urls

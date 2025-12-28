@@ -11,7 +11,7 @@ const initialize_timers = function(params) {
     const get_request_options = utils.get_request_options.bind(null, params)
 
     const request_wrapper = function(url, POST_data, user_config) {
-      const options = get_request_options(url, /* is_m3u8= */ false, /* referer_url= */ null, /* inbound_req_headers= */ null)
+      const options = get_request_options(url, /* is_m3u8= */ false, /* referer_url= */ null, /* querystring_req_headers= */ null, /* inbound_req_headers= */ null)
       const config  = Object.assign(
         {},
         (user_config || {}),

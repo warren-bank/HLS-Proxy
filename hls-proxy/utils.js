@@ -19,7 +19,7 @@ const base64_decode = function(str) {
 const parse_req_url = function(params, req) {
   const {is_secure, host, manifest_extension, segment_extension, hooks} = params
 
-  const result = {redirected_base_url: '', url_type: '', url: '', referer_url: ''}
+  const result = {redirected_base_url: '', url_type: '', url: '', referer_url: '', querystring_req_headers: null}
 
   const matches = regexs.req_url.exec( expressjs.get_proxy_req_url(req) )
 
@@ -55,6 +55,18 @@ const parse_req_url = function(params, req) {
         url = hooks.rewrite(url)
 
       result.url = url
+    }
+
+    let qs_headers = expressjs.get_proxy_req_query(req, 'headers')
+    if (qs_headers) {
+      try {
+        qs_headers = base64_decode( decodeURIComponent( qs_headers ) ).trim()
+        qs_headers = JSON.parse(qs_headers)
+
+        if (qs_headers && (qs_headers instanceof Object))
+          result.querystring_req_headers = qs_headers
+      }
+      catch(e) {}
     }
   }
 
@@ -140,7 +152,7 @@ const normalize_req_headers = function(req_headers, blacklist) {
   return normalized
 }
 
-const get_request_options = function(params, url, is_m3u8, referer_url, inbound_req_headers) {
+const get_request_options = function(params, url, is_m3u8, referer_url, querystring_req_headers, inbound_req_headers) {
   const {copy_req_headers, req_headers, req_options, hooks, http_proxy} = params
 
   const copied_req_headers = (copy_req_headers && inbound_req_headers && (inbound_req_headers instanceof Object))
@@ -155,7 +167,7 @@ const get_request_options = function(params, url, is_m3u8, referer_url, inbound_
     ? hooks.add_request_headers(url, is_m3u8)
     : null
 
-  if (!req_options && !http_proxy && !additional_req_options && !copied_req_headers && !req_headers && !additional_req_headers && !referer_url) return url
+  if (!req_options && !http_proxy && !additional_req_options && !copied_req_headers && !req_headers && !additional_req_headers && !referer_url && !querystring_req_headers) return url
 
   const request_options = Object.assign(
     {},
@@ -171,7 +183,8 @@ const get_request_options = function(params, url, is_m3u8, referer_url, inbound_
     ((additional_req_options && additional_req_options.headers) ? additional_req_options.headers : {}),
     (req_headers             || {}),
     (additional_req_headers  || {}),
-    (referer_url ? {"referer": referer_url, "origin": referer_url.replace(regexs.origin, '$1')} : {})
+    (referer_url ? {"referer": referer_url, "origin": referer_url.replace(regexs.origin, '$1')} : {}),
+    (querystring_req_headers || {})
   )
 
   // normalize

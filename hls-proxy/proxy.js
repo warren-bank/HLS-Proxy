@@ -47,7 +47,7 @@ const get_middleware = function(params) {
 
     utils.add_CORS_headers(res)
 
-    const {redirected_base_url, url_type, url, referer_url} = parse_req_url(req)
+    const {redirected_base_url, url_type, url, referer_url, querystring_req_headers} = parse_req_url(req)
 
     if (!url) {
       res.writeHead(400)
@@ -79,7 +79,7 @@ const get_middleware = function(params) {
       }
     }
 
-    const options = get_request_options(url, is_m3u8, referer_url, req.headers)
+    const options = get_request_options(url, is_m3u8, referer_url, querystring_req_headers, req.headers)
     debug(1, 'proxying:', url)
     debug(3, 'm3u8:', (is_m3u8 ? 'true' : 'false'))
 
@@ -107,7 +107,7 @@ const get_middleware = function(params) {
           : url
 
         res.writeHead(200, { "content-type": "application/x-mpegURL" })
-        res.end( modify_m3u8_content(response.toString().trim(), m3u8_url, referer_url, req.headers, redirected_base_url, qs_password) )
+        res.end( modify_m3u8_content(response.toString().trim(), m3u8_url, referer_url, querystring_req_headers, req.headers, redirected_base_url, qs_password) )
       }
     })
     .catch((e) => {
