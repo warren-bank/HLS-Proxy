@@ -118,15 +118,16 @@ const parse_manifest = function(m3u8_content, m3u8_url, referer_url, querystring
 
   const meta_data     = {}
   const embedded_urls = extract_embedded_urls(m3u8_lines, m3u8_url, referer_url, (cache_segments ? meta_data : null))
-  const qs_headers    = !!querystring_req_headers ? utils.base64_encode(JSON.stringify(querystring_req_headers)) : null
   const prefetch_urls = []
 
   if (embedded_urls && Array.isArray(embedded_urls) && embedded_urls.length) {
+    const querystring = get_querystring(querystring_req_headers, qs_password)
+
     embedded_urls.forEach(embedded_url => {
       redirect_embedded_url(embedded_url, hooks, m3u8_url, debug)
       if (validate_embedded_url(embedded_url)) {
         finalize_embedded_url(embedded_url, vod_start_at_ms, debug)
-        encode_embedded_url(embedded_url, hooks, redirected_base_url, debug, manifest_extension, segment_extension, qs_headers, qs_password)
+        encode_embedded_url(embedded_url, hooks, redirected_base_url, debug, manifest_extension, segment_extension, querystring)
         get_prefetch_url(embedded_url, should_prefetch_url, prefetch_urls)
         modify_m3u8_line(embedded_url, m3u8_lines)
       }
@@ -234,6 +235,26 @@ const extract_meta_data = function(meta_data, m3u8_line, matching_landmark) {
   }
 }
 
+const get_querystring = function(querystring_req_headers, qs_password) {
+  const qs_headers = !!querystring_req_headers ? utils.base64_encode(JSON.stringify(querystring_req_headers)) : null
+  let qs_pairs     = []
+  let querystring  = ''
+
+  if (qs_headers)
+    qs_pairs.push(['headers', qs_headers])
+
+  if (qs_password)
+    qs_pairs.push(['password', qs_password])
+
+  if (qs_pairs.length) {
+    qs_pairs = qs_pairs.map(pair => `${pair[0]}=${encodeURIComponent(pair[1])}`)
+
+    querystring = '?' + qs_pairs.join('&')
+  }
+
+  return querystring
+}
+
 const redirect_embedded_url = function(embedded_url, hooks, m3u8_url, debug) {
   if (hooks && (hooks instanceof Object) && hooks.redirect && (typeof hooks.redirect === 'function')) {
     let url, url_type, referer_url, result
@@ -333,7 +354,7 @@ const finalize_embedded_url = function(embedded_url, vod_start_at_ms, debug) {
   }
 }
 
-const encode_embedded_url = function(embedded_url, hooks, redirected_base_url, debug, manifest_extension, segment_extension, qs_headers, qs_password) {
+const encode_embedded_url = function(embedded_url, hooks, redirected_base_url, debug, manifest_extension, segment_extension, querystring) {
   if (embedded_url.unencoded_url) {
     let file_extension = embedded_url.url_type
     if (file_extension) {
@@ -353,15 +374,8 @@ const encode_embedded_url = function(embedded_url, hooks, redirected_base_url, d
       debug(3, 'redirecting (proxied, post-hook):', embedded_url.encoded_url)
     }
 
-    let qs_pairs = []
-    if (qs_headers)
-      qs_pairs.push(['headers', qs_headers])
-    if (qs_password)
-      qs_pairs.push(['password', qs_password])
-    if (qs_pairs.length) {
-      qs_pairs = qs_pairs.map(pair => `${pair[0]}=${encodeURIComponent(pair[1])}`)
-
-      embedded_url.encoded_url += '?' + qs_pairs.join('&')
+    if (querystring) {
+      embedded_url.encoded_url += querystring
       debug(3, 'redirecting (proxied, with querystring):', embedded_url.encoded_url)
     }
   }
