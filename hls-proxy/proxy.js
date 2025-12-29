@@ -55,7 +55,7 @@ const get_middleware = function(params) {
       return
     }
 
-    const qs_password = acl_pass.get_encoded_qs_password(req)
+    const qs_password = acl_pass.get_decoded_qs_password(req)
     const is_m3u8     = (url_type === 'm3u8')
 
     const send_cache_segment = function(segment, type) {

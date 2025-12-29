@@ -1,5 +1,5 @@
 const expressjs = require('./expressjs_utils')
-const parse_url = require('./url').parse
+const {parse: parse_url, decode_component_value: decode_url_component_value} = require('./url')
 
 const regexs = {
   req_url: new RegExp('^(.*?)/([a-zA-Z0-9\\+/=%]+)(?:[\\._]([^/\\?#]*))?(?:[\\?#].*)?$'),
@@ -38,7 +38,7 @@ const parse_req_url = function(params, req) {
 
     let url, url_lc, index
 
-    url    = base64_decode( decodeURIComponent( matches[2] ) ).trim()
+    url    = base64_decode( decode_url_component_value( matches[2], true, true, true ) ).trim()
     url_lc = url.toLowerCase()
     index  = url_lc.indexOf('http')
 
@@ -57,10 +57,10 @@ const parse_req_url = function(params, req) {
       result.url = url
     }
 
-    let qs_headers = expressjs.get_proxy_req_query(req, 'headers')
+    let qs_headers = expressjs.get_proxy_req_query(req, 'headers', true)
     if (qs_headers) {
       try {
-        qs_headers = base64_decode( decodeURIComponent( qs_headers ) ).trim()
+        qs_headers = base64_decode( qs_headers ).trim()
         qs_headers = JSON.parse(qs_headers)
 
         if (qs_headers && (qs_headers instanceof Object))

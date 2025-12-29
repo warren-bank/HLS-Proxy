@@ -1,4 +1,4 @@
-const {URL} = require('./url')
+const {URL, decode_component_value} = require('./url')
 
 const get_full_req_url = function(req) {
   return req.originalUrl || req.url
@@ -19,16 +19,15 @@ const get_proxy_req_url = function(req) {
     : req.url
 }
 
-const get_proxy_req_query = function(req, key) {
+const get_proxy_req_query = function(req, key, is_base64) {
   if (has_req_param(req, key))
-    return req.params[key]
+    return decode_component_value(req.params[key], false, is_base64, is_base64)
 
   if (has_req_query(req, key))
-    return req.query[key]
+    return decode_component_value(req.query[key], false, is_base64, is_base64)
 
-  const url = new URL(req.url)
-  const qs  = url.searchParams
-  return qs.get(key)
+  const req_url = new URL(get_full_req_url(req))
+  return decode_component_value(req_url.searchParams.get(key), true, is_base64, is_base64)
 }
 
 const get_base_req_url = function(req) {
