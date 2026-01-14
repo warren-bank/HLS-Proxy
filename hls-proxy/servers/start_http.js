@@ -5,7 +5,7 @@ const start_server = function({port}) {
 
   const server = http.createServer()
 
-  server.listen(port, function () {
+  server.listen(port, '0.0.0.0', function () {
     console.log(`HTTP server is listening on port: ${port}`)
   })
 

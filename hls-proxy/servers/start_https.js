@@ -18,7 +18,7 @@ const start_server = function({port, tls_cert, tls_key, tls_pass}) {
 
   const server = https.createServer(ssl_options)
 
-  server.listen(port, function () {
+  server.listen(port, '0.0.0.0', function () {
     console.log(`HTTPS server is listening on port: ${port}`)
   })
 
