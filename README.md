@@ -1,4 +1,4 @@
-### [_HLS Proxy_](https://github.com/warren-bank/HLS-Proxy) : HTTP Live Streaming Proxy
+### [_Node.js HLS Proxy_](https://github.com/warren-bank/node-HLS-Proxy) : HTTP Live Streaming Proxy for the [_Node JS_ Runtime](https://nodejs.org/)
 
 #### Basic Functionality:
 
@@ -175,7 +175,7 @@ options:
     * _--tls-key_
     * _--tls-pass_
   * the values assigned to these options enable the use of a self-signed security certificate that is included in both the git repo and npm package, within the directory:
-    * [`./hls-proxy/servers/cert`](https://github.com/warren-bank/HLS-Proxy/tree/master/hls-proxy/servers/cert)
+    * [`./hls-proxy/servers/cert`](./hls-proxy/servers/cert/)
   * when all of these option are properly specified:
     * the `https:` protocol is used by all URLs in modified HLS manifests
 * _--host_ is an IP or hostname with an optional port number that can be resolved and is reachable by clients
@@ -445,7 +445,7 @@ options:
 #### How to: Install:
 
 ```bash
-git clone "https://github.com/warren-bank/HLS-Proxy.git"
+git clone "https://github.com/warren-bank/node-HLS-Proxy.git"
 cd "HLS-Proxy"
 npm install
 ```
@@ -627,24 +627,24 @@ curl --silent --insecure "$URL"
   * usage test result:
     * [doesn't appear to work with HTML5 video players or Chromecast](https://github.com/streamlink/streamlink/issues/1704#issuecomment-413661578)
     * the server starts and works as it was intended, but something about the format of the data it "streams" is incompatible
-    * [VLC](https://portableapps.com/apps/music_video/vlc_portable) can play the video stream from the server, and be used to [render the video on Chromecast](https://github.com/warren-bank/HLS-Proxy/blob/master/.related/.recipes/01.%20Streamlink/notes.txt)
+    * [VLC](https://portableapps.com/apps/music_video/vlc_portable) can play the video stream from the server, and be used to [render the video on Chromecast](./.related/.recipes/01.%20Streamlink/notes.txt)
 
 - - - -
 
 #### Major Versions:
 
 * `v1.x`
-  - commit history is in branch: [`v01`](https://github.com/warren-bank/HLS-Proxy/commits/v01)
+  - commit history is in branch: [`v01`](https://github.com/warren-bank/node-HLS-Proxy/commits/v01)
   - summary:
     * m3u8 manifest parser uses regex patterns to identify all URL patterns without any special knowledge of the m3u8 manifest specification
     * internal `proxy` module exports a function that accepts an instance of [`http.Server`](https://nodejs.org/api/http.html#class-httpserver) and adds event listeners to process requests
   - system requirements:
     * Node.js version: v8.6.0 (and higher)
-      - transitive [dependency](https://github.com/warren-bank/HLS-Proxy/blob/v1.0.1/package.json#L13-L14) requirements:
+      - transitive [dependency](https://github.com/warren-bank/node-HLS-Proxy/blob/v1.0.1/package.json#L13-L14) requirements:
         * v08.06.00+: [`@warren-bank/node-process-argv`](https://github.com/warren-bank/node-process-argv#requirements)
         * v08.06.00+: [`@warren-bank/node-request`](https://github.com/warren-bank/node-request#requirements)
 * `v2.x`
-  - commit history is in branch: [`v02`](https://github.com/warren-bank/HLS-Proxy/commits/v02)
+  - commit history is in branch: [`v02`](https://github.com/warren-bank/node-HLS-Proxy/commits/v02)
   - summary:
     * m3u8 manifest parser uses regex patterns to identify all URL patterns without any special knowledge of the m3u8 manifest specification
     * internal `proxy` module exports an Object containing event listeners to process requests that can be either:
@@ -653,11 +653,11 @@ curl --silent --insecure "$URL"
         * important limitation: since `/` is a valid character in a base64 encoded URL, the path for a custom route needs to end with a character that is not allowed in base64 encoding (ex: `'/proxy_/*'`)
   - system requirements:
     * Node.js version: v8.6.0 (and higher)
-      - transitive [dependency](https://github.com/warren-bank/HLS-Proxy/blob/v2.0.3/package.json#L13-L14) requirements:
+      - transitive [dependency](https://github.com/warren-bank/node-HLS-Proxy/blob/v2.0.3/package.json#L13-L14) requirements:
         * v08.06.00+: [`@warren-bank/node-process-argv`](https://github.com/warren-bank/node-process-argv#requirements)
         * v08.06.00+: [`@warren-bank/node-request`](https://github.com/warren-bank/node-request#requirements)
 * `v3.x`
-  - commit history is in branch: [`v03`](https://github.com/warren-bank/HLS-Proxy/commits/v03)
+  - commit history is in branch: [`v03`](https://github.com/warren-bank/node-HLS-Proxy/commits/v03)
   - summary:
     * m3u8 manifest parser uses special knowledge of the m3u8 manifest specification to contextually identify URLs
     * internal `proxy` module exports an Object containing event listeners to process requests that can be either:
@@ -667,7 +667,7 @@ curl --silent --insecure "$URL"
         * the use of nested routers is supported
   - system requirements:
     * Node.js version: v8.6.0 (and higher)
-      - transitive [dependency](https://github.com/warren-bank/HLS-Proxy/blob/v3.5.1/package.json#L13-L14) requirements:
+      - transitive [dependency](https://github.com/warren-bank/node-HLS-Proxy/blob/v3.5.1/package.json#L13-L14) requirements:
         * v08.06.00+: [`@warren-bank/node-process-argv`](https://github.com/warren-bank/node-process-argv#requirements)
         * v08.06.00+: [`@warren-bank/node-request`](https://github.com/warren-bank/node-request#requirements)
 

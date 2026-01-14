@@ -2,7 +2,7 @@
 
 issue:
 ======
-https://github.com/warren-bank/HLS-Proxy/issues/25
+https://github.com/warren-bank/node-HLS-Proxy/issues/25
 
 summary:
 ========

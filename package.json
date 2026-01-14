@@ -23,12 +23,12 @@
     "email":  "warren.r.bank@gmail.com",
     "url":    "https://github.com/warren-bank"
   },
-  "homepage": "https://github.com/warren-bank/HLS-Proxy",
+  "homepage": "https://github.com/warren-bank/node-HLS-Proxy",
   "repository": {
     "type":   "git",
-    "url":    "https://github.com/warren-bank/HLS-Proxy"
+    "url":    "https://github.com/warren-bank/node-HLS-Proxy"
   },
   "bugs": {
-    "url":    "https://github.com/warren-bank/HLS-Proxy/issues"
+    "url":    "https://github.com/warren-bank/node-HLS-Proxy/issues"
   }
 }
