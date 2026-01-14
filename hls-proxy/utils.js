@@ -156,7 +156,7 @@ const get_request_options = function(params, url, is_m3u8, referer_url, querystr
   const {copy_req_headers, req_headers, req_options, hooks, http_proxy} = params
 
   const copied_req_headers = (copy_req_headers && inbound_req_headers && (inbound_req_headers instanceof Object))
-    ? normalize_req_headers(inbound_req_headers, ['host'])
+    ? normalize_req_headers(inbound_req_headers, ['host', 'accept-encoding'])
     : null
 
   const additional_req_options = (hooks && (hooks instanceof Object) && hooks.add_request_options && (typeof hooks.add_request_options === 'function'))
