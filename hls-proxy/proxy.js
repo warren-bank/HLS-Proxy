@@ -99,6 +99,7 @@ const get_middleware = function(params) {
         else {
           res.writeHead(200)
         }
+        response.on('error', () => {})
         response.pipe(res)
       }
       else {
