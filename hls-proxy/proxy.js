@@ -6,17 +6,17 @@ const timers   = require('./timers')
 const utils    = require('./utils')
 
 const get_middleware = function(params) {
-  const {cache_segments} = params
-  let   {acl_ip}         = params
+  const {acl_ip, cache_segments} = params
 
   const segment_cache = require('./segment_cache')(params)
   const {get_segment, add_listener} = segment_cache
 
-  const is_acl_pass_allowed = acl_pass.is_allowed.bind(null, params)
-  const debug               = utils.debug.bind(null, params)
-  const parse_req_url       = utils.parse_req_url.bind(null, params)
-  const get_request_options = utils.get_request_options.bind(null, params)
-  const modify_m3u8_content = parser.modify_m3u8_content.bind(null, params, segment_cache)
+  const is_acl_pass_allowed   = acl_pass.is_allowed.bind(null, params)
+  const debug                 = utils.debug.bind(null, params)
+  const parse_req_url         = utils.parse_req_url.bind(null, params)
+  const get_request_options   = utils.get_request_options.bind(null, params)
+  const block_request_options = utils.block_request_options.bind(null, params)
+  const modify_m3u8_content   = parser.modify_m3u8_content.bind(null, params, segment_cache)
 
   const middleware = {}
 
@@ -57,6 +57,14 @@ const get_middleware = function(params) {
 
     const qs_password = acl_pass.get_decoded_qs_password(req)
     const is_m3u8     = (url_type === 'm3u8')
+    const options     = get_request_options(url, is_m3u8, referer_url, querystring_req_headers, req.headers)
+
+    if (block_request_options(options)) {
+      res.writeHead(401)
+      res.end()
+      debug(2, 'request blocked by hostname blacklist:', url)
+      return
+    }
 
     const send_cache_segment = function(segment, type) {
       if (!type)
@@ -79,7 +87,6 @@ const get_middleware = function(params) {
       }
     }
 
-    const options = get_request_options(url, is_m3u8, referer_url, querystring_req_headers, req.headers)
     debug(1, 'proxying:', url)
     debug(3, 'm3u8:', (is_m3u8 ? 'true' : 'false'))
 

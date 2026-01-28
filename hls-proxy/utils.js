@@ -197,6 +197,24 @@ const get_request_options = function(params, url, is_m3u8, referer_url, querystr
   return request_options
 }
 
+const block_request_options = function(params, request_options) {
+  const {block_req_hostname} = params
+
+  // short circuit
+  if (!block_req_hostname || !Array.isArray(block_req_hostname) || !block_req_hostname.length || !request_options)
+    return false
+
+  // special case: url
+  if (typeof request_options === 'string')
+    request_options = parse_url(request_options)
+
+  // sanity check
+  if (!request_options.hostname || (typeof request_options.hostname !== 'string'))
+    return false
+
+  return (block_req_hostname.indexOf(request_options.hostname.toLowerCase()) >= 0)
+}
+
 const should_prefetch_url = function(params, url, url_type) {
   const {hooks, cache_segments} = params
 
@@ -226,5 +244,6 @@ module.exports = {
   debug,
   normalize_req_headers,
   get_request_options,
+  block_request_options,
   should_prefetch_url
 }

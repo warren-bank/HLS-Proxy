@@ -159,6 +159,7 @@ options:
 -v <number>
 --acl-ip <ip_address_list>
 --acl-pass <password_list>
+--block-req-hostname <hostname_list>
 --http-proxy <http[s]://[user:pass@]hostname:port>
 --tls-cert <filepath>
 --tls-key <filepath>
@@ -394,6 +395,8 @@ options:
   * ex: `"192.168.1.100,192.168.1.101,192.168.1.102"`
 * _--acl-pass_ restricts proxy server access to requests that include a `password` querystring parameter having a value in whitelist
   * ex: `"1111,2222,3333,4444,5555"`
+* _--block-req-hostname_ blocks proxy server requests to hostnames in blacklist
+  * ex: `"localhost,127.0.0.1"`
 * --http-proxy enables all outbound HTTP and HTTPS requests from HLS-Proxy to be tunnelled through an additional external web proxy server
   * SOCKS proxies are not supported
   * ex: `http://myusername:mypassword@myproxy.example.com:1234`

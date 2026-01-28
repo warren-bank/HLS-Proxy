@@ -38,6 +38,7 @@ const argv_flags = {
   "-v":                                     {num:  "int"},
   "--acl-ip":                               {},
   "--acl-pass":                             {},
+  "--block-req-hostname":                   {},
   "--http-proxy":                           {},
 
   "--tls-cert":                             {file: "path-exists"},
@@ -175,6 +176,10 @@ if (argv_vals["--acl-ip"]) {
 
 if (argv_vals["--acl-pass"]) {
   argv_vals["--acl-pass"] = argv_vals["--acl-pass"].trim().split(/\s*,\s*/g)
+}
+
+if (argv_vals["--block-req-hostname"]) {
+  argv_vals["--block-req-hostname"] = argv_vals["--block-req-hostname"].trim().toLowerCase().split(/\s*,\s*/g)
 }
 
 if (argv_vals["--http-proxy"]) {

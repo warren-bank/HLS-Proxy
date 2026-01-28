@@ -47,6 +47,7 @@ const middleware = require('../proxy')({
   debug_level:                          argv_vals["-v"],
   acl_ip:                               argv_vals["--acl-ip"],
   acl_pass:                             argv_vals["--acl-pass"],
+  block_req_hostname:                   argv_vals["--block-req-hostname"],
   http_proxy:                           argv_vals["--http-proxy"],
   manifest_extension:                   argv_vals["--manifest-extension"],
   segment_extension:                    argv_vals["--segment-extension"]
