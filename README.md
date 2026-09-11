@@ -312,10 +312,14 @@ options:
               )
 
               add_request_interval(
-                (1000 * 60 * 5), // run timer at 5 minute interval to refresh cookies
-                (request) => {
+                (1000 * 60 * 5), // run timer at 5 minute intervals to refresh cookies
+                (request, timer_id) => {
                   request('https://example.com/heart-beat')
-                }
+
+                  if (globalThis.someCondition)
+                    clearInterval(timer_id)
+                },
+                (1000 * 60 * 60 * 1) // automatically stop after a max duration of 1 hour
               )
 
             }

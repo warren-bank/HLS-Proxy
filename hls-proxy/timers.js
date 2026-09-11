@@ -23,13 +23,27 @@ const initialize_timers = function(params) {
       return request(options, POST_data, config)
     }
 
-    const add_request_interval = function(delay_ms, callback) {
+    const add_request_interval = function(delay_ms, callback, max_duration_ms) {
       if (!delay_ms || (typeof delay_ms !== 'number') || isNaN(delay_ms) || (delay_ms < 0)) {
         callback(request_wrapper)
       }
       else {
-        setInterval(
-          callback.bind(null, request_wrapper),
+        if (max_duration_ms && ((typeof max_duration_ms !== 'number') || (max_duration_ms < 0)))
+          max_duration_ms = 0
+
+        const start_time_ms = max_duration_ms
+          ? Date.now()
+          : null
+
+        const callback_wrapper = () => {
+          if (max_duration_ms && ((Date.now() - start_time_ms) > max_duration_ms))
+            clearInterval(timer_id)
+          else
+            callback(request_wrapper, timer_id)
+        }
+
+        const timer_id = setInterval(
+          callback_wrapper,
           delay_ms
         )
       }
