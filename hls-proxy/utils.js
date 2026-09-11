@@ -1,3 +1,4 @@
+const net       = require('net')
 const expressjs = require('./expressjs_utils')
 const {parse: parse_url, decode_component_value: decode_url_component_value} = require('./url')
 
@@ -197,11 +198,24 @@ const get_request_options = function(params, url, is_m3u8, referer_url, querystr
   return request_options
 }
 
+const is_blocked_private_or_internal_hostname = function(hostname) {
+  const lc = hostname.toLowerCase()
+
+  if (lc === 'localhost') return true
+
+  const ip_version = net.isIP(lc)
+  if (!ip_version) return false
+
+  return (ip_version === 4)
+    ? /^(0\.|10\.|127\.|169\.254\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(lc)
+    : (lc === '::1') || /^(fe80:|fc|fd|::ffff:(0\.|10\.|127\.|169\.254\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.))/.test(lc)
+}
+
 const block_request_options = function(params, request_options) {
   const {block_req_hostname} = params
 
   // short circuit
-  if (!block_req_hostname || !Array.isArray(block_req_hostname) || !block_req_hostname.length || !request_options)
+  if (!request_options)
     return false
 
   // special case: url
@@ -210,6 +224,13 @@ const block_request_options = function(params, request_options) {
 
   // sanity check
   if (!request_options.hostname || (typeof request_options.hostname !== 'string'))
+    return false
+
+  // always block private IP ranges, loopback, link-local, and cloud metadata endpoints
+  if (is_blocked_private_or_internal_hostname(request_options.hostname))
+    return true
+
+  if (!block_req_hostname || !Array.isArray(block_req_hostname) || !block_req_hostname.length)
     return false
 
   return (block_req_hostname.indexOf(request_options.hostname.toLowerCase()) >= 0)
