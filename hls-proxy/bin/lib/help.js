@@ -31,6 +31,7 @@ options:
 --acl-ip <ip_address_list>
 --acl-pass <password_list>
 --block-req-hostname <hostname_list>
+--allow-private-req-hostnames
 --http-proxy <http[s]://[user:pass@]hostname:port>
 --tls-cert <filepath>
 --tls-key <filepath>

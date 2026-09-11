@@ -1,0 +1,9 @@
+@echo off
+
+call "%~dp0.\env.bat"
+
+set verbosity_level=2
+
+set hlsd_opts=%hlsd_opts% --block-req-hostname "%dirname%" --allow-private-req-hostnames
+
+call "%~dp0..\..\%~nx0"

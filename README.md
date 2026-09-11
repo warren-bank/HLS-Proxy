@@ -160,6 +160,7 @@ options:
 --acl-ip <ip_address_list>
 --acl-pass <password_list>
 --block-req-hostname <hostname_list>
+--allow-private-req-hostnames
 --http-proxy <http[s]://[user:pass@]hostname:port>
 --tls-cert <filepath>
 --tls-key <filepath>
@@ -400,7 +401,30 @@ options:
 * _--acl-pass_ restricts proxy server access to requests that include a `password` querystring parameter having a value in whitelist
   * ex: `"1111,2222,3333,4444,5555"`
 * _--block-req-hostname_ blocks proxy server requests to hostnames in blacklist
-  * ex: `"localhost,127.0.0.1"`
+  * the value is a comma-separated list that is normalized to lowercase
+  * the value of each item in the list can use any of the following formats:
+    - includes substring
+      * value begins and ends with `*` character
+      * ex: `"*foo*"`<br>blacklists all hostnames that include the substring: `foo`
+    - starts with substring
+      * value ends with `*` character
+      * ex: `"www.*"`<br>blacklists all hostnames that start with the substring: `www.`
+    - ends with substring
+      * value starts with `*` character
+      * ex: `"*.foo.com"`<br>blacklists all hostnames that end with the substring: `.foo.com`
+    - matches regex pattern
+      * value begins and ends with `/` character
+      * ex: `"/^www\..+\.com$/"`<br>blacklists all hostnames that both start with the substring: `www.`, and end with the substring: `.com`
+    - equals exact string
+      * all other values
+      * ex: `"localhost,127.0.0.1"`
+* _--allow-private-req-hostnames_ is a flag to prevent the automatic addition of the following values to the _--block-req-hostname_ blacklist:
+  ```text
+    localhost,
+    ::1,
+    /^(0\.|10\.|127\.|169\.254\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/,
+    /^(fe80:|fc|fd|::ffff:(0\.|10\.|127\.|169\.254\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.))/
+  ```
 * --http-proxy enables all outbound HTTP and HTTPS requests from HLS-Proxy to be tunnelled through an additional external web proxy server
   * SOCKS proxies are not supported
   * ex: `http://myusername:mypassword@myproxy.example.com:1234`

@@ -201,7 +201,7 @@ const block_request_options = function(params, request_options) {
   const {block_req_hostname} = params
 
   // short circuit
-  if (!block_req_hostname || !Array.isArray(block_req_hostname) || !block_req_hostname.length || !request_options)
+  if (!block_req_hostname || !request_options)
     return false
 
   // special case: url
@@ -212,7 +212,20 @@ const block_request_options = function(params, request_options) {
   if (!request_options.hostname || (typeof request_options.hostname !== 'string'))
     return false
 
-  return (block_req_hostname.indexOf(request_options.hostname.toLowerCase()) >= 0)
+  const hostname = request_options.hostname.toLowerCase()
+  for (const blacklist_item of block_req_hostname.includes) {
+    if (hostname.includes(blacklist_item)) return true
+  }
+  for (const blacklist_item of block_req_hostname.startsWith) {
+    if (hostname.startsWith(blacklist_item)) return true
+  }
+  for (const blacklist_item of block_req_hostname.endsWith) {
+    if (hostname.endsWith(blacklist_item)) return true
+  }
+  for (const blacklist_item of block_req_hostname.match) {
+    if (blacklist_item.test(hostname)) return true
+  }
+  return (block_req_hostname.equals.indexOf(hostname) >= 0)
 }
 
 const should_prefetch_url = function(params, url, url_type) {

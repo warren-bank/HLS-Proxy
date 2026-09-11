@@ -1,0 +1,20 @@
+401 Unauthorized
+================
+
+https://github.com/warren-bank/crx-webcast-reloaded/raw/gh-pages/external_website/4-clappr/img/poster.jpg
+http://localhost:8080/aHR0cHM6Ly9naXRodWIuY29tL3dhcnJlbi1iYW5rL2NyeC13ZWJjYXN0LXJlbG9hZGVkL3Jhdy9naC1wYWdlcy9leHRlcm5hbF93ZWJzaXRlLzQtY2xhcHByL2ltZy9wb3N0ZXIuanBn.jpg
+
+https://raw.githubusercontent.com/warren-bank/crx-webcast-reloaded/gh-pages/external_website/4-clappr/img/poster.jpg
+http://localhost:8080/aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3dhcnJlbi1iYW5rL2NyeC13ZWJjYXN0LXJlbG9hZGVkL2doLXBhZ2VzL2V4dGVybmFsX3dlYnNpdGUvNC1jbGFwcHIvaW1nL3Bvc3Rlci5qcGc=.jpg
+
+https://warren-bank.github.io/crx-webcast-reloaded/external_website/4-clappr/img/poster.jpg
+http://localhost:8080/aHR0cHM6Ly93YXJyZW4tYmFuay5naXRodWIuaW8vY3J4LXdlYmNhc3QtcmVsb2FkZWQvZXh0ZXJuYWxfd2Vic2l0ZS80LWNsYXBwci9pbWcvcG9zdGVyLmpwZw==.jpg
+
+200 OK
+======
+
+http://localhost:80/poster.jpg
+http://localhost:8080/aHR0cDovL2xvY2FsaG9zdDo4MC9wb3N0ZXIuanBn.jpg
+
+http://127.0.0.1:80/poster.jpg
+http://localhost:8080/aHR0cDovLzEyNy4wLjAuMTo4MC9wb3N0ZXIuanBn.jpg

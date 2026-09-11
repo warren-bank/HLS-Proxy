@@ -39,6 +39,7 @@ const argv_flags = {
   "--acl-ip":                               {},
   "--acl-pass":                             {},
   "--block-req-hostname":                   {},
+  "--allow-private-req-hostnames":          {bool: true},
   "--http-proxy":                           {},
 
   "--tls-cert":                             {file: "path-exists"},
@@ -179,7 +180,99 @@ if (argv_vals["--acl-pass"]) {
 }
 
 if (argv_vals["--block-req-hostname"]) {
-  argv_vals["--block-req-hostname"] = argv_vals["--block-req-hostname"].trim().toLowerCase().split(/\s*,\s*/g)
+  const blacklist = argv_vals["--block-req-hostname"].trim().toLowerCase().split(/\s*,\s*/g)
+
+  argv_vals["--block-req-hostname"] = {
+    includes:   [],
+    startsWith: [],
+    endsWith:   [],
+    match:      [],
+    equals:     []
+  }
+
+  for (const item of blacklist) {
+    if (!item) continue
+
+    const globStart  = item.startsWith('*')
+    const globEnd    = item.endsWith('*')
+    const regexStart = item.startsWith('/')
+    const regexEnd   = item.endsWith('/')
+
+    if (globStart && globEnd) {
+      if (item.length > 2) {
+        argv_vals["--block-req-hostname"].includes.push(
+          item.substring(1, item.length - 1)
+        )
+      }
+      continue
+    }
+    if (globEnd) {
+      if (item.length > 1) {
+        argv_vals["--block-req-hostname"].startsWith.push(
+          item.substring(0, item.length - 1)
+        )
+      }
+      continue
+    }
+    if (globStart) {
+      if (item.length > 1) {
+        argv_vals["--block-req-hostname"].endsWith.push(
+          item.substring(1, item.length)
+        )
+      }
+      continue
+    }
+    if (regexStart && regexEnd) {
+      if (item.length > 2) {
+        try {
+          const regex = new RegExp(item.substring(1, item.length - 1))
+
+          argv_vals["--block-req-hostname"].match.push(
+            regex
+          )
+        }
+        catch(ignored) {}
+      }
+      continue
+    }
+    else {
+      argv_vals["--block-req-hostname"].equals.push(
+        item
+      )
+    }
+  }
+}
+
+if (!argv_vals["--allow-private-req-hostnames"]) {
+  if (!argv_vals["--block-req-hostname"]) {
+    argv_vals["--block-req-hostname"] = {
+      includes:   [],
+      startsWith: [],
+      endsWith:   [],
+      match:      [],
+      equals:     []
+    }
+  }
+  argv_vals["--block-req-hostname"].match.push(
+    /^(0\.|10\.|127\.|169\.254\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/,
+    /^(fe80:|fc|fd|::ffff:(0\.|10\.|127\.|169\.254\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.))/
+  )
+  argv_vals["--block-req-hostname"].equals.push(
+    'localhost',
+    '::1'
+  )
+}
+
+if (argv_vals["--block-req-hostname"]) {
+  if (
+    !argv_vals["--block-req-hostname"].includes.length   &&
+    !argv_vals["--block-req-hostname"].startsWith.length &&
+    !argv_vals["--block-req-hostname"].endsWith.length   &&
+    !argv_vals["--block-req-hostname"].match.length      &&
+    !argv_vals["--block-req-hostname"].equals.length
+  ) {
+    argv_vals["--block-req-hostname"] = null
+  }
 }
 
 if (argv_vals["--http-proxy"]) {
