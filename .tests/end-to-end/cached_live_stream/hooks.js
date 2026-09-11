@@ -3,19 +3,19 @@ const path = require('path')
 
 const output_manifest_file = process.env.output_manifest_file
   ? path.normalize(process.env.output_manifest_file)
-  : path.join(__dirname, 'cached_live_stream.m3u8')
+  : null
 
-// https://english-livebkali.cgtn.com/live/encgtn.m3u8
-// https://english-livebkali.cgtn.com/live/encgtn_3.m3u8
-//   RESOLUTION=320x180
-//   (4 seconds / video segment)(6 video segments) = 24 seconds
-
-const video_url = 'https://english-livebkali.cgtn.com/live/encgtn_3.m3u8'
-const interval_ms = 1000 * 12         // 12  seconds
-const max_duration_ms = 1000 * 60 * 4 // 240 seconds = 4 minutes
+const video_url       = process.env.video_url
+const interval_ms     = process.env.interval_ms     ? parseInt(process.env.interval_ms,     10) : null
+const max_duration_ms = process.env.max_duration_ms ? parseInt(process.env.max_duration_ms, 10) : null
 
 module.exports = {
   request_intervals: (add_request_interval) => {
+    if (!output_manifest_file || !video_url || (interval_ms === null) || (max_duration_ms === null) || isNaN(interval_ms) || isNaN(max_duration_ms)) {
+      console.log('Environment variables are not properly configured for the hook function to create a request interval.')
+      return
+    }
+
     const proxy_url      = process.env.proxy_url
     const file_extension = '.m3u8'
     const hls_proxy_url  = `${proxy_url}/${ btoa(video_url) }${file_extension}`
@@ -34,7 +34,10 @@ module.exports = {
         if (last_video_segment) {
           const index = lines.indexOf(last_video_segment)
 
-          manifest_data = lines.slice(index + 1).join("\n")
+          if (index >= 0)
+            manifest_data = lines.slice(index + 1).join("\n")
+          else
+            console.log('Warning: The request interval is too large! Video segments could fail to be cached.')
         }
 
         for (let i = lines.length - 1; i >= 0; i--) {

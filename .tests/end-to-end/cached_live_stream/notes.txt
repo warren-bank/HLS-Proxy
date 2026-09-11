@@ -1,7 +1,0 @@
-1. run: start_hlsd.bat
-2. run: serve --listen tcp:localhost:80 --cors ./output
-3: urls:
-   - manifest:
-       http://localhost/cached_live_stream.m3u8
-   - video player:
-       http://webcast-reloaded.surge.sh/4-clappr/index.html#/watch/aHR0cDovL2xvY2FsaG9zdC9jYWNoZWRfbGl2ZV9zdHJlYW0ubTN1OA%253D%253D

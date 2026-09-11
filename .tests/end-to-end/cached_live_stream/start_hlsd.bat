@@ -1,6 +1,6 @@
 @echo off
 
-call "%~dp0.\env.bat"
+call "%~dp0.\config.bat"
 
 set output_dir=%~dp0.\output
 set cache_dir=%output_dir%\cache
