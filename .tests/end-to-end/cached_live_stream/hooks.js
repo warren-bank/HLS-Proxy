@@ -9,14 +9,16 @@ const fpath_manifest_file = process.env.fpath_manifest_file
   ? path.normalize(process.env.fpath_manifest_file)
   : null
 
-const video_url       = process.env.video_url
-const interval_ms     = process.env.interval_ms     ? parseInt(process.env.interval_ms,     10) : null
-const max_duration_ms = process.env.max_duration_ms ? parseInt(process.env.max_duration_ms, 10) : null
-const proxy_url       = process.env.proxy_url
-const file_extension  = '.m3u8'
-const hls_proxy_url   = `${proxy_url}/${ btoa(video_url) }${file_extension}`
+const video_url         = process.env.video_url
+const interval_ms       = process.env.interval_ms       ? parseInt(process.env.interval_ms,       10) : null
+const max_duration_ms   = process.env.max_duration_ms   ? parseInt(process.env.max_duration_ms,   10) : null
+const max_cache_retries = process.env.max_cache_retries ? parseInt(process.env.max_cache_retries, 10) : 5
+const proxy_url         = process.env.proxy_url
+const file_extension    = '.m3u8'
+const hls_proxy_url     = `${proxy_url}/${ btoa(video_url) }${file_extension}`
 
-let last_video_segment = null
+let last_video_segment  = null
+let fpath_manifest_data = []
 
 const request_interval_callback = async (request, context) => {
   let proxy_manifest_data
@@ -68,24 +70,45 @@ const request_interval_callback = async (request, context) => {
       {encoding: 'utf8', flush: true}
     )
 
-    setTimeout(
-      function() {
-        const fpath_manifest_data = replace_proxy_with_fpath(context, proxy_manifest_data)
-        if (!fpath_manifest_data) return
+    fpath_manifest_data.push({
+      retries: 0,
+      done: false,
+      data: proxy_manifest_data
+    })
 
-        fs.appendFileSync(
-          fpath_manifest_file,
-          fpath_manifest_data + "\n",
-          {encoding: 'utf8', flush: true}
-        )
-      },
-      (interval_ms * 2)
-    )
+    process_fpath_manifest_data(context)
   }
 }
 
-const replace_proxy_with_fpath = (context, proxy_manifest_data) => {
-  let lines = proxy_manifest_data.split(/[\r\n]+/)
+const process_fpath_manifest_data = (context) => {
+  for (let i = 0; i < fpath_manifest_data.length; i++) {
+    replace_proxy_with_fpath(context, i)
+  }
+
+  while (fpath_manifest_data.length) {
+    if (fpath_manifest_data[0].done || (fpath_manifest_data[0].retries >= max_cache_retries)) {
+      const fpath_manifest_data_item = fpath_manifest_data.shift()
+
+      fs.appendFileSync(
+        fpath_manifest_file,
+        fpath_manifest_data_item.data + "\n",
+        {encoding: 'utf8', flush: true}
+      )
+    }
+    else {
+      break
+    }
+  }
+}
+
+const replace_proxy_with_fpath = (context, fpath_manifest_data_index) => {
+  const fpath_manifest_data_item = fpath_manifest_data[fpath_manifest_data_index]
+
+  if (fpath_manifest_data_item.done) return
+  fpath_manifest_data_item.retries += 1
+
+  let lines = fpath_manifest_data_item.data.split(/[\r\n]+/)
+  let done  = true
 
   for (let i = 0; i < lines.length; i++) {
     if (lines[i].startsWith(proxy_url)) {
@@ -95,19 +118,16 @@ const replace_proxy_with_fpath = (context, proxy_manifest_data) => {
         lines[i] = fpath
       }
       else {
-        // not found in cache; remove segment from manifest.
-        lines[i] = null
-
-        if (i > 0) lines[i-1] = null
+        // not found in cache; leave URL in manifest and retry again later.
+        done = false
       }
     }
   }
 
-  lines = lines.filter(line => !!line)
+  const data = lines.join("\n")
 
-  return lines.length
-    ? lines.join("\n")
-    : null
+  fpath_manifest_data_item.done = done
+  fpath_manifest_data_item.data = data
 }
 
 const get_fpath = (context, url) => {
@@ -126,17 +146,19 @@ const get_fpath = (context, url) => {
   return ts_segment.state.fpath
 }
 
-const finalize_manifests = (interval_timer_id) => {
-  if (interval_timer_id)
-    clearInterval(interval_timer_id)
+const finalize_manifests = (context) => {
+  if (context && context.timer_id)
+    clearInterval(context.timer_id)
 
   setTimeout(
-    finalize_manifests_sync,
-    (interval_ms * 3)
+    function() {
+      finalize_manifests_sync(context)
+    },
+    interval_ms
   )
 }
 
-const finalize_manifests_sync = () => {
+const finalize_manifests_sync = (context) => {
   // mark HLS manifests as complete (live -> VOD)
 
   fs.appendFileSync(
@@ -144,6 +166,12 @@ const finalize_manifests_sync = () => {
     '#EXT-X-ENDLIST' + "\n",
     {encoding: 'utf8', flush: true}
   )
+
+  process_fpath_manifest_data(context)
+  for (const item of fpath_manifest_data) {
+    item.done = true
+  }
+  process_fpath_manifest_data(context)
 
   fs.appendFileSync(
     fpath_manifest_file,
@@ -164,12 +192,12 @@ module.exports = {
     fs.rmSync(proxy_manifest_file, {force: true})
     fs.rmSync(fpath_manifest_file, {force: true})
 
-    let interval_timer_id = null
+    let interval_context = null
 
     add_request_interval(
       interval_ms, // run timer at interval to download and cache new HSL video segments
       (request, context) => {
-        interval_timer_id = context.timer_id
+        interval_context = context
 
         request_interval_callback(request, context)
       },
@@ -178,12 +206,12 @@ module.exports = {
 
     process.on('SIGINT', () => {
       console.log('Caught interrupt signal (Ctrl+C). Finalizing manifests...')
-      finalize_manifests(interval_timer_id)
+      finalize_manifests(interval_context)
     })
 
     process.on('SIGHUP', () => {
       console.log('Terminal window closed. Finalizing manifests...')
-      finalize_manifests_sync()
+      finalize_manifests_sync(interval_context)
     })
 
   }
