@@ -1,10 +1,8 @@
 @echo off
 
 call "%~dp0.\config.bat"
+call "%~dp0.\env.bat"
 
-set output_dir=%~dp0.\output
-set cache_dir=%output_dir%\cache
-set output_manifest_file=%output_dir%\cached_live_stream.m3u8
 set hooks_js="%~dp0.\hooks.js"
 
 rem :: largest 32-bit signed integer
@@ -22,4 +20,4 @@ if exist "%output_dir%" rmdir /Q /S "%output_dir%"
 mkdir "%output_dir%"
 mkdir "%cache_dir%"
 
-call "%~dp0..\..\..\.recipes\.bin\start_hlsd.bat"
+call "%~dp0..\..\..\.recipes\.bin\start_hlsd.bat" >"%output_dir%\%~n0.log" 2>&1

@@ -2,7 +2,105 @@ const request = require('@warren-bank/node-request').request
 const cookies = require('./cookies')
 const utils   = require('./utils')
 
+// maps: "m3u8_url" => {access: timestamp, ts: []}
+const cache = {}
+
+const get_cache = function(m3u8_url) {
+  const data = cache[m3u8_url]
+  if (! data instanceof Object) return null
+  return data
+}
+
+const get_ts = function(m3u8_url) {
+  const data = get_cache(m3u8_url)
+  if (!data) return null
+
+  const ts = data.ts
+  if (!Array.isArray(ts)) return null
+  return ts
+}
+
+const has_cache = function(m3u8_url) {
+  const ts = get_ts(m3u8_url)
+  return (ts && ts.length)
+}
+
+const get_timestamp = function() {
+  const ms  = (new Date()).getTime()
+  const sec = Math.floor(ms / 1000)
+  return sec
+}
+
+const get_time_since_last_access = function(m3u8_url) {
+  const data = get_cache(m3u8_url)
+  if (!data) return -1
+
+  const now = get_timestamp()
+  return (now - data.access)
+}
+
+const touch_access = function(m3u8_url) {
+  const data = get_cache(m3u8_url)
+  if (!data) return
+
+  data.access = get_timestamp()
+}
+
+const regexs = {
+  "ts_extension": /\.ts(?:[\?#]|$)/i,
+  "ts_filename":  /^.*?\/([^\/]+\.ts).*$/i,
+  "ts_sequence":  /^.*?(\d+\.ts).*$/i
+}
+
+const is_ts_file = function(url) {
+  return regexs["ts_extension"].test(url)
+}
+
+const get_privatekey_from_url = (url) => url
+
+const find_index_of_segment = function(m3u8_url, url) {
+  let index
+
+  const ts = get_ts(m3u8_url)
+  if (!ts) return index
+
+  const key = get_privatekey_from_url(url)
+  let i, segment
+
+  for (i=(ts.length - 1); i>=0; i--) {
+    segment = ts[i]  // {key, has, cb, type, state}
+    if (segment && (segment.key === key)) {
+      index = i
+      break
+    }
+  }
+  return index
+}
+
+const find_segment = function(url) {
+  let m3u8_url, index
+
+  for (m3u8_url in cache) {
+    index = find_index_of_segment(m3u8_url, url)
+
+    if (index !== undefined)
+      return {m3u8_url, index}
+  }
+}
+
 module.exports = function(params) {
+  // special case: cannot be accessed from command-line. for internal use only.
+  if (params.expose_internals) return {
+    get_cache,
+    get_ts,
+    has_cache,
+    get_time_since_last_access,
+    touch_access,
+    is_ts_file,
+    find_index_of_segment,
+    find_segment
+  }
+
   const {cache_segments, max_segments, cache_timeout, cache_key, debug_level} = params
 
   if (!cache_segments) return {}
@@ -12,48 +110,11 @@ module.exports = function(params) {
   const should_prefetch_url   = utils.should_prefetch_url.bind(null, params)
   const cache_storage_adapter = require('./segment_cache_storage')(params)
 
-  // maps: "m3u8_url" => {access: timestamp, ts: []}
-  const cache = {}
-
-  const get_cache = function(m3u8_url) {
-    const data = cache[m3u8_url]
-    if (! data instanceof Object) return null
-    return data
-  }
-
-  const get_ts = function(m3u8_url) {
-    const data = get_cache(m3u8_url)
-    if (!data) return null
-
-    const ts = data.ts
-    if (!Array.isArray(ts)) return null
-    return ts
-  }
-
-  const has_cache = function(m3u8_url) {
-    const ts = get_ts(m3u8_url)
-    return (ts && ts.length)
-  }
-
   const clear_ts = function(m3u8_url) {
     const ts = get_ts(m3u8_url)
     if (!ts || !ts.length) return
 
     ts_garbage_collect(m3u8_url, 0, ts.length - 1)
-  }
-
-  const get_timestamp = function() {
-    const ms  = (new Date()).getTime()
-    const sec = Math.floor(ms / 1000)
-    return sec
-  }
-
-  const get_time_since_last_access = function(m3u8_url) {
-    const data = get_cache(m3u8_url)
-    if (!data) return -1
-
-    const now = get_timestamp()
-    return (now - data.access)
   }
 
   const is_expired = function(m3u8_url) {
@@ -68,13 +129,6 @@ module.exports = function(params) {
     if (cache_timeout < 0) return true
 
     return (time_since_last_access >= cache_timeout)
-  }
-
-  const touch_access = function(m3u8_url) {
-    const data = get_cache(m3u8_url)
-    if (!data) return
-
-    data.access = get_timestamp()
   }
 
   const ts_garbage_collect = function(m3u8_url, start, count) {
@@ -97,18 +151,6 @@ module.exports = function(params) {
     ts.splice(start, count)
   }
 
-  const regexs = {
-    "ts_extension": /\.ts(?:[\?#]|$)/i,
-    "ts_filename":  /^.*?\/([^\/]+\.ts).*$/i,
-    "ts_sequence":  /^.*?(\d+\.ts).*$/i
-  }
-
-  const is_ts_file = function(url) {
-    return regexs["ts_extension"].test(url)
-  }
-
-  const get_privatekey_from_url = (url) => url
-
   const get_publickey_from_url = function(url) {
     // short-circuit for special case: hook function allows prefetching urls with non-standard file extensions
     if (!is_ts_file(url))
@@ -128,36 +170,6 @@ module.exports = function(params) {
         // sequence number of .ts file w/ .ts file extension (ex: "123.ts")
         return url.replace(regexs["ts_sequence"], '$1')
         break
-    }
-  }
-
-  const find_index_of_segment = function(m3u8_url, url) {
-    let index
-
-    const ts = get_ts(m3u8_url)
-    if (!ts) return index
-
-    const key = get_privatekey_from_url(url)
-    let i, segment
-
-    for (i=(ts.length - 1); i>=0; i--) {
-      segment = ts[i]  // {key, has, cb, type, state}
-      if (segment && (segment.key === key)) {
-        index = i
-        break
-      }
-    }
-    return index
-  }
-
-  const find_segment = function(url) {
-    let m3u8_url, index
-
-    for (m3u8_url in cache) {
-      index = find_index_of_segment(m3u8_url, url)
-
-      if (index !== undefined)
-        return {m3u8_url, index}
     }
   }
 

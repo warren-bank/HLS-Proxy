@@ -314,7 +314,13 @@ options:
 
               add_request_interval(
                 (1000 * 60 * 5), // run timer at 5 minute intervals to refresh cookies
-                (request, timer_id) => {
+                (request, context) => {
+                  const {
+                    timer_id,
+                    extract_encoded_url,
+                    internal_filesystem_segment_cache
+                  } = context
+
                   request('https://example.com/heart-beat')
 
                   if (globalThis.someCondition)
@@ -326,14 +332,132 @@ options:
             }
           }
         ```
-      * more advanced configuration of the call to the HTTP request client is possible
-        - the 1st parameter is required, and must be a _URL_ string
-        - the 2nd parameter is optional, and can contain POST data
-        - the 3rd parameter is optional, and can be used for more advanced configuration options
-      * usage of this HTTP request client is documented [here](https://github.com/warren-bank/node-request#api)
-        - specifically, pay careful attention to the signatures for:
-          * the latter two input parameters
-          * the attributes of the Object that is resolved by the Promise in the return value (if the content of the response is needed)
+      * `add_request_interval` function input parameters:
+        1. `delay_ms`
+           * type: positive integer
+           * otherwise: `callback` is called immediately and only once
+        2. `callback`
+           * type: function
+           * input parameters:
+             1. `request`
+                 * type: function
+                 * more advanced configuration of the call to the HTTP request client is possible
+                   - the 1st parameter is required, and must be a _URL_ string
+                   - the 2nd parameter is optional, and can contain POST data
+                   - the 3rd parameter is optional, and can be used for more advanced configuration options
+                 * usage of this HTTP request client is documented [here](https://github.com/warren-bank/node-request#api)
+                   - specifically, pay careful attention to the signatures for:
+                     * the latter two input parameters
+                     * the attributes of the Object that is resolved by the Promise in the return value (if the content of the response is needed)
+             2. `context`
+                * type: object
+                * keys:
+                  1. `timer_id`
+                     * type:
+                       - return value of `setInterval`: if `delay_ms` is a positive integer
+                       - otherwise: `undefined`
+                     * usage: parameter to `clearInterval`
+                  2. `extract_encoded_url`
+                     * type: function
+                     * input parameters:
+                       1. proxy URL
+                          * type: string
+                          * ex: `http://127.0.0.1:8080/aHR0cHM6Ly9odHRwYmluLm9yZy9oZWFkZXJz.json`
+                     * output value:
+                       * type: string
+                       * ex: `https://httpbin.org/headers`
+                  3. `internal_filesystem_segment_cache`
+                     * type:
+                       - object: if both prefetch and the 'filesystem' cache storage adapter are enabled
+                       - otherwise: `null`
+                     * keys:
+                       1. `get_cache`
+                          * type: function
+                          * input parameters:
+                            1. `m3u8_url`
+                               * type: string
+                               * ex: `https://example.com/video/master.m3u8`
+                          * output value:
+                            - type: object
+                            - keys:
+                              1. `access`
+                                 * type: positive integer
+                                 * value: timestamp of seconds since epoch of the most recently cached .ts segment
+                              2. `ts`
+                                 * type: array of objects
+                                 * keys in each object:
+                                   1. `key`
+                                      * type: string
+                                      * value: URL of .ts segment
+                                   2. `has`
+                                      * type: boolean
+                                      * value: whether the .ts segment is held in local cache
+                                   3. `state`
+                                      * type: object
+                                      * keys:
+                                        1. `fpath`
+                                           * type: string
+                                           * value: file path to the .ts segment held by the 'filesystem' cache storage adapter
+                       2. `get_ts`
+                          * type: function
+                          * input parameters:
+                            1. `m3u8_url`
+                          * output value:
+                            - `get_cache(m3u8_url).ts`
+                       3. `has_cache`
+                          * type: function
+                          * input parameters:
+                            1. `m3u8_url`
+                          * output value:
+                            - `get_ts(m3u8_url).length`
+                       4. `get_time_since_last_access`
+                          * type: function
+                          * input parameters:
+                            1. `m3u8_url`
+                          * output value:
+                            - type: positive integer
+                            - value: number of seconds since the most recently cached .ts segment
+                       5. `touch_access`
+                          * type: function
+                          * input parameters:
+                            1. `m3u8_url`
+                          * output value:
+                            - type: `undefined`
+                            - updates the timestamp of seconds since epoch of the most recently cached .ts segment
+                       6. `is_ts_file`
+                          * type: function
+                          * input parameters:
+                            1. `url`
+                          * output value:
+                            - type: boolean
+                            - value: whether `url` ends with a .ts file extension
+                       7. `find_index_of_segment`
+                          * type: function
+                          * input parameters:
+                            1. `m3u8_url`
+                            2. `url`
+                          * output value:
+                            - type: integer
+                            - value: index of object in `ts` array having `key` equal to `url`
+                       8. `find_segment`
+                          * type: function
+                          * input parameters:
+                            1. `url`
+                          * output value:
+                            - type:
+                              * object: if found
+                              * otherwise: `undefined`
+                            - keys:
+                              1. `m3u8_url`
+                                 * type: string
+                                 * value: URL of HLS manifest with a matching cached .ts segment
+                              2. `index`
+                                 * type: positive integer
+                                 * value: index of object in `ts` array having `key` equal to `url`
+        3. `max_duration_ms`
+           * optional
+           * type: positive integer
+           * if both `delay_ms` and `max_duration_ms` are positive integers,<br>automatically stop the interval timer after this fixed duration
 * _--prefetch_ is a flag to enable the prefetch and caching of video segments
   * when .m3u8 files are downloaded and modified inflight, all of the URLs in the playlist are known
   * at this time, it is possible to prefetch the video segments (.ts files)
